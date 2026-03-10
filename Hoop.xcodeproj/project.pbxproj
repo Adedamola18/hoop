@@ -50,6 +50,7 @@
 		BB000029 /* WebcamWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00002A /* WebcamWidget.swift */; };
 		BB00002B /* SystemStatsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00002C /* SystemStatsService.swift */; };
 		BB00002D /* SystemStatsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00002E /* SystemStatsWidget.swift */; };
+		BB00002F /* GestureSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000030 /* GestureSettings.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -98,6 +99,7 @@
 		BB00002A /* WebcamWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebcamWidget.swift; sourceTree = "<group>"; };
 		BB00002C /* SystemStatsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStatsService.swift; sourceTree = "<group>"; };
 		BB00002E /* SystemStatsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStatsWidget.swift; sourceTree = "<group>"; };
+		BB000030 /* GestureSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureSettings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -194,6 +196,7 @@
 				AA000017 /* NotchState.swift */,
 				AA00003A /* ContextRule.swift */,
 				BB00000E /* WidgetProtocol.swift */,
+				BB000030 /* GestureSettings.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -329,6 +332,7 @@
 				BB000029 /* WebcamWidget.swift in Sources */,
 				BB00002B /* SystemStatsService.swift in Sources */,
 				BB00002D /* SystemStatsWidget.swift in Sources */,
+				BB00002F /* GestureSettings.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

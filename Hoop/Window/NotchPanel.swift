@@ -17,6 +17,15 @@ final class NotchPanel: NSPanel {
     /// Called when a horizontal swipe is detected. Parameter is true for next track, false for previous.
     var onSwipeSkip: ((Bool) -> Void)?
 
+    /// Called when a horizontal swipe requests widget switching. Parameter is true for next, false for previous.
+    var onSwipeWidget: ((Bool) -> Void)?
+
+    /// Called when a vertical swipe down is detected.
+    var onVerticalSwipe: (() -> Void)?
+
+    /// Called when a long press is detected.
+    var onLongPress: (() -> Void)?
+
     /// Called when a drag enters the notch area (transition to .tray).
     var onDragEntered: (() -> Void)?
 
@@ -154,10 +163,120 @@ final class NotchPanel: NSPanel {
         DispatchQueue.main.asyncAfter(deadline: .now() + graceDelay, execute: work)
     }
 
+    // MARK: - Scroll / Swipe Events
+
+    /// Accumulated horizontal scroll delta for swipe detection.
+    private var accumulatedScrollDeltaX: CGFloat = 0
+
+    /// Accumulated vertical scroll delta for swipe detection.
+    private var accumulatedScrollDeltaY: CGFloat = 0
+
+    /// Minimum delta to trigger a swipe action.
+    private let swipeThreshold: CGFloat = 30.0
+
+    /// Whether a swipe action has already fired for the current gesture.
+    private var swipeActionFired = false
+
+    override func scrollWheel(with event: NSEvent) {
+        guard let state = notchState,
+              state.phase == .expanding || state.phase == .expanded || state.phase == .idle else {
+            super.scrollWheel(with: event)
+            return
+        }
+
+        // Only process trackpad scroll events (continuous touch), not mouse wheel (discrete)
+        guard event.phase != [] || event.momentumPhase != [] else {
+            super.scrollWheel(with: event)
+            return
+        }
+
+        // Reset accumulator at gesture start
+        if event.phase == .began {
+            accumulatedScrollDeltaX = 0
+            accumulatedScrollDeltaY = 0
+            swipeActionFired = false
+        }
+
+        accumulatedScrollDeltaX += event.scrollingDeltaX
+        accumulatedScrollDeltaY += event.scrollingDeltaY
+
+        if !swipeActionFired {
+            // Horizontal swipe (only in expanded state)
+            if abs(accumulatedScrollDeltaX) > swipeThreshold &&
+               abs(accumulatedScrollDeltaX) > abs(accumulatedScrollDeltaY) &&
+               (state.phase == .expanding || state.phase == .expanded) {
+                swipeActionFired = true
+                let isNext = accumulatedScrollDeltaX < 0
+
+                switch HorizontalSwipeAction.current {
+                case .skipTrack:
+                    onSwipeSkip?(isNext)
+                case .switchWidget:
+                    onSwipeWidget?(isNext)
+                case .none:
+                    break
+                }
+
+                NSHapticFeedbackManager.defaultPerformer.perform(
+                    .alignment,
+                    performanceTime: .default
+                )
+            }
+
+            // Vertical swipe down (works from idle too)
+            if accumulatedScrollDeltaY < -swipeThreshold &&
+               abs(accumulatedScrollDeltaY) > abs(accumulatedScrollDeltaX) {
+                swipeActionFired = true
+
+                switch VerticalSwipeAction.current {
+                case .expand:
+                    if state.phase == .idle {
+                        onExpandRequested?()
+                        state.phase = .expanding
+                    }
+                case .showWidgets:
+                    onVerticalSwipe?()
+                case .none:
+                    break
+                }
+
+                NSHapticFeedbackManager.defaultPerformer.perform(
+                    .alignment,
+                    performanceTime: .default
+                )
+            }
+        }
+
+        // Reset on gesture end
+        if event.phase == .ended || event.phase == .cancelled {
+            accumulatedScrollDeltaX = 0
+            accumulatedScrollDeltaY = 0
+            swipeActionFired = false
+        }
+    }
+
+    // MARK: - Long Press
+
+    private var longPressTimer: DispatchWorkItem?
+    private let longPressDuration: TimeInterval = 0.5
+
     override func mouseDown(with event: NSEvent) {
+        // Start long press timer
+        let longPress = DispatchWorkItem { [weak self] in
+            guard LongPressAction.current != .none else { return }
+            self?.onLongPress?()
+            self?.longPressTimer = nil
+            NSHapticFeedbackManager.defaultPerformer.perform(
+                .levelChange,
+                performanceTime: .default
+            )
+        }
+        longPressTimer = longPress
+        DispatchQueue.main.asyncAfter(deadline: .now() + longPressDuration, execute: longPress)
+
         // Click-to-activate: toggle expand/collapse when trigger is .click
         guard ActivationTrigger.current == .click else {
-            super.mouseDown(with: event)
+            // Don't call super — we handle mouseUp for non-click triggers
             return
         }
 
@@ -176,56 +295,11 @@ final class NotchPanel: NSPanel {
         }
     }
 
-    // MARK: - Scroll / Swipe Events
-
-    /// Accumulated horizontal scroll delta for swipe detection.
-    private var accumulatedScrollDeltaX: CGFloat = 0
-
-    /// Minimum horizontal delta to trigger a track skip.
-    private let swipeThreshold: CGFloat = 30.0
-
-    /// Whether a swipe action has already fired for the current gesture.
-    private var swipeActionFired = false
-
-    override func scrollWheel(with event: NSEvent) {
-        guard let state = notchState,
-              state.phase == .expanding || state.phase == .expanded else {
-            super.scrollWheel(with: event)
-            return
-        }
-
-        // Only process trackpad scroll events (continuous touch), not mouse wheel (discrete)
-        guard event.phase != [] || event.momentumPhase != [] else {
-            super.scrollWheel(with: event)
-            return
-        }
-
-        // Reset accumulator at gesture start
-        if event.phase == .began {
-            accumulatedScrollDeltaX = 0
-            swipeActionFired = false
-        }
-
-        accumulatedScrollDeltaX += event.scrollingDeltaX
-
-        // Fire once per gesture when threshold exceeded
-        if !swipeActionFired && abs(accumulatedScrollDeltaX) > swipeThreshold {
-            swipeActionFired = true
-            let isNext = accumulatedScrollDeltaX < 0 // swipe left = next track
-            onSwipeSkip?(isNext)
-
-            // Haptic feedback
-            NSHapticFeedbackManager.defaultPerformer.perform(
-                .alignment,
-                performanceTime: .default
-            )
-        }
-
-        // Reset on gesture end
-        if event.phase == .ended || event.phase == .cancelled {
-            accumulatedScrollDeltaX = 0
-            swipeActionFired = false
-        }
+    override func mouseUp(with event: NSEvent) {
+        // Cancel long press if finger lifted before threshold
+        longPressTimer?.cancel()
+        longPressTimer = nil
+        super.mouseUp(with: event)
     }
 
     // MARK: - Key Events
@@ -301,5 +375,7 @@ final class NotchPanel: NSPanel {
         dwellTimer = nil
         graceTimer?.cancel()
         graceTimer = nil
+        longPressTimer?.cancel()
+        longPressTimer = nil
     }
 }
