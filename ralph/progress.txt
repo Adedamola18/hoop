@@ -22,6 +22,8 @@
 - MediaRemote commands: 2=togglePlayPause, 4=next, 5=previous (UInt32)
 - MediaService is @Observable — downstream views can observe nowPlaying changes directly
 - Services directory: Hoop/Services/ with PBXGroup AA000036
+- Widgets directory: Hoop/Views/Widgets/ with PBXGroup AA000037
+- MediaService is shared across all panels — single instance owned by NotchWindowManager
 
 Started: 2026-03-10
 ---
@@ -137,4 +139,21 @@ Started: 2026-03-10
   - Album art comes as Data under kMRMediaRemoteNowPlayingInfoArtworkData key, convert to NSImage
   - NowPlayingClient is opaque but responds to KVC for "bundleIdentifier"
   - @convention(c) typealias needed for dlsym function pointers; unsafeBitCast to convert
+---
+
+## 2026-03-10 - US-009
+- Implemented media player expanded widget view
+- Files created: Hoop/Views/Widgets/MediaPlayerWidget.swift
+- Files changed: Hoop/Views/NotchRootView.swift, Hoop/Window/NotchWindowManager.swift, Hoop.xcodeproj/project.pbxproj
+- MediaPlayerWidget displays album art (80x80 rounded), track title, artist, progress bar, play/pause/next/previous controls
+- Shows source app icon via NSWorkspace.shared.urlForApplication(withBundleIdentifier:) + icon(forFile:)
+- Widget only renders when playbackState is .playing or .paused (isActive guard)
+- NotchRootView now accepts MediaService; shows MediaPlayerWidget when expanded + media active, else "Hoop" text
+- NotchWindowManager creates shared MediaService, starts observing on init, passes to all NotchRootView instances
+- Added Widgets PBXGroup (AA000037) under Views group
+- **Learnings for future iterations:**
+  - NSWorkspace.shared.urlForApplication(withBundleIdentifier:) returns app URL for icon lookup
+  - Widgets directory lives under Views/Widgets/ with its own PBXGroup
+  - MediaService is shared across all panels via NotchWindowManager (single instance)
+  - Widget visibility tied to isActive check on playback state — no unnecessary rendering when no media
 ---

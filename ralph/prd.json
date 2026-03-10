@@ -141,7 +141,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 9,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 3. Widget should be sized to fit within expanded notch (~600pt wide panel). Use AsyncImage or NSImage for album art."
     },
     {
