@@ -45,6 +45,8 @@
 		BB00001F /* ShortcutsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000020 /* ShortcutsService.swift */; };
 		BB000021 /* ShortcutsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000022 /* ShortcutsWidget.swift */; };
 		BB000023 /* NotesWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000024 /* NotesWidget.swift */; };
+		BB000025 /* ColorPickerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000026 /* ColorPickerWidget.swift */; };
+		BB000027 /* ConverterWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000028 /* ConverterWidget.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -88,6 +90,8 @@
 		BB000020 /* ShortcutsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsService.swift; sourceTree = "<group>"; };
 		BB000022 /* ShortcutsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsWidget.swift; sourceTree = "<group>"; };
 		BB000024 /* NotesWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesWidget.swift; sourceTree = "<group>"; };
+		BB000026 /* ColorPickerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidget.swift; sourceTree = "<group>"; };
+		BB000028 /* ConverterWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConverterWidget.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -160,6 +164,8 @@
 				BB00001E /* ClipboardWidget.swift */,
 				BB000022 /* ShortcutsWidget.swift */,
 				BB000024 /* NotesWidget.swift */,
+				BB000026 /* ColorPickerWidget.swift */,
+				BB000028 /* ConverterWidget.swift */,
 			);
 			path = Widgets;
 			sourceTree = "<group>";
@@ -309,6 +315,8 @@
 				BB00001F /* ShortcutsService.swift in Sources */,
 				BB000021 /* ShortcutsWidget.swift in Sources */,
 				BB000023 /* NotesWidget.swift in Sources */,
+				BB000025 /* ColorPickerWidget.swift in Sources */,
+				BB000027 /* ConverterWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

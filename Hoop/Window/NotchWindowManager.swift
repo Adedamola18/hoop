@@ -108,6 +108,8 @@ final class NotchWindowManager {
         widgetRegistry.register(ClipboardNotchWidget(clipboardService: clipboardService))
         widgetRegistry.register(ShortcutsNotchWidget(shortcutsService: shortcutsService))
         widgetRegistry.register(NotesNotchWidget())
+        widgetRegistry.register(ColorPickerNotchWidget())
+        widgetRegistry.register(ConverterNotchWidget())
     }
 
     // MARK: - Screen Change Handling
