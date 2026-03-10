@@ -18,6 +18,7 @@ final class NotchWindowManager {
     let batteryService = BatteryService()
     let privacyService = PrivacyService()
     let focusService = FocusService()
+    let widgetRegistry = WidgetRegistry()
 
     init() {
         NotificationCenter.default.addObserver(
@@ -199,7 +200,7 @@ final class NotchWindowManager {
         state.screenHasNotch = screen.hasNotch
         state.collapsedSize = screen.overlayFrame.size
 
-        let rootView = NotchRootView(state: state, mediaService: mediaService, hudService: hudService, contextService: contextService, dropActionService: dropActionService, batteryService: batteryService, privacyService: privacyService, focusService: focusService)
+        let rootView = NotchRootView(state: state, mediaService: mediaService, hudService: hudService, contextService: contextService, dropActionService: dropActionService, batteryService: batteryService, privacyService: privacyService, focusService: focusService, widgetRegistry: widgetRegistry)
         let hostingView = NSHostingView(rootView: rootView)
 
         let panel = NotchPanel(

@@ -9,6 +9,7 @@ struct NotchRootView: View {
     let batteryService: BatteryService
     let privacyService: PrivacyService
     let focusService: FocusService
+    let widgetRegistry: WidgetRegistry
 
     private var hasCollapsedIndicators: Bool {
         privacyService.isCameraActive || privacyService.isMicrophoneActive ||
@@ -117,10 +118,11 @@ struct NotchRootView: View {
                         )
                         .transition(.opacity)
                     } else if isExpanded {
-                        Text("Hoop")
-                            .font(.system(size: 18, weight: .medium, design: .rounded))
-                            .foregroundStyle(.white.opacity(0.4))
-                            .padding(.top, state.collapsedSize.height)
+                        WidgetDrawerView(
+                            widgetRegistry: widgetRegistry,
+                            notchHeight: state.collapsedSize.height
+                        )
+                        .transition(.opacity)
                     }
                 }
                 .clipShape(shape)

@@ -33,6 +33,9 @@
 		BB000007 /* PrivacyIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000008 /* PrivacyIndicatorView.swift */; };
 		BB000009 /* FocusService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000A /* FocusService.swift */; };
 		BB00000B /* CollapsedIndicatorBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000C /* CollapsedIndicatorBar.swift */; };
+		BB00000D /* WidgetProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000E /* WidgetProtocol.swift */; };
+		BB00000F /* WidgetRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000010 /* WidgetRegistry.swift */; };
+		BB000011 /* WidgetDrawerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000012 /* WidgetDrawerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,6 +67,9 @@
 		BB000008 /* PrivacyIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyIndicatorView.swift; sourceTree = "<group>"; };
 		BB00000A /* FocusService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusService.swift; sourceTree = "<group>"; };
 		BB00000C /* CollapsedIndicatorBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollapsedIndicatorBar.swift; sourceTree = "<group>"; };
+		BB00000E /* WidgetProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetProtocol.swift; sourceTree = "<group>"; };
+		BB000010 /* WidgetRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetRegistry.swift; sourceTree = "<group>"; };
+		BB000012 /* WidgetDrawerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDrawerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -117,6 +123,7 @@
 				AA00002F /* HUDOverlayView.swift */,
 				AA00003C /* DropZoneView.swift */,
 				AA000040A /* DropActionSelectionView.swift */,
+				BB000012 /* WidgetDrawerView.swift */,
 				AA000037 /* Widgets */,
 			);
 			path = Views;
@@ -149,6 +156,7 @@
 			children = (
 				AA000017 /* NotchState.swift */,
 				AA00003A /* ContextRule.swift */,
+				BB00000E /* WidgetProtocol.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -163,6 +171,7 @@
 				BB000002 /* BatteryService.swift */,
 				BB000006 /* PrivacyService.swift */,
 				BB00000A /* FocusService.swift */,
+				BB000010 /* WidgetRegistry.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -261,6 +270,9 @@
 				BB000007 /* PrivacyIndicatorView.swift in Sources */,
 				BB000009 /* FocusService.swift in Sources */,
 				BB00000B /* CollapsedIndicatorBar.swift in Sources */,
+				BB00000D /* WidgetProtocol.swift in Sources */,
+				BB00000F /* WidgetRegistry.swift in Sources */,
+				BB000011 /* WidgetDrawerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
