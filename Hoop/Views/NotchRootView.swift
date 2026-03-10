@@ -8,6 +8,7 @@ struct NotchRootView: View {
     let dropActionService: DropActionService
     let batteryService: BatteryService
     let privacyService: PrivacyService
+    let focusService: FocusService
 
     private var hasPrivacyIndicators: Bool {
         privacyService.isCameraActive || privacyService.isMicrophoneActive
@@ -126,7 +127,7 @@ struct NotchRootView: View {
         .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isTray)
     }
 
-    /// Collapsed notch indicators: privacy dots (left) + battery (right)
+    /// Collapsed notch indicators: privacy dots (left) + focus/battery (right)
     @ViewBuilder
     private var collapsedIndicators: some View {
         HStack {
@@ -135,10 +136,17 @@ struct NotchRootView: View {
                     .padding(.leading, 12)
             }
             Spacer()
-            if batteryService.battery.isValid {
-                BatteryIndicator(batteryService: batteryService)
-                    .padding(.trailing, 12)
+            HStack(spacing: 6) {
+                if focusService.isActive {
+                    Image(systemName: "moon.fill")
+                        .font(.system(size: 8))
+                        .foregroundStyle(.purple)
+                }
+                if batteryService.battery.isValid {
+                    BatteryIndicator(batteryService: batteryService)
+                }
             }
+            .padding(.trailing, 12)
         }
     }
 }
