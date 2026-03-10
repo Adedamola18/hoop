@@ -7,6 +7,7 @@ final class NotchWindowManager {
     private var pendingSynchronize: DispatchWorkItem?
     private var collapseWorkItems: [String: DispatchWorkItem] = [:]
     private var expandedTransitionItems: [String: DispatchWorkItem] = [:]
+    private var globalClickMonitor: Any?
 
     init() {
         NotificationCenter.default.addObserver(
@@ -21,6 +22,9 @@ final class NotchWindowManager {
     deinit {
         NotificationCenter.default.removeObserver(self)
         pendingSynchronize?.cancel()
+        if let monitor = globalClickMonitor {
+            NSEvent.removeMonitor(monitor)
+        }
         for (_, entry) in windows {
             entry.panel.cancelTimers()
         }
@@ -94,12 +98,15 @@ final class NotchWindowManager {
         panel.installTrackingArea()
         panel.orderFront(nil)
 
-        // Wire up expand/collapse callbacks
+        // Wire up expand/collapse/dismiss callbacks
         panel.onExpandRequested = { [weak self] in
             self?.expandPanel(id: id)
         }
         panel.onCollapseRequested = { [weak self] in
             self?.scheduleCollapsePanel(id: id)
+        }
+        panel.onDismissRequested = { [weak self] in
+            self?.immediateCollapse(id: id)
         }
 
         windows[id] = (panel: panel, state: state)
@@ -133,6 +140,12 @@ final class NotchWindowManager {
         entry.panel.setFrame(expandedFrame, display: true)
         entry.panel.installTrackingArea()
 
+        // Make panel key to receive Escape key events
+        entry.panel.makeKey()
+
+        // Monitor clicks outside to dismiss
+        installGlobalClickMonitor()
+
         // Transition expanding -> expanded after spring animation settles
         expandedTransitionItems[id]?.cancel()
         let work = DispatchWorkItem {
@@ -165,5 +178,59 @@ final class NotchWindowManager {
 
         entry.panel.setFrame(screen.overlayFrame, display: true)
         entry.panel.installTrackingArea()
+        removeGlobalClickMonitor()
+    }
+
+    /// Immediate collapse triggered by Escape key or click outside — no grace timer.
+    private func immediateCollapse(id: String) {
+        // Cancel any pending work
+        expandedTransitionItems[id]?.cancel()
+        expandedTransitionItems.removeValue(forKey: id)
+        collapseWorkItems[id]?.cancel()
+        collapseWorkItems.removeValue(forKey: id)
+
+        // Delay frame shrink for SwiftUI animation
+        let work = DispatchWorkItem { [weak self] in
+            guard let entry = self?.windows[id] else { return }
+            let screen = NSScreen.screens.first { $0.stableIdentifier == id }
+            guard let screen else { return }
+            entry.panel.setFrame(screen.overlayFrame, display: true)
+            entry.panel.installTrackingArea()
+            self?.removeGlobalClickMonitor()
+        }
+        collapseWorkItems[id] = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
+    }
+
+    // MARK: - Global Click Monitor
+
+    private func installGlobalClickMonitor() {
+        guard globalClickMonitor == nil else { return }
+        globalClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+            self?.handleGlobalClick(event)
+        }
+    }
+
+    private func removeGlobalClickMonitor() {
+        if let monitor = globalClickMonitor {
+            NSEvent.removeMonitor(monitor)
+            globalClickMonitor = nil
+        }
+    }
+
+    private func handleGlobalClick(_ event: NSEvent) {
+        // Dismiss any expanded panels when clicking outside
+        for (id, entry) in windows {
+            guard entry.state.phase == .expanding || entry.state.phase == .expanded else { continue }
+
+            let clickLocation = NSEvent.mouseLocation
+            let panelFrame = entry.panel.frame
+
+            if !panelFrame.contains(clickLocation) {
+                entry.panel.cancelTimers()
+                entry.state.phase = .idle
+                immediateCollapse(id: id)
+            }
+        }
     }
 }

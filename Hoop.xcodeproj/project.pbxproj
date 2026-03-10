@@ -16,6 +16,7 @@
 		AA000007 /* NotchWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000018 /* NotchWindowManager.swift */; };
 		AA000008 /* NotchRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000019 /* NotchRootView.swift */; };
 		AA00000A /* NotchShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001A /* NotchShape.swift */; };
+		AA00000B /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001B /* VisualEffectView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 		AA000018 /* NotchWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchWindowManager.swift; sourceTree = "<group>"; };
 		AA000019 /* NotchRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchRootView.swift; sourceTree = "<group>"; };
 		AA00001A /* NotchShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchShape.swift; sourceTree = "<group>"; };
+		AA00001B /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +80,7 @@
 				AA000013 /* SettingsView.swift */,
 				AA000019 /* NotchRootView.swift */,
 				AA00001A /* NotchShape.swift */,
+				AA00001B /* VisualEffectView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -177,6 +180,7 @@
 				AA000007 /* NotchWindowManager.swift in Sources */,
 				AA000008 /* NotchRootView.swift in Sources */,
 				AA00000A /* NotchShape.swift in Sources */,
+				AA00000B /* VisualEffectView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

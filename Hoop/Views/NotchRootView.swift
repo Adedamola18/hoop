@@ -9,14 +9,29 @@ struct NotchRootView: View {
 
     var body: some View {
         GeometryReader { geo in
-            NotchShape(
+            let shape = NotchShape(
                 cornerRadius: isExpanded ? 20 : 10,
                 notchWidth: state.collapsedSize.width,
                 notchDepth: isExpanded ? state.collapsedSize.height : 0,
                 hasNotch: state.screenHasNotch
             )
-            .fill(.black)
-            .overlay {
+
+            ZStack {
+                // Vibrancy layer (expanded) — frosted glass
+                VisualEffectView(
+                    material: .hudWindow,
+                    blendingMode: .behindWindow,
+                    isActive: isExpanded
+                )
+                .clipShape(shape)
+                .opacity(isExpanded ? 1 : 0)
+
+                // Opaque black layer (collapsed) — matches hardware notch
+                shape
+                    .fill(.black)
+                    .opacity(isExpanded ? 0 : 1)
+
+                // Content overlay
                 Text("Hoop")
                     .font(isExpanded ? .title3 : .caption)
                     .foregroundStyle(.white)

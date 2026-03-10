@@ -11,6 +11,9 @@ final class NotchPanel: NSPanel {
     /// Called when the grace timer fires and collapse should begin. Frame collapse is delayed for animation.
     var onCollapseRequested: (() -> Void)?
 
+    /// Called when the user dismisses via Escape key or click outside.
+    var onDismissRequested: (() -> Void)?
+
     private var trackingArea: NSTrackingArea?
     private var dwellTimer: DispatchWorkItem?
     private var graceTimer: DispatchWorkItem?
@@ -132,6 +135,24 @@ final class NotchPanel: NSPanel {
         }
         graceTimer = work
         DispatchQueue.main.asyncAfter(deadline: .now() + graceDelay, execute: work)
+    }
+
+    // MARK: - Key Events
+
+    override func keyDown(with event: NSEvent) {
+        // Escape key (keyCode 53) dismisses immediately
+        if event.keyCode == 53 {
+            guard let state = notchState,
+                  state.phase == .expanding || state.phase == .expanded else { return }
+            dwellTimer?.cancel()
+            dwellTimer = nil
+            graceTimer?.cancel()
+            graceTimer = nil
+            state.phase = .idle
+            onDismissRequested?()
+            return
+        }
+        super.keyDown(with: event)
     }
 
     /// Cancel all pending timers (called on cleanup).
