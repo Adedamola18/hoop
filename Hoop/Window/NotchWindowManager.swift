@@ -22,6 +22,7 @@ final class NotchWindowManager {
     let calendarService = CalendarService()
     let timerService = TimerService()
     let clipboardService = ClipboardService()
+    let shortcutsService = ShortcutsService()
 
     init() {
         NotificationCenter.default.addObserver(
@@ -105,6 +106,8 @@ final class NotchWindowManager {
         widgetRegistry.register(CalendarNotchWidget(calendarService: calendarService))
         widgetRegistry.register(TimerNotchWidget(timerService: timerService))
         widgetRegistry.register(ClipboardNotchWidget(clipboardService: clipboardService))
+        widgetRegistry.register(ShortcutsNotchWidget(shortcutsService: shortcutsService))
+        widgetRegistry.register(NotesNotchWidget())
     }
 
     // MARK: - Screen Change Handling
