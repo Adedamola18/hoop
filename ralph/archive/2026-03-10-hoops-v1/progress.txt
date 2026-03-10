@@ -1,0 +1,459 @@
+# Ralph Progress Log
+
+## Codebase Patterns
+- Build verify: swiftc -typecheck -sdk $(xcrun --show-sdk-path) -target arm64-apple-macos14.0 <files>
+- Always update project.pbxproj when adding new Swift files (PBXFileReference + PBXBuildFile + PBXGroup + PBXSourcesBuildPhase)
+- Use @Observable (Observation framework) not @Published/ObservableObject (macOS 14+)
+- LSUIElement agent: Info.plist with LSUIElement=true, no dock icon
+- MenuBarExtra + Settings scene pattern for menu bar app
+- SMAppService as sole source of truth for launch-at-login state (no UserDefaults)
+- SettingsLink is built-in SwiftUI, no need for SettingsAccess SPM package
+- NSScreen notch detection: use auxiliaryTopLeftArea/auxiliaryTopRightArea
+- Xcode.app is NOT installed — only CLI tools. Use swiftc -typecheck, not xcodebuild build.
+- NSTrackingArea with .inVisibleRect auto-updates on view resize — no need to manually recalculate rect
+- NotchPanel.notchState is set by NotchWindowManager after panel creation
+- SourceKit single-file diagnostics are noise — verify with multi-file swiftc -typecheck
+- NSEvent.addGlobalMonitorForEvents fires only for events outside app windows — use for click-outside dismiss
+- Panel must be makeKey() to receive keyDown events (Escape key handling)
+- ActivationTrigger enum in NotchState.swift with .current static property reads from UserDefaults
+- Use Notification.Name.activationTriggerDidChange to broadcast settings changes across components
+- Carbon.HIToolbox for key code constants (kVK_ANSI_*) and UCKeyTranslate for display strings
+- MediaRemote loaded via dlopen("/System/Library/PrivateFrameworks/MediaRemote.framework/MediaRemote")
+- MediaRemote commands: 2=togglePlayPause, 4=next, 5=previous (UInt32)
+- MediaService is @Observable — downstream views can observe nowPlaying changes directly
+- Services directory: Hoop/Services/ with PBXGroup AA000036
+- Widgets directory: Hoop/Views/Widgets/ with PBXGroup AA000037
+- MediaService is shared across all panels — single instance owned by NotchWindowManager
+- Scroll wheel swipe detection: accumulate scrollingDeltaX, fire once per gesture when threshold exceeded, reset on phase .began/.ended
+- CoreAudio volume monitoring: AudioObjectAddPropertyListenerBlock on kAudioHardwareServiceDeviceProperty_VirtualMainVolume (requires AudioToolbox import)
+- HUD phase takes priority: saves previous phase, transitions to .hud, restores on dismiss
+- HUD frame is narrower than expanded (400pt wide x 60pt tall) — separate from the 600pt expanded frame
+- HUDService owns show/dismiss lifecycle with auto-dismiss timer; NotchWindowManager handles frame changes via callbacks
+- Brightness monitoring: IOKit adaptive polling (1s idle, 0.1s when HUD active) via IODisplayGetFloatParameter/IODisplaySetFloatParameter (import IOKit.graphics)
+- Performance: use drawingGroup() on animated SwiftUI views for Metal-backed rendering
+- Performance: cache UserDefaults JSON stores (ContextRuleStore, CustomDropActionStore, PipelineStore) — invalidate on save
+- Performance: cache expensive NSWorkspace lookups (MediaService.sourceAppIcon) — invalidate on bundleID change
+- Performance: schedule ContextService time profile timer at hour boundaries, not every 60s
+- Shortcuts CLI: `/usr/bin/shortcuts run "Name" --input-path <path>` for file input; stdout for output chaining
+- Shell scripts: Process() with /bin/zsh -c, file path passed as $1 via "--" separator
+- Pipeline chaining: DropActionResult.outputPath passes output file path from one step to next
+- PipelineStore persists [PipelineConfig] as JSON in UserDefaults key "dropActionPipelines"
+- CustomDropActionStore persists [CustomDropActionConfig] as JSON in UserDefaults key "customDropActions"
+- parseExtensions() helper: shared file-private function for comma-separated extension parsing
+- sheet(item:) for edit sheets requires Identifiable conformance on the binding type
+
+Started: 2026-03-10
+---
+
+## 2026-03-10 - Pre-Ralph (GSD Phase 1 Plan 01)
+- App shell created: Xcode project, LSUIElement agent, MenuBarExtra, settings with launch-at-login
+- Files: NotchNookApp.swift, AppDelegate.swift, Info.plist, Views/SettingsView.swift, project.pbxproj, xcscheme
+- Commits: 77cde7d (project setup), d871361 (settings window)
+- **Learnings:**
+  - SettingsLink works within MenuBarExtra on macOS 14+
+  - swiftc -typecheck is sufficient build verification without Xcode.app
+---
+
+## 2026-03-10 - US-001, US-002 (pre-existing)
+- Already implemented from GSD Phase 1 Plan 02
+- Verified typecheck passes, marked as passing in PRD
+---
+
+## 2026-03-10 - US-003
+- Implemented mouse tracking and hover detection for notch expansion
+- Files changed: Hoop/Window/NotchPanel.swift, Hoop/Window/NotchWindowManager.swift
+- NotchPanel now has NSTrackingArea with mouseEntered/mouseExited
+- 200ms dwell timer (configurable via UserDefaults "hoverDwellDelayMs") before triggering expansion
+- 300ms grace timer on mouse exit before collapsing
+- ignoresMouseEvents set to false (was true) to receive mouse events
+- NotchState.phase transitions: idle -> expanding on dwell, expanding/expanded -> idle on grace timeout
+- NotchWindowManager wires notchState to panel and installs tracking areas
+- **Learnings for future iterations:**
+  - NSTrackingArea with .inVisibleRect auto-updates when view resizes
+  - installTrackingArea() must be called after setFrame and on reposition
+  - SourceKit single-file diagnostics are noise — always verify with multi-file swiftc -typecheck
+  - Panel frame snap + SwiftUI spring animation pattern: expand frame first (onExpandRequested callback), then set phase for SwiftUI animation
+  - For collapse: set phase first (SwiftUI animates), then delay frame shrink by ~0.5s (onCollapseRequested callback)
+  - Use callback closures (onExpandRequested/onCollapseRequested) on NotchPanel to coordinate frame changes with phase transitions
+---
+
+## 2026-03-10 - US-004
+- Implemented spring animations for expand/collapse transitions
+- Files changed: Hoop/Models/NotchState.swift, Hoop/Window/ScreenDetector.swift, Hoop/Window/NotchPanel.swift, Hoop/Window/NotchWindowManager.swift, Hoop/Views/NotchRootView.swift
+- NotchState: added collapsedSize, expandedWidth (configurable 400-800pt, default 600pt), expandedHeight (200pt)
+- ScreenDetector: added expandedOverlayFrame(expandedWidth:) method
+- NotchPanel: added onExpandRequested/onCollapseRequested callback closures; dwell timer expands frame before setting phase, grace timer sets phase then schedules delayed frame collapse
+- NotchWindowManager: expandPanel() snaps frame to expanded size, schedules expanding->expanded transition after 0.5s; scheduleCollapsePanel() delays frame shrink by 0.5s for animation; cancel logic prevents conflicts between expand/collapse
+- NotchRootView: uses .animation(.spring(response: 0.4, dampingFraction: 0.8)) keyed on isExpanded; shape animates between collapsedSize and full geo size; corner radius animates 10->20
+- **Learnings for future iterations:**
+  - Panel frame snap + SwiftUI spring pattern avoids coordinating two animation systems
+  - Callback closures on NotchPanel keep frame management in the window manager while panel handles mouse events
+  - Cancel pending work items when state reverses (e.g., re-hover during collapse delay)
+---
+
+## 2026-03-10 - US-005
+- Implemented custom NotchShape with concave cutout matching hardware notch profile
+- Files created: Hoop/Views/NotchShape.swift
+- Files changed: Hoop/Views/NotchRootView.swift, Hoop.xcodeproj/project.pbxproj
+- NotchShape is a SwiftUI Shape with animatable cornerRadius, notchWidth, notchDepth
+- Concave cutout uses quad Bezier curves at all notch corners for smooth transitions
+- On non-notch Macs, falls back to simple RoundedRectangle
+- When collapsed (notchDepth=0 or notchWidth >= rect width), draws plain rounded rect
+- NotchRootView passes notchDepth=0 when collapsed, collapsedSize.height when expanded for smooth animated cutout appearance
+- **Learnings for future iterations:**
+  - SwiftUI Shape animatableData with nested AnimatablePair supports multi-property animation
+  - NotchShape gracefully degrades: if notch dimensions exceed rect, falls back to rounded rect (handles collapsed state automatically)
+  - collapsedSize in NotchState doubles as hardware notch dimensions for the cutout
+---
+
+## 2026-03-10 - US-006
+- Implemented vibrancy background and dismissal behaviors
+- Files created: Hoop/Views/VisualEffectView.swift
+- Files changed: Hoop/Views/NotchRootView.swift, Hoop/Window/NotchPanel.swift, Hoop/Window/NotchWindowManager.swift, Hoop.xcodeproj/project.pbxproj
+- VisualEffectView: NSViewRepresentable bridging NSVisualEffectView with .hudWindow material and .behindWindow blending
+- NotchRootView: ZStack with vibrancy layer (opacity 1 when expanded, 0 when collapsed) and opaque black layer (inverse), both clipped to NotchShape
+- NotchPanel: keyDown override for Escape key (keyCode 53) triggers immediate dismiss via onDismissRequested callback
+- NotchWindowManager: global click monitor (addGlobalMonitorForEvents) detects clicks outside expanded panel; panel.makeKey() on expand for Escape key reception; immediateCollapse() for instant dismiss with delayed frame shrink
+- **Learnings for future iterations:**
+  - NSEvent.addGlobalMonitorForEvents only fires for events OUTSIDE the app's windows — perfect for click-outside detection
+  - Panel must be made key (makeKey()) to receive keyDown events for Escape
+  - Global click monitor should be installed on expand and removed on collapse to avoid unnecessary processing
+  - ZStack with dual layers (vibrancy + opaque) and animated opacity is cleaner than trying to animate material changes
+---
+
+## 2026-03-10 - US-007
+- Implemented activation trigger settings: hover (default), click, keyboard shortcut
+- Files changed: Hoop/Models/NotchState.swift, Hoop/Views/SettingsView.swift, Hoop/Window/NotchPanel.swift, Hoop/Window/NotchWindowManager.swift
+- Added ActivationTrigger enum (hover/click/hotkey) with UserDefaults persistence
+- Settings > General > Activation section with trigger picker
+- Hover: shows configurable delay slider (100-500ms, default 200ms)
+- Hotkey: shows shortcut recorder (default Option+N), uses Carbon.HIToolbox for key code translation
+- NotchPanel.mouseEntered only triggers dwell on .hover; mouseDown override for .click trigger
+- NotchWindowManager: global hotkey monitor via NSEvent.addGlobalMonitorForEvents(.keyDown) for .hotkey trigger
+- Notification.Name.activationTriggerDidChange broadcast on settings change for immediate behavior update
+- **Learnings for future iterations:**
+  - Carbon.HIToolbox provides kVK_ANSI_* key code constants for hotkey matching
+  - UCKeyTranslate converts key codes to display characters for the shortcut label
+  - NSEvent.addGlobalMonitorForEvents(.keyDown) requires Accessibility permission for global hotkeys
+  - ActivationTrigger.current static property reads from UserDefaults — no need to pass trigger through the object graph
+  - Use Notification for settings changes that affect multiple components (panel + window manager)
+---
+
+## 2026-03-10 - US-008
+- Implemented MediaRemote private framework service layer
+- Files created: Hoop/Services/MediaService.swift
+- Files changed: Hoop.xcodeproj/project.pbxproj (added Services group + MediaService.swift)
+- MediaServiceProtocol with NowPlayingInfo struct and PlaybackState enum
+- MediaRemoteLoader singleton loads MediaRemote.framework via dlopen/dlsym
+- Dynamically loaded functions: getNowPlayingInfo, getIsPlaying, sendCommand, register/unregisterForNotifications, getNowPlayingClient
+- MediaService (@Observable) implements play/pause/next/previous via MRMediaRemoteSendCommand
+- Registers for kMRMediaRemoteNowPlayingInfoDidChangeNotification, isPlayingDidChange, applicationDidChange
+- Fetches track title, artist, album art (from artwork data), duration, elapsed time, playback state, and app bundle ID
+- getNowPlayingClient uses KVC to extract bundleIdentifier from the opaque client object
+- **Learnings for future iterations:**
+  - MediaRemote functions use callback pattern with DispatchQueue parameter — always dispatch to main
+  - MRMediaRemoteSendCommand takes UInt32 command ID: 2=togglePlayPause, 4=next, 5=previous
+  - Album art comes as Data under kMRMediaRemoteNowPlayingInfoArtworkData key, convert to NSImage
+  - NowPlayingClient is opaque but responds to KVC for "bundleIdentifier"
+  - @convention(c) typealias needed for dlsym function pointers; unsafeBitCast to convert
+---
+
+## 2026-03-10 - US-009
+- Implemented media player expanded widget view
+- Files created: Hoop/Views/Widgets/MediaPlayerWidget.swift
+- Files changed: Hoop/Views/NotchRootView.swift, Hoop/Window/NotchWindowManager.swift, Hoop.xcodeproj/project.pbxproj
+- MediaPlayerWidget displays album art (80x80 rounded), track title, artist, progress bar, play/pause/next/previous controls
+- Shows source app icon via NSWorkspace.shared.urlForApplication(withBundleIdentifier:) + icon(forFile:)
+- Widget only renders when playbackState is .playing or .paused (isActive guard)
+- NotchRootView now accepts MediaService; shows MediaPlayerWidget when expanded + media active, else "Hoop" text
+- NotchWindowManager creates shared MediaService, starts observing on init, passes to all NotchRootView instances
+- Added Widgets PBXGroup (AA000037) under Views group
+- **Learnings for future iterations:**
+  - NSWorkspace.shared.urlForApplication(withBundleIdentifier:) returns app URL for icon lookup
+  - Widgets directory lives under Views/Widgets/ with its own PBXGroup
+  - MediaService is shared across all panels via NotchWindowManager (single instance)
+  - Widget visibility tied to isActive check on playback state — no unnecessary rendering when no media
+---
+
+## 2026-03-10 - US-010
+- Implemented collapsed media live activity indicator
+- Files created: Hoop/Views/Widgets/CollapsedMediaIndicator.swift
+- Files changed: Hoop/Views/NotchRootView.swift, Hoop.xcodeproj/project.pbxproj
+- CollapsedMediaIndicator shows album art peek (circle) on left and waveform bars on right of collapsed notch
+- Waveform uses TimelineView(.animation) at 30fps only when media is actively playing
+- When paused: static staggered bars (no TimelineView, saves CPU)
+- drawingGroup() applied to waveform for Metal-backed rendering
+- 4 bars oscillate at different frequencies/phases for organic look
+- Album art falls back to music.note icon when no artwork available
+- NotchRootView shows indicator in collapsed state when media is active, hides otherwise
+- **Learnings for future iterations:**
+  - TimelineView(.animation) with minimumInterval controls frame rate — use 1/30 for subtle animations
+  - drawingGroup() forces Metal rendering — apply to animated shapes for performance
+  - Guard TimelineView behind isPlaying check to avoid running animations when paused/stopped
+  - Sine-based animation with offset frequencies/phases creates natural waveform without keyframes
+---
+
+## 2026-03-10 - US-011
+- Implemented media gesture controls: horizontal two-finger swipe on expanded notch skips tracks
+- Files changed: Hoop/Window/NotchPanel.swift, Hoop/Window/NotchWindowManager.swift
+- NotchPanel.scrollWheel override detects continuous trackpad scroll events
+- Accumulates horizontal delta, fires skip action once threshold (30pt) is exceeded per gesture
+- Swipe left (negative deltaX) = next track, swipe right = previous track
+- NSHapticFeedbackManager provides alignment haptic on successful skip
+- onSwipeSkip callback wired in NotchWindowManager to MediaService.nextTrack/previousTrack
+- Only active when panel is in expanding/expanded phase
+- Gesture resets on phase begin/end to prevent accidental multi-fires
+- **Learnings for future iterations:**
+  - NSEvent.scrollWheel with event.phase tracks gesture lifecycle (began/changed/ended/cancelled)
+  - event.scrollingDeltaX is negative for left-swipe (natural scrolling direction)
+  - Check event.phase != [] to filter trackpad (continuous) from mouse wheel (discrete) events
+  - NSHapticFeedbackManager.defaultPerformer.perform(.alignment) for subtle tactile feedback
+  - Fire-once pattern with boolean flag prevents repeated actions during momentum phase
+---
+
+## 2026-03-10 - US-012
+- Implemented volume monitoring and HUD slider view
+- Files created: Hoop/Services/HUDService.swift, Hoop/Views/HUDOverlayView.swift
+- Files changed: Hoop/Window/NotchPanel.swift, Hoop/Window/NotchWindowManager.swift, Hoop/Views/NotchRootView.swift, Hoop.xcodeproj/project.pbxproj
+- HUDService monitors system volume via CoreAudio AudioObjectAddPropertyListenerBlock on default output device
+- Listens for default output device changes and re-wires volume listener accordingly
+- HUDOverlayView renders slim horizontal slider with volume icon, filled capsule bar, and percentage label
+- Slider supports interactive drag to adjust volume via AudioObjectSetPropertyData
+- Auto-dismiss after configurable timeout (default 2s, range 1-5s via UserDefaults)
+- NotchState.phase transitions to .hud when volume changes, back to .idle on dismiss
+- HUD frame is 400x60pt (narrower than expanded 600x200pt)
+- NotchPanel keyDown handles Escape in HUD mode via onHUDDismissRequested callback
+- NotchRootView shows HUDOverlayView when in .hud phase with spring animation
+- **Learnings for future iterations:**
+  - kAudioHardwareServiceDeviceProperty_VirtualMainVolume requires `import AudioToolbox` (not just CoreAudio)
+  - AudioObjectPropertyListenerBlock callback fires on arbitrary thread — always dispatch to main
+  - Default output device can change (e.g., headphones plugged in) — must listen for kAudioHardwarePropertyDefaultOutputDevice and re-wire volume listener
+  - HUD phase saves/restores previous phase to avoid disrupting expand/collapse state
+  - Separate HUD frame dimensions (400x60) from expanded frame (600x200) — HUD is a slim overlay
+---
+
+## 2026-03-10 - US-013
+- Extended HUDService with brightness monitoring via IOKit display services
+- HUDOverlayView updated to support interactive brightness drag (setBrightness on drag)
+- Files changed: Hoop/Services/HUDService.swift, Hoop/Views/HUDOverlayView.swift
+- Brightness uses polling (DispatchSourceTimer at 0.3s) since IOKit has no notification API for display brightness
+- IODisplayGetFloatParameter reads brightness, IODisplaySetFloatParameter sets it
+- IOServiceMatching("IODisplayConnect") iterates display services to find the built-in display
+- Delta threshold of 0.005 filters out floating-point noise from repeated reads
+- lastKnownBrightness seeded on start so first real change triggers HUD (not initial read)
+- HUD type indicator already handled: speaker icon for volume, sun.max.fill for brightness
+- **Learnings for future iterations:**
+  - IOKit brightness API: IODisplayGetFloatParameter/IODisplaySetFloatParameter with kIODisplayBrightnessKey
+  - No notification for brightness changes — must poll; 0.3s interval is responsive without CPU overhead
+  - import IOKit.graphics for IODisplay functions and kIODisplayBrightnessKey
+  - IOServiceGetMatchingServices with "IODisplayConnect" finds display services; iterate until IODisplayGetFloatParameter succeeds
+  - kIOMainPortDefault replaces deprecated kIOMasterPortDefault on macOS 12+
+- NSWorkspace notifications (didActivateApplicationNotification) use NSWorkspace.shared.notificationCenter, NOT default NotificationCenter
+- ContextService is @Observable, shared across panels via NotchWindowManager (like MediaService)
+- DistributedNotificationCenter.default() for "com.apple.doNotDisturb" detects Focus Mode changes
+- Focus Mode name detection: try com.apple.focus.state "Current" dict, fallback to controlcenter DND, fallback to FocusState assertions
+- Time profile timer fires every 60s to re-evaluate (lightweight — just reads Calendar.current hour)
+- .none is ambiguous between Optional.none and enum .none — use fully qualified ContextService.WidgetHint.none in dictionary assignments
+- NSDraggingDestination methods are optional @objc protocol methods — do NOT use `override` keyword on NSPanel subclass
+- registerForDraggedTypes([.fileURL]) on panel + readObjects(forClasses: [NSURL.self]) for file drop handling
+- CGEventTap for OSD suppression: CGEvent.tapCreate with .cgSessionEventTap, event mask 1<<14 (NSEventTypeSystemDefined), return nil to suppress
+- NX_SUBTYPE_AUX_CONTROL_BUTTONS = 8; data1 bits 16-23 = key type (0=soundUp, 1=soundDown, 7=mute, 21=brightnessUp, 22=brightnessDown)
+- CGEventTap requires Accessibility permission; fails gracefully (returns nil from tapCreate) if not granted
+- Event tap can be disabled by system timeout — handle .tapDisabledByTimeout by re-enabling
+- DropActionService manages drop lifecycle: idle -> selecting/executing -> result -> auto-dismiss
+- Vision framework OCR: VNRecognizeTextRequest with .accurate level, CGImageSourceCreateWithURL for image loading
+- NSImage resize: lockFocus/draw/unlockFocus pattern, then tiffRepresentation -> NSBitmapImageRep -> JPEG compression
+- DropAction protocol with canHandle(url:)/execute(urls:) — extensible for future custom actions
+- Pattern matching on @Observable enum: `case .idle = service.dropPhase` works in SwiftUI if conditions
+---
+
+## 2026-03-10 - US-014
+- Implemented native HUD suppression via CGEventTap and Settings > HUD tab
+- Files changed: Hoop/Services/HUDService.swift, Hoop/Views/SettingsView.swift, Hoop/Models/NotchState.swift, Hoop/Window/NotchWindowManager.swift
+- CGEventTap intercepts NX_SYSDEFINED events for volume/brightness keys at session level
+- Returns nil from tap callback to suppress native OSD when custom HUD is active
+- Graceful fallback: if Accessibility permission not granted, CGEvent.tapCreate returns nil and both HUDs show
+- Settings > HUD tab with "Replace system HUD" toggle (default: on) and auto-dismiss timeout slider (1-5s)
+- hudSettingsDidChange notification wires settings changes to HUDService.updateSuppressionState()
+- Event tap handles .tapDisabledByTimeout by re-enabling itself
+- **Learnings for future iterations:**
+  - CGEventTap with .defaultTap option can intercept AND suppress events (return nil); .listenOnly cannot suppress
+  - Event mask for NSEventTypeSystemDefined is 1 << 14 (CGEventType raw value 14)
+  - NX_SUBTYPE_AUX_CONTROL_BUTTONS (8) is the subtype for media/function key events
+  - Key type extracted from NSEvent.data1 bits 16-23: 0=soundUp, 1=soundDown, 7=mute, 21=brightnessUp, 22=brightnessDown
+  - CGEventTap callback is a C function pointer — use Unmanaged to pass self as refcon
+  - System may disable tap on timeout; always handle .tapDisabledByTimeout to re-enable
+---
+
+## 2026-03-10 - US-015
+- Implemented frontmost app detection and context-aware widget switching
+- Files created: Hoop/Services/ContextService.swift
+- Files changed: Hoop/Views/NotchRootView.swift, Hoop/Window/NotchWindowManager.swift, Hoop/Views/SettingsView.swift, Hoop.xcodeproj/project.pbxproj
+- ContextService (@Observable) monitors frontmost app via NSWorkspace.didActivateApplicationNotification
+- Built-in media app bundle IDs: Spotify, Apple Music, iTunes, Tidal, Amazon Music, SoundCloud, Plexamp, Cider
+- Widget hint system: evaluates frontmost app against media app list, exposes widgetHint (.media/.none)
+- NotchRootView uses contextService.widgetHint to decide whether to show MediaPlayerWidget when expanded
+- Settings > Context tab with enable/disable toggle and editable media app bundle ID list
+- User can reset to default media app list
+- **Learnings for future iterations:**
+  - NSWorkspace.didActivateApplicationNotification delivers NSRunningApplication via userInfoKey
+  - Use NSWorkspace.shared.notificationCenter (not default NotificationCenter) for workspace notifications
+  - @Observable ContextService can be shared across panels like MediaService
+  - TextEditor works for multi-line bundle ID editing in settings
+---
+
+## 2026-03-10 - US-016
+- Implemented time-of-day profiles and Focus Mode integration
+- Files changed: Hoop/Services/ContextService.swift, Hoop/Views/SettingsView.swift
+- ContextService extended with TimeProfile enum (morning/afternoon/evening) with configurable hour boundaries
+- TimeProfileConfig stores per-profile widget hints and start hours (persisted as JSON in UserDefaults)
+- Focus Mode detection via DistributedNotificationCenter ("com.apple.doNotDisturb") with multi-level fallback
+- FocusModeConfig stores Focus Mode name -> WidgetHint assignments
+- evaluateRules() priority: Focus Mode override > Time profile > Frontmost app matching
+- Timer fires every 60s to re-evaluate time profile (reads Calendar hour)
+- Settings > Context tab extended with scrollable form: time profile toggles/pickers and Focus Mode assignment list
+- Users can add/remove Focus Mode entries with custom names and widget assignments
+- **Learnings for future iterations:**
+  - DistributedNotificationCenter.default() for "com.apple.doNotDisturb" fires on Focus Mode state changes
+  - Focus Mode name reading is best-effort — multiple UserDefaults suites tried in fallback order
+  - .none is ambiguous in Dictionary<String, WidgetHint> context — must use ContextService.WidgetHint.none
+  - ScrollView wrapping Form allows the Context tab to accommodate growing content
+  - Time profile config uses Codable struct persisted as JSON Data in UserDefaults for structured storage
+---
+
+## 2026-03-10 - US-017
+- Implemented custom context rules engine and settings UI
+- Files created: Hoop/Models/ContextRule.swift
+- Files changed: Hoop/Services/ContextService.swift, Hoop/Views/SettingsView.swift, Hoop.xcodeproj/project.pbxproj
+- ContextRule model with Codable support: condition (app/time/focus) + widget hint + enabled flag
+- RuleCondition enum with .app(bundleID:), .time(profile:), .focus(modeName:) cases
+- ContextRuleStore helper for UserDefaults persistence (JSON-encoded array)
+- ContextService.evaluateRules() now checks custom rules first (priority 0), then falls through to Focus > Time > App
+- Settings > Context tab has "Custom Rules" section at top with list, enable/disable toggle, reorder (up/down), delete
+- AddContextRuleSheet modal for creating new rules with condition type picker, value input, and widget assignment
+- Rules evaluated in array order — first match wins
+- **Learnings for future iterations:**
+  - ContextRule references ContextService types (WidgetHint, TimeProfile) — works in multi-file compilation but SourceKit single-file reports errors (expected)
+  - Sheet-based add UI with @Environment(\.dismiss) cleaner than inline form for complex inputs
+  - Array enumeration with index for in-place mutation of @State array items
+  - Custom rules at priority 0 in evaluateRules() means user rules always override built-in logic
+---
+
+## 2026-03-10 - US-018
+- Implemented drop zone UI and drag detection on notch
+- Files created: Hoop/Views/DropZoneView.swift
+- Files changed: Hoop/Window/NotchPanel.swift, Hoop/Window/NotchWindowManager.swift, Hoop/Views/NotchRootView.swift, Hoop.xcodeproj/project.pbxproj
+- NotchPanel registers for .fileURL drag type and implements NSDraggingDestination protocol methods
+- draggingEntered triggers tray mode via onDragEntered callback; draggingExited cancels via onDragExited
+- performDragOperation reads file URLs via readObjects(forClasses: [NSURL.self]) and passes to onFilesDropped
+- DropZoneView shows pulsing arrow.down.doc.fill icon with dashed border and "Drop to process" hint
+- NotchWindowManager.showTray() saves previous phase, expands panel frame, sets .tray phase
+- dismissTray() restores .idle and schedules delayed frame collapse for animation
+- handleDroppedFiles() logs URLs and dismisses tray (actual actions deferred to US-019)
+- NotchRootView shows DropZoneView when isTray is true, with spring animation
+- **Learnings for future iterations:**
+  - NSDraggingDestination methods are optional @objc protocol methods — do NOT use `override` keyword
+  - registerForDraggedTypes([.fileURL]) on NSPanel enables file drop reception
+  - readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) is the reliable way to read dropped file URLs
+  - Tray frame uses same size as expanded frame (expandedOverlayFrame) for consistent drop zone area
+  - .tray phase added to isActive in NotchRootView so vibrancy/shape expansion applies
+---
+
+## 2026-03-10 - US-019
+- Implemented built-in drop actions: compress image and OCR text extraction
+- Files created: Hoop/Services/DropActionService.swift, Hoop/Views/DropActionSelectionView.swift
+- Files changed: Hoop/Window/NotchWindowManager.swift, Hoop/Views/NotchRootView.swift, Hoop.xcodeproj/project.pbxproj
+- DropAction protocol with id, name, iconName, supportedExtensions, canHandle(), execute()
+- CompressImageAction: resizes to max 1024px, JPEG compresses at 0.7 quality, copies to clipboard
+- OCRAction: uses Vision VNRecognizeTextRequest with .accurate level, copies extracted text to clipboard
+- DropActionService (@Observable) manages lifecycle: idle -> selecting -> executing -> result with auto-dismiss
+- If single action matches file type, executes immediately; if multiple, shows selection UI
+- DropActionSelectionView shows action buttons, progress spinner, and success/failure result
+- NotchWindowManager wires DropActionService, keeps tray open during action execution
+- Auto-dismiss after 2s on result, then dismisses tray
+- NotchRootView shows DropZoneView when tray+idle, DropActionSelectionView when tray+processing
+- **Learnings for future iterations:**
+  - Vision OCR: CGImageSourceCreateWithURL -> CGImageSourceCreateImageAtIndex for CGImage loading
+  - NSImage resize: lockFocus/draw/unlockFocus then tiffRepresentation -> NSBitmapImageRep -> JPEG
+  - withCheckedThrowingContinuation wraps VNRecognizeTextRequest callback into async/await
+  - DropAction protocol is extensible — US-020 will add Shortcuts/shell script actions
+  - Pattern matching enum on @Observable: `case .idle = service.dropPhase` in SwiftUI if conditions
+  - Tray stays open during processing — auto-dismiss callback on service triggers dismissTray
+---
+
+## 2026-03-10 - US-020
+- Implemented Shortcuts integration, shell script drop actions, and multi-step pipeline support
+- Files changed: Hoop/Services/DropActionService.swift
+- ShortcutDropAction: invokes macOS Shortcuts via `/usr/bin/shortcuts run` CLI with `--input-path` for file input
+- ShellScriptDropAction: runs shell commands via Process() with /bin/zsh, passes file path as $1, copies stdout to clipboard
+- PipelineConfig/PipelineStep: Codable models for multi-step pipeline definitions (stepType + config string)
+- PipelineDropAction: chains actions sequentially, passing outputPath from one step as input URLs to the next
+- PipelineStore: JSON persistence to UserDefaults for user-configured pipelines
+- DropActionService.allActions now combines builtInActions + pipeline actions loaded from PipelineStore
+- DropActionResult extended with optional outputPath for pipeline chaining
+- **Learnings for future iterations:**
+  - `/usr/bin/shortcuts run "Name" --input-path <path>` is the file-input approach for Shortcuts CLI
+  - Process() arguments: use "--" separator then positional args; $1 in shell script receives the file path
+  - Pipeline chaining relies on stdout containing a file path (starts with "/") as convention for output
+  - PipelineStepType enum covers all action types: compressImage, ocr, shortcut, shellScript
+  - allActions computed property ensures dynamically added pipelines are always included in matching
+---
+
+## 2026-03-10 - US-021
+- Implemented drop action configuration UI in Settings > Drop Actions tab
+- Files changed: Hoop/Views/SettingsView.swift, Hoop/Services/DropActionService.swift
+- DropActionsSettingsTab with three sections: Built-in Actions (read-only), Custom Actions (add/edit/delete), Pipelines (add/edit/delete)
+- CustomDropActionConfig Codable model with CustomDropActionType enum (shortcut, shellScript)
+- CustomDropActionStore for UserDefaults JSON persistence
+- AddDropActionSheet for creating new custom actions (type picker, config input, file extensions)
+- EditDropActionSheet for modifying existing actions (preserves original UUID)
+- EditPipelineSheet for creating/editing pipelines with step builder (reorder, add/remove steps, step type picker, config input)
+- File type filter per action via comma-separated extensions field (or * for any)
+- DropActionService.allActions now includes custom actions from CustomDropActionStore
+- Settings frame widened to 500x500 to accommodate the new tab content
+- **Learnings for future iterations:**
+  - sheet(item:) binding requires the type to conform to Identifiable — CustomDropActionConfig and PipelineConfig already do
+  - parseExtensions() shared as file-private function between multiple sheet views
+  - PipelineConfig and CustomDropActionConfig init updated to accept optional id for edit-preserve pattern
+  - Built-in actions shown as read-only informational rows (no delete/edit) to differentiate from user-configured ones
+---
+
+## 2026-03-10 - US-022
+- CPU and memory optimization pass
+- Files changed: Hoop/Services/HUDService.swift, Hoop/Services/MediaService.swift, Hoop/Services/ContextService.swift, Hoop/Services/DropActionService.swift, Hoop/Models/ContextRule.swift, Hoop/Views/NotchRootView.swift, Hoop/Views/Widgets/MediaPlayerWidget.swift
+- HUDService brightness polling: adaptive interval (1s idle, 0.1s when HUD active) — was 0.3s always
+- ContextService time profile timer: fires at hour boundaries (~24x/day) instead of every 60s (~1440x/day)
+- ContextRuleStore, CustomDropActionStore, PipelineStore: added in-memory caching with invalidation on save
+- DropActionService.allActions: cached computed property with invalidateActionsCache() method
+- MediaService.sourceAppIcon: cached NSImage, updated only when appBundleID changes (avoids expensive NSWorkspace.urlForApplication per render)
+- drawingGroup() added to NotchRootView inner content and MediaPlayerWidget progress bar
+- TimelineView already guarded by isPlaying check (no change needed)
+- CollapsedMediaIndicator waveform already uses drawingGroup() (no change needed)
+- **Learnings for future iterations:**
+  - Adaptive polling is better than fixed intervals — adjust frequency based on active state
+  - Calendar.current.nextDate(after:matching:matchingPolicy:) for scheduling at specific clock boundaries
+  - Cache UserDefaults JSON stores to avoid repeated decode; invalidate on write
+  - drawingGroup() forces Metal-backed rendering — apply to animated content and complex shapes
+  - NSWorkspace.urlForApplication is expensive — cache the result keyed by bundleID
+- Sleep/wake: use NSWorkspace.shared.notificationCenter for willSleepNotification/didWakeNotification (not default NotificationCenter)
+- Post-wake resync: delay 1.5s after wake before synchronizeWindows() to let screen parameters settle
+- Ignore didChangeScreenParametersNotification during sleep to avoid processing stale screen data
+- repositionWindow should handle all phases (idle/expanded/hud) with appropriate frame recalculation
+---
+
+## 2026-03-10 - US-023
+- Implemented sleep/wake resilience and display hotplug hardening
+- Files changed: Hoop/Window/NotchWindowManager.swift
+- Added NSWorkspace willSleepNotification/didWakeNotification observers
+- willSleep: sets isSleeping flag, cancels pending syncs, collapses all expanded panels to idle
+- didWake: clears isSleeping, schedules synchronizeWindows() after 1.5s delay for screen params to settle
+- screenConfigurationDidChange now ignores events while sleeping (avoids processing stale screen data)
+- repositionWindow now handles all phases: idle (collapsed frame), expanding/expanded/tray (expanded frame), hud (HUD frame)
+- Display hotplug already handled by existing synchronizeWindows() + 500ms debounce; now hardened with sleep awareness
+- deinit cleans up workspace notification observer and wakeResyncItem
+- **Learnings for future iterations:**
+  - NSWorkspace.willSleepNotification/didWakeNotification must use NSWorkspace.shared.notificationCenter
+  - Screen parameters are unreliable immediately after wake — 1.5s delay before resync avoids incorrect geometry
+  - Setting isSleeping flag prevents didChangeScreenParametersNotification from firing stale syncs during sleep
+  - repositionWindow must handle all Phase cases to correctly reposition after display arrangement changes
+---

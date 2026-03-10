@@ -1,369 +1,579 @@
 {
-  "project": "Hoops",
-  "branchName": "ralph/hoops-v1",
-  "description": "macOS notch utility app — Dynamic Island-style expandable widget surface over the MacBook notch",
+  "project": "NotchNook",
+  "branchName": "ralph/notchnook-v2",
+  "description": "NotchNook v2 — Full-featured Dynamic Island for macOS with themes, system indicators, widget drawer, and deep customization",
   "userStories": [
     {
       "id": "US-001",
-      "title": "NSPanel subclass, screen detector, and notch state model",
-      "description": "As a developer, I need the foundational window classes: a borderless non-activating NSPanel, NSScreen extensions for notch detection/geometry, and an observable state model.",
+      "title": "Notch Detection & Window Placement",
+      "description": "As a user, I want the app to detect my MacBook's hardware notch and place an overlay precisely over it.",
       "acceptanceCriteria": [
-        "NotchNook/Window/NotchPanel.swift exists with class NotchPanel: NSPanel configured as borderless, non-activating, no shadow, clear background, statusBar+1 level, canJoinAllSpaces+stationary+fullScreenAuxiliary collection behavior, hidesOnDeactivate=false, ignoresMouseEvents=true",
-        "NotchNook/Window/ScreenDetector.swift exists with NSScreen extension providing hasNotch (checks auxiliaryTopLeftArea/auxiliaryTopRightArea), notchSize, notchFrame, virtualPillFrame (180pt wide), overlayFrame, and stableIdentifier properties",
-        "NotchNook/Models/NotchState.swift exists with @Observable class containing Phase enum (idle, expanding, expanded, tray, hud) and screenHasNotch bool",
-        "swiftc -typecheck passes for all three files with proper imports"
+        "Detects notch via auxiliaryTopLeftArea / auxiliaryTopRightArea",
+        "Places NSPanel overlay exactly over the hardware notch",
+        "Falls back to centered virtual pill on non-notch Macs",
+        "Handles multiple displays — one overlay per screen",
+        "swiftc -typecheck passes"
       ],
       "priority": 1,
       "passes": true,
-      "notes": "Phase 1 Plan 02 Task 1. Do NOT include .fullSizeContentView in style mask. Do NOT use .moveToActiveSpace. canBecomeKey returns true, canBecomeMain returns false."
+      "notes": "Implemented in v1. ScreenDetector.swift handles notch detection."
     },
     {
       "id": "US-002",
-      "title": "Window manager, root view, and AppDelegate wiring",
-      "description": "As a developer, I need NotchWindowManager to create per-screen overlay panels, a SwiftUI root view hosted inside, and AppDelegate to initialize the manager on launch.",
+      "title": "Expand/Collapse Animation",
+      "description": "As a user, I want the notch to smoothly expand and collapse with spring animations.",
       "acceptanceCriteria": [
-        "NotchNook/Views/NotchRootView.swift exists with SwiftUI view accepting NotchState, rendering dark rounded rectangle with corner radius 10 and centered 'NotchNook' caption text",
-        "NotchNook/Window/NotchWindowManager.swift exists with windows dictionary keyed by stableIdentifier, synchronizeWindows() with 500ms debounce, createWindow(for:) using NSHostingView, repositionWindow(_:on:), and observer for didChangeScreenParametersNotification",
-        "NotchNook/AppDelegate.swift modified to instantiate NotchWindowManager in applicationDidFinishLaunching",
-        "swiftc -typecheck passes for all modified/created files"
+        "Spring animation (response: 0.4, damping: 0.8) for expand/collapse",
+        "Collapsed state matches hardware notch dimensions",
+        "Expanded state is configurable width (400-800pt) x 200pt",
+        "NotchShape animates smoothly between states",
+        "swiftc -typecheck passes"
       ],
       "priority": 2,
       "passes": true,
-      "notes": "Phase 1 Plan 02 Task 2. Panel content is NSHostingView wrapping NotchRootView. orderFront(nil) to show. Remove windows when screen disconnects (orderOut first)."
+      "notes": "Implemented in v1. NotchPanel + NotchShape + NotchWindowManager."
     },
     {
       "id": "US-003",
-      "title": "Mouse tracking and hover detection for notch expansion",
-      "description": "As a user, I want hovering over the notch area for 200ms to trigger expansion, so I can interact with widgets.",
+      "title": "Activation Triggers",
+      "description": "As a user, I want to choose how to activate the notch — hover, click, or keyboard shortcut.",
       "acceptanceCriteria": [
-        "NSTrackingArea added to NotchPanel that detects mouseEntered/mouseExited events",
-        "200ms dwell timer before triggering expansion (configurable via UserDefaults, default 200ms)",
-        "ignoresMouseEvents toggled to false when tracking is active",
-        "Mouse exit from expanded area starts 300ms grace timer before collapsing",
-        "NotchState.phase transitions: idle -> expanding on hover dwell",
+        "Hover activation with configurable dwell delay",
+        "Click-to-toggle activation mode",
+        "Global keyboard shortcut (default Option+N)",
+        "Grace period on mouse exit before collapsing",
+        "Escape key and click-outside dismiss",
         "swiftc -typecheck passes"
       ],
       "priority": 3,
       "passes": true,
-      "notes": "Phase 2 Plan 01. Use NSEvent.addLocalMonitorForEvents and NSTrackingArea. Global monitor requires Accessibility permission — request lazily."
+      "notes": "Implemented in v1. ActivationTrigger enum in NotchState.swift."
     },
     {
       "id": "US-004",
-      "title": "Spring animations for expand/collapse transitions",
-      "description": "As a user, I want smooth 60fps spring animations when the notch expands and collapses.",
+      "title": "Theme System",
+      "description": "As a user, I want to choose between dark, translucent, and Liquid Glass themes so the notch matches my aesthetic preferences.",
       "acceptanceCriteria": [
-        "Expanding animates panel frame from collapsed (notch-sized) to expanded (600pt wide default) with spring timing",
-        "Collapsing reverses the animation smoothly back to notch dimensions",
-        "NotchState.phase transitions through expanding -> expanded and back to idle",
-        "Animation runs at 60fps with no visual tearing",
-        "Panel frame change uses NSAnimationContext or SwiftUI withAnimation(.spring())",
+        "Solid dark theme: pure black background matching hardware notch",
+        "Translucent dark theme: NSVisualEffectView with .popover material + dark tint overlay",
+        "Liquid Glass theme: frosted glass with subtle color tinting from desktop wallpaper",
+        "Theme selection in Settings > Appearance tab",
+        "Theme persists via UserDefaults",
+        "Smooth crossfade between themes when changed",
+        "NotchRootView reads theme from UserDefaults and applies correct background",
         "swiftc -typecheck passes"
       ],
       "priority": 4,
-      "passes": true,
-      "notes": "Phase 2. Expanded width configurable (400-800pt, default 600pt). Use screen.overlayFrame for collapsed and calculated expanded frame centered on screen."
+      "passes": false,
+      "notes": "Currently only solid black. VisualEffectView.swift exists but drawingGroup() breaks it — do NOT use drawingGroup() on the outer container."
     },
     {
       "id": "US-005",
-      "title": "Custom notch shape with concave cutout",
-      "description": "As a user, I want the expanded notch to blend seamlessly with the hardware notch edges using a custom shape.",
+      "title": "Non-Notch Mac Support",
+      "description": "As a user on a Mac without a notch, I want a virtual pill that behaves identically to the notch overlay.",
       "acceptanceCriteria": [
-        "NotchNook/Views/NotchShape.swift exists with SwiftUI Shape conformance",
-        "Shape draws rounded rectangle with concave cutout at top matching hardware notch profile",
-        "On non-notch Macs, shape is a simple capsule (fully rounded rectangle)",
-        "Shape animatable between collapsed and expanded sizes",
+        "Virtual pill at top-center (180pt x menu bar height)",
+        "Same expand/collapse and activation triggers",
+        "Adjustable pill size in Settings",
         "swiftc -typecheck passes"
       ],
       "priority": 5,
       "passes": true,
-      "notes": "Phase 2. The concave top edge has two inward curves flanking the camera area. Use Bezier path with control points for smooth curves."
+      "notes": "Implemented in v1. ScreenDetector handles non-notch fallback."
     },
     {
       "id": "US-006",
-      "title": "Vibrancy background and dismissal behaviors",
-      "description": "As a user, I want frosted glass vibrancy in expanded state and multiple ways to dismiss the notch.",
+      "title": "Now Playing Widget (Expanded)",
+      "description": "As a user, I want to see and control the currently playing track when I expand the notch.",
       "acceptanceCriteria": [
-        "Expanded state shows NSVisualEffectView bridged into SwiftUI with .hudWindow material and .behindWindow blending",
-        "Collapsed state uses opaque black fill matching hardware notch",
-        "Animated transition between opaque (collapsed) and vibrancy (expanded)",
-        "Clicking outside the expanded notch dismisses immediately",
-        "Pressing Escape dismisses immediately",
+        "Shows album art, track title, artist name",
+        "Play/pause, next, previous buttons",
+        "Progress bar showing elapsed/total time",
+        "Supports any MediaRemote-compatible app",
         "swiftc -typecheck passes"
       ],
       "priority": 6,
       "passes": true,
-      "notes": "Phase 2. Bridge NSVisualEffectView via NSViewRepresentable. Escape key requires panel to be key window momentarily."
+      "notes": "Implemented in v1. MediaPlayerWidget.swift."
     },
     {
       "id": "US-007",
-      "title": "Activation trigger settings (hover, click, hotkey)",
-      "description": "As a user, I want to choose how I activate the notch — hover, click, or keyboard shortcut.",
+      "title": "Collapsed Media Indicator",
+      "description": "As a user, I want subtle indicators when music is playing and the notch is collapsed.",
       "acceptanceCriteria": [
-        "Settings > General tab has activation trigger picker: Hover (default), Click, Keyboard Shortcut",
-        "Hover delay slider (100ms-500ms) shown when Hover is selected",
-        "Global hotkey configuration (default Option+N) shown when Keyboard Shortcut is selected",
-        "Changing trigger immediately updates behavior without app restart",
-        "Settings persisted via UserDefaults",
+        "Album art peek on collapsed notch",
+        "Animated waveform bars when playing",
+        "TimelineView at 30fps only when playing",
         "swiftc -typecheck passes"
       ],
       "priority": 7,
       "passes": true,
-      "notes": "Phase 2. Add to existing SettingsView TabView. Global hotkey uses NSEvent.addGlobalMonitorForEvents with key combo matching."
+      "notes": "Implemented in v1. CollapsedMediaIndicator.swift."
     },
     {
       "id": "US-008",
-      "title": "MediaRemote private framework service layer",
-      "description": "As a developer, I need a media service that fetches now-playing data via MediaRemote with fallback to MPNowPlayingInfoCenter.",
+      "title": "Apple Music & Spotify Inline Previews",
+      "description": "As a user, I want richer previews for Apple Music and Spotify showing playlist context and up-next.",
       "acceptanceCriteria": [
-        "NotchNook/Services/MediaService.swift exists with protocol-based abstraction",
-        "MediaRemote functions loaded dynamically via dlopen/dlsym from MediaRemote.framework",
-        "Service provides: track title, artist, album art (as NSImage), playback state, app bundle ID",
-        "Play/pause, next, previous commands work via MRMediaRemoteSendCommand",
-        "Fallback to MPNowPlayingInfoCenter if MediaRemote unavailable",
-        "Registers for MRMediaRemoteRegisterForNowPlayingNotifications to get live updates",
+        "Detects Apple Music / Spotify via bundle ID from MediaRemote client",
+        "Shows 'Up Next' track name below current track when available",
+        "Displays playlist/album name as subtitle",
+        "Falls back gracefully to standard view for other apps",
         "swiftc -typecheck passes"
       ],
       "priority": 8,
-      "passes": true,
-      "notes": "Phase 3. Use @objc dynamic loading for MediaRemote. Abstract behind a MediaServiceProtocol so fallback is transparent."
+      "passes": false,
+      "notes": "Enhance existing MediaPlayerWidget and MediaService. MediaRemote may provide queue info via MRMediaRemoteGetNowPlayingInfo."
     },
     {
       "id": "US-009",
-      "title": "Media player expanded widget view",
-      "description": "As a user, I want to see album art, track info, and playback controls when the notch is expanded.",
+      "title": "YouTube & Video Background Playback Controls",
+      "description": "As a user watching video in a browser, I want media controls in the notch.",
       "acceptanceCriteria": [
-        "NotchNook/Views/Widgets/MediaPlayerWidget.swift exists",
-        "Displays album art (rounded corners), track title, artist name",
-        "Shows playback progress indicator",
-        "Play/pause, next, previous buttons that call MediaService",
-        "Shows source app icon (Spotify, Apple Music, etc.) from bundle ID",
-        "Widget only appears when media is actively playing or paused",
+        "Detects browser-based media via MediaRemote",
+        "Shows video title and source app icon",
+        "Play/pause and skip controls work",
         "swiftc -typecheck passes"
       ],
       "priority": 9,
       "passes": true,
-      "notes": "Phase 3. Widget should be sized to fit within expanded notch (~600pt wide panel). Use AsyncImage or NSImage for album art."
+      "notes": "Implemented in v1. MediaRemote already works for browser media."
     },
     {
       "id": "US-010",
-      "title": "Collapsed media live activity indicator",
-      "description": "As a user, I want to see a subtle waveform animation and album art peek when music is playing and the notch is collapsed.",
+      "title": "Volume HUD",
+      "description": "As a user, I want volume changes to appear as a sleek slider in the notch.",
       "acceptanceCriteria": [
-        "When media is playing and notch is collapsed, show small waveform animation flanking the notch",
-        "Album art peek visible as tiny circle next to notch edge",
-        "Animation uses TimelineView only when media is actively playing (paused = static)",
-        "Waveform stops when no media is playing to save CPU",
+        "Monitors system volume via CoreAudio AudioObjectAddPropertyListenerBlock",
+        "Displays horizontal slider with speaker icon and percentage",
+        "Interactive drag to adjust volume",
+        "Auto-dismiss after configurable timeout",
         "swiftc -typecheck passes"
       ],
       "priority": 10,
       "passes": true,
-      "notes": "Phase 3. Keep animations minimal for performance. Use drawingGroup() for Metal rendering."
+      "notes": "Implemented in v1. HUDService + HUDOverlayView."
     },
     {
       "id": "US-011",
-      "title": "Media gesture controls (swipe to skip)",
-      "description": "As a user, I want to swipe horizontally on the notch to skip tracks.",
+      "title": "Brightness HUD",
+      "description": "As a user, I want brightness changes to appear in the notch.",
       "acceptanceCriteria": [
-        "Two-finger horizontal swipe inside expanded notch area skips to next (right) or previous (left) track",
-        "Swipe gesture uses NSEvent scrollWheel monitoring or SwiftUI gesture recognizers",
-        "Haptic feedback (if available) on successful skip",
+        "Monitors display brightness via IOKit adaptive polling",
+        "Displays horizontal slider with sun icon and percentage",
+        "Interactive drag to adjust brightness",
         "swiftc -typecheck passes"
       ],
       "priority": 11,
       "passes": true,
-      "notes": "Phase 3. Detect horizontal scroll events with sufficient delta threshold to distinguish from vertical scroll."
+      "notes": "Implemented in v1. HUDService handles brightness."
     },
     {
       "id": "US-012",
-      "title": "Volume monitoring and HUD slider view",
-      "description": "As a user, I want volume changes to show a slim slider inside the notch instead of the native macOS HUD.",
+      "title": "Native HUD Suppression",
+      "description": "As a user, I want the option to suppress the default macOS volume/brightness HUD.",
       "acceptanceCriteria": [
-        "NotchNook/Services/HUDService.swift monitors volume changes via CoreAudio AudioObjectAddPropertyListener on default output device",
-        "NotchNook/Views/HUDOverlayView.swift renders slim horizontal slider showing current volume level",
-        "Pressing volume key shows slider inside notch area with smooth animation",
-        "Slider auto-dismisses after 2 seconds (configurable 1-5s)",
-        "User can grab and drag slider to adjust volume interactively",
-        "NotchState.phase transitions to .hud and back to previous state on dismiss",
+        "CGEventTap intercepts NX_SYSDEFINED events",
+        "Graceful fallback if Accessibility permission not granted",
+        "Toggle in Settings",
         "swiftc -typecheck passes"
       ],
       "priority": 12,
       "passes": true,
-      "notes": "Phase 4. Use kAudioHardwareServiceDeviceProperty_VirtualMainVolume for volume. HUD takes priority over all other states."
+      "notes": "Implemented in v1."
     },
     {
       "id": "US-013",
-      "title": "Brightness monitoring and HUD slider",
-      "description": "As a user, I want brightness changes to show a slim slider inside the notch instead of the native macOS HUD.",
+      "title": "Battery & Charging Status Indicator",
+      "description": "As a user, I want to see battery percentage and charging state in the collapsed notch.",
       "acceptanceCriteria": [
-        "HUDService extended to monitor brightness changes via IOKit display services (IODisplayGetFloatParameter)",
-        "Brightness slider rendered alongside volume slider in HUDOverlayView",
-        "Pressing brightness key shows brightness slider inside notch with smooth animation",
-        "Same auto-dismiss and interactive drag behavior as volume slider",
-        "HUD type indicator (speaker icon vs sun icon) distinguishes volume from brightness",
+        "Shows battery percentage as small text on collapsed notch",
+        "Color-coded: green (>50%), yellow (20-50%), red (<20%)",
+        "Charging bolt icon when plugged in",
+        "Low battery warning animation at 10%",
+        "Uses IOPSCopyPowerSourcesInfo / IOPSCopyPowerSourcesList for battery data",
+        "BatteryService is @Observable, owned by NotchWindowManager",
         "swiftc -typecheck passes"
       ],
       "priority": 13,
-      "passes": true,
-      "notes": "Phase 4. Use CoreDisplay or IOKit for brightness reading. May need polling if no notification API available."
+      "passes": false,
+      "notes": "New service. Add BatteryService.swift to Services/, BatteryIndicator.swift to Views/Widgets/. Import IOKit."
     },
     {
       "id": "US-014",
-      "title": "Native HUD suppression (best-effort)",
-      "description": "As a developer, I need to suppress the native macOS volume/brightness HUD so it doesn't overlap with our custom one.",
+      "title": "Privacy Indicators (Camera/Mic In Use)",
+      "description": "As a user, I want to see when my camera or microphone is active as colored dots in the notch.",
       "acceptanceCriteria": [
-        "Best-effort suppression of native macOS HUD when custom HUD is active",
-        "Uses NSEvent.addGlobalMonitorForEvents(matching: .systemDefined) to detect OSD trigger keys",
-        "Graceful fallback: if suppression fails, custom HUD displays alongside native (not a blocker)",
-        "HUD replacement is opt-in via Settings toggle (default: on)",
-        "Settings > HUD tab with enable/disable toggle and auto-dismiss timeout slider",
+        "Green dot for camera active, orange dot for microphone active",
+        "Shows app name on hover/expand",
+        "Uses CoreMediaIO / AVCaptureDevice for camera detection",
+        "Uses AudioObjectGetPropertyData on input device for mic detection",
+        "Dots appear at the edge of the collapsed notch",
+        "PrivacyService is @Observable, owned by NotchWindowManager",
         "swiftc -typecheck passes"
       ],
       "priority": 14,
-      "passes": true,
-      "notes": "Phase 4. Native HUD suppression is fragile across OS versions. Make it degrade gracefully. Requires Accessibility permission."
+      "passes": false,
+      "notes": "New service. Add PrivacyService.swift to Services/, PrivacyIndicatorView.swift to Views/Widgets/."
     },
     {
       "id": "US-015",
-      "title": "Frontmost app detection and widget switching",
-      "description": "As a user, I want the notch to automatically show relevant widgets based on which app is in front.",
+      "title": "Focus Mode Indicator",
+      "description": "As a user, I want to see my active Focus Mode name/icon in the collapsed notch.",
       "acceptanceCriteria": [
-        "NotchNook/Services/ContextService.swift monitors frontmost app via NSWorkspace.shared.frontmostApplication",
-        "Observes didActivateApplicationNotification for real-time app switching",
-        "Widget visibility rules: e.g., show media widget when Spotify/Music is frontmost",
-        "Default rules built-in, user can override in settings",
+        "Detects Focus Mode via DistributedNotificationCenter",
+        "Shows Focus Mode name as small label",
+        "Moon icon for Do Not Disturb",
+        "Appears/disappears with animation when Focus Mode toggles",
+        "FocusService is @Observable, owned by NotchWindowManager",
         "swiftc -typecheck passes"
       ],
       "priority": 15,
-      "passes": true,
-      "notes": "Phase 5. Depends on Phase 3 (media widget) and Phase 4 (HUD) being available to switch between."
+      "passes": false,
+      "notes": "New service. Use DistributedNotificationCenter for 'com.apple.doNotDisturb' changes."
     },
     {
       "id": "US-016",
-      "title": "Time-of-day profiles and Focus Mode integration",
-      "description": "As a user, I want widgets to change based on time of day and active Focus Mode.",
+      "title": "Screen Recording Indicator",
+      "description": "As a user, I want a visible indicator when my screen is being recorded.",
       "acceptanceCriteria": [
-        "ContextService supports time-based profiles: morning, afternoon, evening (configurable time boundaries)",
-        "Detects active macOS Focus Mode via NSDoNotDisturb or FocusFilter API",
-        "Different widget sets shown per Focus Mode (e.g., Work focus hides media, shows calendar)",
-        "Settings UI for configuring time profiles and Focus Mode widget assignments",
+        "Red recording dot when screen capture is active",
+        "Detects via CGDisplayStreamCreate or SCC framework presence check",
+        "Pulses subtly to draw attention",
+        "Shows recording app name on expand",
         "swiftc -typecheck passes"
       ],
       "priority": 16,
-      "passes": true,
-      "notes": "Phase 5. Use DistributedNotificationCenter for Focus Mode changes if public API insufficient."
+      "passes": false,
+      "notes": "Can integrate into PrivacyService or standalone. CGDisplayStream or polling CGWindowListCopyWindowInfo."
     },
     {
       "id": "US-017",
-      "title": "Custom context rules engine and settings UI",
-      "description": "As a user, I want to create custom rules like 'When Xcode is frontmost, show shortcuts widget'.",
+      "title": "Collapsed Indicator Layout Manager",
+      "description": "As a developer, I need a layout system to arrange multiple collapsed indicators (battery, privacy dots, focus, recording) without overlapping.",
       "acceptanceCriteria": [
-        "NotchNook/Models/ContextRule.swift with Codable model: condition (app, time, focus) + widget set",
-        "Settings > Context tab with rule list, add/edit/delete functionality",
-        "Rule conditions: When [app is X / time is Y / Focus Mode is Z] show [widget set]",
-        "Rules evaluated in priority order, first match wins",
-        "Rules persisted to UserDefaults or JSON file",
+        "CollapsedIndicatorBar view arranges indicators left-to-right within collapsed notch bounds",
+        "Indicators have priority ordering (privacy > recording > battery > focus)",
+        "Gracefully hides lower-priority indicators if space is insufficient",
+        "Integrated into NotchRootView for collapsed state",
         "swiftc -typecheck passes"
       ],
       "priority": 17,
-      "passes": true,
-      "notes": "Phase 5. Keep rule engine simple — condition+action pairs, no complex boolean logic for v1."
+      "passes": false,
+      "notes": "Depends on US-013 through US-016. Creates CollapsedIndicatorBar.swift in Views/Widgets/."
     },
     {
       "id": "US-018",
-      "title": "Drop zone UI and drag detection on notch",
-      "description": "As a user, I want to drag files over the notch and see a drop zone appear.",
+      "title": "Widget Drawer Architecture",
+      "description": "As a developer, I need a widget system that allows multiple widgets to be registered, arranged, and displayed in the expanded notch.",
       "acceptanceCriteria": [
-        "Dragging a file over the notch area reveals a visual drop zone UI with pulsing highlight",
-        "Uses registerForDraggedTypes on NotchPanel for file URL types",
-        "NotchState.phase transitions to .tray when drag enters",
-        "Drop zone shows icon and text hint ('Drop to process')",
-        "Releasing drag outside cancels gracefully",
+        "WidgetProtocol with id, name, icon, view, size (small/medium/large)",
+        "WidgetRegistry manages available widgets and user-selected arrangement",
+        "Expanded notch shows a scrollable grid/list of active widgets",
+        "Widgets can be reordered in Settings",
+        "Widget state persists across launches via UserDefaults",
+        "WidgetRegistry is @Observable, owned by NotchWindowManager",
         "swiftc -typecheck passes"
       ],
       "priority": 18,
-      "passes": true,
-      "notes": "Phase 6. Register for NSPasteboard.PasteboardType.fileURL. Use NSDraggingDestination protocol on panel."
+      "passes": false,
+      "notes": "Foundation for all widgets. Add Models/WidgetProtocol.swift, Services/WidgetRegistry.swift, Views/WidgetDrawerView.swift."
     },
     {
       "id": "US-019",
-      "title": "Built-in drop actions (compress image, OCR)",
-      "description": "As a user, I want to drop an image on the notch to compress/resize it or extract text via OCR.",
+      "title": "Calendar Widget",
+      "description": "As a user, I want to see my upcoming events in the notch widget drawer.",
       "acceptanceCriteria": [
-        "NotchNook/Services/DropActionService.swift with DropAction protocol",
-        "Built-in CompressImageAction: accepts image files, compresses/resizes, copies result to clipboard",
-        "Built-in OCRAction: accepts image files, extracts text via Vision framework VNRecognizeTextRequest, copies to clipboard",
-        "Action selection UI shown after drop (if multiple actions match the file type)",
-        "Success/failure feedback shown briefly in notch",
+        "Shows next 3 upcoming events from EventKit (EKEventStore)",
+        "Displays event title, time, and calendar color",
+        "'In X minutes' relative time for imminent events",
+        "Tapping an event opens Calendar.app",
+        "Requests calendar access on first use",
+        "Conforms to WidgetProtocol",
         "swiftc -typecheck passes"
       ],
       "priority": 19,
-      "passes": true,
-      "notes": "Phase 6. Use NSImage for resize, Vision framework for OCR. Copy results to NSPasteboard.general."
+      "passes": false,
+      "notes": "Depends on US-018. Add Services/CalendarService.swift, Views/Widgets/CalendarWidget.swift. Import EventKit."
     },
     {
       "id": "US-020",
-      "title": "Shortcuts integration and shell pipeline support",
-      "description": "As a user, I want to assign macOS Shortcuts or shell scripts as drop actions.",
+      "title": "Timer / Stopwatch Widget",
+      "description": "As a user, I want a timer and stopwatch accessible from the notch.",
       "acceptanceCriteria": [
-        "Drop action can invoke a macOS Shortcut by name via shortcuts:// URL scheme",
-        "Drop action can run a shell script/command with the dropped file path as argument",
-        "Multi-step pipeline support: chain actions sequentially (action1 output -> action2 input)",
-        "Pipeline configuration stored as JSON/Codable model",
+        "Countdown timer with preset buttons (1m, 5m, 10m, 25m) and custom entry",
+        "Stopwatch with start/stop/lap/reset",
+        "Timer completion notification sound + notch animation",
+        "Running timer shows remaining time in collapsed notch",
+        "Conforms to WidgetProtocol",
         "swiftc -typecheck passes"
       ],
       "priority": 20,
-      "passes": true,
-      "notes": "Phase 6. Use Process() for shell scripts. Pass file path as $1 argument. Capture stdout for pipeline chaining."
+      "passes": false,
+      "notes": "Depends on US-018. Add Services/TimerService.swift, Views/Widgets/TimerWidget.swift."
     },
     {
       "id": "US-021",
-      "title": "Drop action configuration UI in settings",
-      "description": "As a user, I want to configure drop actions and pipelines in settings.",
+      "title": "Clipboard History Widget",
+      "description": "As a user, I want to access my recent clipboard items from the notch.",
       "acceptanceCriteria": [
-        "Settings > Drop Actions tab listing all configured actions",
-        "Add/edit/delete drop actions with type picker (built-in, Shortcut, shell script)",
-        "Pipeline builder: drag to reorder steps, add/remove steps",
-        "File type filter per action (images only, PDFs only, any file)",
-        "Drop actions persisted to UserDefaults or JSON file",
+        "Monitors NSPasteboard.general for changes via polling",
+        "Stores last 20 clipboard entries (text, images, file URLs)",
+        "Click to re-copy an item to clipboard",
+        "Search/filter clipboard history",
+        "Conforms to WidgetProtocol",
         "swiftc -typecheck passes"
       ],
       "priority": 21,
-      "passes": true,
-      "notes": "Phase 6. Keep UI simple — list of actions with inline editing."
+      "passes": false,
+      "notes": "Depends on US-018. Add Services/ClipboardService.swift, Views/Widgets/ClipboardWidget.swift."
     },
     {
       "id": "US-022",
-      "title": "CPU and memory optimization pass",
-      "description": "As a developer, I need to profile and optimize the app to hit the performance budget.",
+      "title": "Shortcuts Widget",
+      "description": "As a user, I want to trigger my favorite Shortcuts directly from the notch.",
       "acceptanceCriteria": [
-        "Idle CPU usage below 0.5% when collapsed with no media playing (verify via Activity Monitor or Instruments)",
-        "Active CPU usage below 3% when expanded with widgets visible",
-        "Memory usage below 50MB during normal operation",
-        "No unnecessary timers or polling when idle — lazy widget loading",
-        "TimelineView only active during media playback animation",
-        "drawingGroup() applied to complex animated views",
+        "Lists user's Shortcuts from /usr/bin/shortcuts list",
+        "Configurable favorites (pin up to 6 shortcuts)",
+        "Run shortcut via /usr/bin/shortcuts run 'Name'",
+        "Shows running indicator and success/failure result",
+        "Conforms to WidgetProtocol",
         "swiftc -typecheck passes"
       ],
       "priority": 22,
-      "passes": true,
-      "notes": "Phase 7. Profile with Instruments (Time Profiler, Allocations). Eliminate any retain cycles or leaked observers."
+      "passes": false,
+      "notes": "Depends on US-018. Add Services/ShortcutsService.swift, Views/Widgets/ShortcutsWidget.swift."
     },
     {
       "id": "US-023",
-      "title": "Sleep/wake resilience and display hotplug hardening",
-      "description": "As a user, I want the app to survive sleep/wake cycles and monitor connect/disconnect without bugs.",
+      "title": "Notes Quick Capture Widget",
+      "description": "As a user, I want to quickly jot down a note from the notch.",
       "acceptanceCriteria": [
-        "App survives sleep/wake cycles: overlay repositions correctly after wake",
-        "Listen for NSWorkspace.willSleepNotification and didWakeNotification",
-        "On wake: re-run synchronizeWindows() with delay to let screen parameters settle",
-        "Display hotplug: connecting external monitor creates overlay, disconnecting removes it cleanly",
-        "No crashes on rapid connect/disconnect cycles",
-        "Window positions correct after display arrangement changes in System Settings",
+        "Text field for quick note entry",
+        "Saves to clipboard or text file",
+        "Keyboard shortcut to focus note field when expanded",
+        "Shows last 3 recent notes as quick-recall list",
+        "Conforms to WidgetProtocol",
         "swiftc -typecheck passes"
       ],
       "priority": 23,
+      "passes": false,
+      "notes": "Depends on US-018. Add Views/Widgets/NotesWidget.swift."
+    },
+    {
+      "id": "US-024",
+      "title": "Webcam Mirror Widget",
+      "description": "As a user, I want a quick webcam preview in the notch before joining a video call.",
+      "acceptanceCriteria": [
+        "AVCaptureSession with default video device",
+        "Shows live preview in a small rounded rect",
+        "Camera indicator dot while active",
+        "Auto-stops capture when widget is hidden/collapsed",
+        "Permission request on first use",
+        "Conforms to WidgetProtocol",
+        "swiftc -typecheck passes"
+      ],
+      "priority": 24,
+      "passes": false,
+      "notes": "Depends on US-018. Add Services/WebcamService.swift, Views/Widgets/WebcamWidget.swift. Import AVFoundation."
+    },
+    {
+      "id": "US-025",
+      "title": "Color Picker Widget",
+      "description": "As a user (designer/developer), I want a quick color picker accessible from the notch.",
+      "acceptanceCriteria": [
+        "NSColorSampler integration for screen color picking",
+        "Shows picked color swatch, hex value, RGB values",
+        "Click to copy hex/RGB to clipboard",
+        "History of last 10 picked colors",
+        "Conforms to WidgetProtocol",
+        "swiftc -typecheck passes"
+      ],
+      "priority": 25,
+      "passes": false,
+      "notes": "Depends on US-018. Add Views/Widgets/ColorPickerWidget.swift."
+    },
+    {
+      "id": "US-026",
+      "title": "Unit/Currency Converter Widget",
+      "description": "As a user, I want a quick converter for units and currency in the notch.",
+      "acceptanceCriteria": [
+        "Category selector: length, weight, temperature, currency",
+        "Input field with source unit, output field with target unit",
+        "Swappable source/target",
+        "Conforms to WidgetProtocol",
+        "swiftc -typecheck passes"
+      ],
+      "priority": 26,
+      "passes": false,
+      "notes": "Depends on US-018. Add Views/Widgets/ConverterWidget.swift. Use Foundation Measurement types for units."
+    },
+    {
+      "id": "US-027",
+      "title": "System Stats Widget",
+      "description": "As a power user, I want to see system resource usage in the notch.",
+      "acceptanceCriteria": [
+        "CPU usage percentage with mini bar chart",
+        "Memory usage (used/total) with pressure indicator",
+        "Network throughput (upload/download speed)",
+        "Polling interval configurable (1s-10s, default 2s)",
+        "Conforms to WidgetProtocol",
+        "swiftc -typecheck passes"
+      ],
+      "priority": 27,
+      "passes": false,
+      "notes": "Depends on US-018. Add Services/SystemStatsService.swift, Views/Widgets/SystemStatsWidget.swift. Use host_processor_info for CPU, host_statistics64 for memory."
+    },
+    {
+      "id": "US-028",
+      "title": "Incoming Call Display",
+      "description": "As a user, I want incoming FaceTime/phone calls to show as a live activity in the notch.",
+      "acceptanceCriteria": [
+        "Detects incoming calls via CallKit or TelephonyUtilities private framework",
+        "Shows caller name/number, accept/decline buttons",
+        "Smooth expand animation from collapsed state",
+        "Auto-dismisses if call is answered or declined elsewhere",
+        "Falls back to notification-style display if call detection unavailable",
+        "swiftc -typecheck passes"
+      ],
+      "priority": 28,
+      "passes": false,
+      "notes": "Standalone live activity. Add Services/CallService.swift, Views/IncomingCallView.swift."
+    },
+    {
+      "id": "US-029",
+      "title": "AirDrop Send/Receive Indicator",
+      "description": "As a user, I want to see AirDrop transfer progress in the notch.",
+      "acceptanceCriteria": [
+        "Detects AirDrop activity via Sharing framework",
+        "Shows transfer progress bar, file name, and sender/receiver",
+        "Auto-dismisses on completion",
+        "swiftc -typecheck passes"
+      ],
+      "priority": 29,
+      "passes": false,
+      "notes": "Standalone live activity indicator."
+    },
+    {
+      "id": "US-030",
+      "title": "Quick AirDrop from Notch",
+      "description": "As a user, I want to AirDrop files by dragging them to the notch.",
+      "acceptanceCriteria": [
+        "After file drop, show 'AirDrop' as an action option",
+        "Uses NSSharingService(named: .sendViaAirDrop)",
+        "Transfer progress shown in notch",
+        "swiftc -typecheck passes"
+      ],
+      "priority": 30,
+      "passes": false,
+      "notes": "Enhances existing DropActionService. Add AirDrop as a built-in drop action."
+    },
+    {
+      "id": "US-031",
+      "title": "Drag-and-Drop File Tray",
+      "description": "As a user, I want to drag files onto the notch to quickly process them.",
+      "acceptanceCriteria": [
+        "NSPanel registers for .fileURL drag type",
+        "Drag over notch expands into drop zone",
+        "Built-in actions: Compress Image, OCR Text Extraction",
+        "Custom actions: Shortcuts, shell scripts, pipelines",
+        "Progress indicator during processing",
+        "swiftc -typecheck passes"
+      ],
+      "priority": 31,
       "passes": true,
-      "notes": "Phase 7. Add 1-2 second delay after wake before re-syncing windows. Test with Sidecar if external monitor unavailable."
+      "notes": "Implemented in v1. DropActionService + DropZoneView + DropActionSelectionView."
+    },
+    {
+      "id": "US-032",
+      "title": "Gesture Controls",
+      "description": "As a user, I want to customize what gestures do on the notch.",
+      "acceptanceCriteria": [
+        "Horizontal swipe: configurable (skip track, switch widget, none)",
+        "Vertical swipe down: configurable (expand, show widgets, none)",
+        "Long press: configurable (show settings, show widget picker, none)",
+        "Settings UI for gesture assignments",
+        "swiftc -typecheck passes"
+      ],
+      "priority": 32,
+      "passes": false,
+      "notes": "Enhance existing NotchPanel gesture handling. Add GestureSettings model."
+    },
+    {
+      "id": "US-033",
+      "title": "Adjustable Expanded Size & Padding",
+      "description": "As a user, I want to control the expanded notch dimensions.",
+      "acceptanceCriteria": [
+        "Expanded width slider: 400-800pt (default 600pt)",
+        "Expanded height slider: 150-400pt (default 200pt)",
+        "Content padding slider: 8-32pt (default 16pt)",
+        "Live preview of changes",
+        "swiftc -typecheck passes"
+      ],
+      "priority": 33,
+      "passes": false,
+      "notes": "expandedWidth already exists in NotchState. Add expandedHeight and contentPadding."
+    },
+    {
+      "id": "US-034",
+      "title": "Settings Window Revamp",
+      "description": "As a user, I want a comprehensive tabbed settings window to configure all NotchNook features.",
+      "acceptanceCriteria": [
+        "Tabbed interface: General, Appearance, Media, HUD, Widgets, Drop Actions",
+        "General: activation trigger, launch at login, expanded size sliders",
+        "Appearance: theme picker (from US-004), corner radius",
+        "Widgets: enable/disable individual widgets, reorder",
+        "All settings persist via UserDefaults",
+        "swiftc -typecheck passes"
+      ],
+      "priority": 34,
+      "passes": false,
+      "notes": "Replaces existing SettingsView.swift. Depends on most features being built first."
+    },
+    {
+      "id": "US-035",
+      "title": "Context-Aware Widget Switching",
+      "description": "As a user, I want the notch to automatically show relevant widgets based on context.",
+      "acceptanceCriteria": [
+        "Frontmost app detection via NSWorkspace.didActivateApplicationNotification",
+        "Media app detection shows media widget automatically",
+        "Custom rules engine: condition -> widget assignment",
+        "Rules evaluated in priority order, first match wins",
+        "swiftc -typecheck passes"
+      ],
+      "priority": 35,
+      "passes": true,
+      "notes": "Implemented in v1. ContextService + ContextRule model."
+    },
+    {
+      "id": "US-036",
+      "title": "CPU & Memory Optimization",
+      "description": "As a user, I want NotchNook to use minimal system resources.",
+      "acceptanceCriteria": [
+        "Idle CPU usage < 1%",
+        "Adaptive polling intervals",
+        "Cache expensive lookups",
+        "TimelineView guarded by playing state",
+        "swiftc -typecheck passes"
+      ],
+      "priority": 36,
+      "passes": true,
+      "notes": "Implemented in v1."
+    },
+    {
+      "id": "US-037",
+      "title": "Sleep/Wake & Display Hotplug Resilience",
+      "description": "As a user, I want NotchNook to survive sleep/wake cycles and monitor changes.",
+      "acceptanceCriteria": [
+        "Listens for willSleepNotification / didWakeNotification",
+        "Collapses all panels before sleep",
+        "Re-syncs windows 1.5s after wake",
+        "Debounces rapid screen configuration changes",
+        "swiftc -typecheck passes"
+      ],
+      "priority": 37,
+      "passes": true,
+      "notes": "Implemented in v1. NotchWindowManager willSleep/didWake handlers."
     }
   ]
 }
