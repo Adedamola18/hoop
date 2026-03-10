@@ -295,8 +295,8 @@ struct PipelineConfig: Codable, Identifiable {
     var steps: [PipelineStep]
     var supportedExtensions: Set<String>
 
-    init(name: String, steps: [PipelineStep], supportedExtensions: Set<String> = ["*"]) {
-        self.id = UUID()
+    init(id: UUID = UUID(), name: String, steps: [PipelineStep], supportedExtensions: Set<String> = ["*"]) {
+        self.id = id
         self.name = name
         self.steps = steps
         self.supportedExtensions = supportedExtensions
@@ -364,6 +364,73 @@ struct PipelineDropAction: DropAction {
     }
 }
 
+// MARK: - Custom Drop Action Configuration (Codable)
+
+enum CustomDropActionType: String, Codable, CaseIterable {
+    case shortcut
+    case shellScript
+
+    var label: String {
+        switch self {
+        case .shortcut: return "Shortcut"
+        case .shellScript: return "Shell Script"
+        }
+    }
+
+    var iconName: String {
+        switch self {
+        case .shortcut: return "shortcuts"
+        case .shellScript: return "terminal"
+        }
+    }
+}
+
+struct CustomDropActionConfig: Codable, Identifiable {
+    let id: UUID
+    var name: String
+    var actionType: CustomDropActionType
+    /// For shortcut: shortcut name. For shellScript: command string.
+    var config: String
+    var fileExtensions: Set<String>
+
+    init(id: UUID = UUID(), name: String, actionType: CustomDropActionType, config: String, fileExtensions: Set<String> = ["*"]) {
+        self.id = id
+        self.name = name
+        self.actionType = actionType
+        self.config = config
+        self.fileExtensions = fileExtensions
+    }
+
+    func toDropAction() -> any DropAction {
+        switch actionType {
+        case .shortcut:
+            return ShortcutDropAction(shortcutName: config, supportedExtensions: fileExtensions)
+        case .shellScript:
+            return ShellScriptDropAction(name: name, command: config, supportedExtensions: fileExtensions)
+        }
+    }
+}
+
+// MARK: - Custom Drop Action Store (UserDefaults persistence)
+
+struct CustomDropActionStore {
+    private static let key = "customDropActions"
+
+    static func load() -> [CustomDropActionConfig] {
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let actions = try? JSONDecoder().decode([CustomDropActionConfig].self, from: data) else {
+            return []
+        }
+        return actions
+    }
+
+    static func save(_ actions: [CustomDropActionConfig]) {
+        if let data = try? JSONEncoder().encode(actions) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
+}
+
 // MARK: - Pipeline Store (UserDefaults persistence)
 
 struct PipelineStore {
@@ -403,9 +470,11 @@ final class DropActionService {
         OCRAction()
     ]
 
-    /// All available actions: built-in + pipelines loaded from UserDefaults.
+    /// All available actions: built-in + custom actions + pipelines loaded from UserDefaults.
     var allActions: [any DropAction] {
         var actions: [any DropAction] = builtInActions
+        let customActions = CustomDropActionStore.load()
+        actions.append(contentsOf: customActions.map { $0.toDropAction() })
         let pipelines = PipelineStore.load()
         actions.append(contentsOf: pipelines.map { PipelineDropAction(pipeline: $0) })
         return actions

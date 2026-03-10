@@ -17,8 +17,12 @@ struct SettingsView: View {
                 .tabItem {
                     Label("Context", systemImage: "app.connected.to.app.below.fill")
                 }
+            DropActionsSettingsTab()
+                .tabItem {
+                    Label("Drop Actions", systemImage: "arrow.down.doc")
+                }
         }
-        .frame(width: 450, height: 450)
+        .frame(width: 500, height: 500)
     }
 }
 
@@ -593,6 +597,476 @@ struct AddContextRuleSheet: View {
             return !focusModeName.trimmingCharacters(in: .whitespaces).isEmpty
         }
     }
+}
+
+// MARK: - Drop Actions Settings Tab
+
+struct DropActionsSettingsTab: View {
+    @State private var customActions: [CustomDropActionConfig] = CustomDropActionStore.load()
+    @State private var pipelines: [PipelineConfig] = PipelineStore.load()
+    @State private var showingAddAction = false
+    @State private var showingAddPipeline = false
+    @State private var editingAction: CustomDropActionConfig? = nil
+    @State private var editingPipeline: PipelineConfig? = nil
+
+    var body: some View {
+        ScrollView {
+            Form {
+                // MARK: Built-in Actions
+                Section("Built-in Actions") {
+                    HStack {
+                        Image(systemName: "arrow.down.right.and.arrow.up.left")
+                            .frame(width: 20)
+                        VStack(alignment: .leading) {
+                            Text("Compress Image")
+                            Text("png, jpg, jpeg, tiff, bmp, heic, webp")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    HStack {
+                        Image(systemName: "doc.text.viewfinder")
+                            .frame(width: 20)
+                        VStack(alignment: .leading) {
+                            Text("Extract Text (OCR)")
+                            Text("png, jpg, jpeg, tiff, bmp, heic, webp, pdf")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
+                // MARK: Custom Actions
+                Section("Custom Actions") {
+                    if customActions.isEmpty {
+                        Text("No custom actions configured.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    ForEach(Array(customActions.enumerated()), id: \.element.id) { index, action in
+                        HStack {
+                            Image(systemName: action.actionType.iconName)
+                                .frame(width: 20)
+                            VStack(alignment: .leading) {
+                                Text(action.name)
+                                Text("\(action.actionType.label) · \(extensionsLabel(action.fileExtensions))")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+
+                            Button {
+                                editingAction = customActions[index]
+                            } label: {
+                                Image(systemName: "pencil")
+                            }
+                            .buttonStyle(.borderless)
+
+                            Button(role: .destructive) {
+                                customActions.remove(at: index)
+                                CustomDropActionStore.save(customActions)
+                            } label: {
+                                Image(systemName: "minus.circle")
+                            }
+                            .buttonStyle(.borderless)
+                        }
+                    }
+
+                    Button("Add Action…") {
+                        showingAddAction = true
+                    }
+                    .controlSize(.small)
+                    .sheet(isPresented: $showingAddAction) {
+                        AddDropActionSheet { newAction in
+                            customActions.append(newAction)
+                            CustomDropActionStore.save(customActions)
+                        }
+                    }
+                    .sheet(item: $editingAction) { action in
+                        EditDropActionSheet(action: action) { updated in
+                            if let idx = customActions.firstIndex(where: { $0.id == updated.id }) {
+                                customActions[idx] = updated
+                                CustomDropActionStore.save(customActions)
+                            }
+                        }
+                    }
+                }
+
+                // MARK: Pipelines
+                Section("Pipelines") {
+                    Text("Chain multiple actions sequentially. Output from each step feeds into the next.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    if pipelines.isEmpty {
+                        Text("No pipelines configured.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    ForEach(Array(pipelines.enumerated()), id: \.element.id) { index, pipeline in
+                        HStack {
+                            Image(systemName: "arrow.triangle.branch")
+                                .frame(width: 20)
+                            VStack(alignment: .leading) {
+                                Text(pipeline.name)
+                                Text("\(pipeline.steps.count) step\(pipeline.steps.count == 1 ? "" : "s") · \(extensionsLabel(pipeline.supportedExtensions))")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+
+                            Button {
+                                editingPipeline = pipelines[index]
+                            } label: {
+                                Image(systemName: "pencil")
+                            }
+                            .buttonStyle(.borderless)
+
+                            Button(role: .destructive) {
+                                pipelines.remove(at: index)
+                                PipelineStore.save(pipelines)
+                            } label: {
+                                Image(systemName: "minus.circle")
+                            }
+                            .buttonStyle(.borderless)
+                        }
+                    }
+
+                    Button("Add Pipeline…") {
+                        showingAddPipeline = true
+                    }
+                    .controlSize(.small)
+                    .sheet(isPresented: $showingAddPipeline) {
+                        EditPipelineSheet(pipeline: nil) { newPipeline in
+                            pipelines.append(newPipeline)
+                            PipelineStore.save(pipelines)
+                        }
+                    }
+                    .sheet(item: $editingPipeline) { pipeline in
+                        EditPipelineSheet(pipeline: pipeline) { updated in
+                            if let idx = pipelines.firstIndex(where: { $0.id == updated.id }) {
+                                pipelines[idx] = updated
+                                PipelineStore.save(pipelines)
+                            }
+                        }
+                    }
+                }
+            }
+            .padding()
+        }
+    }
+
+    private func extensionsLabel(_ exts: Set<String>) -> String {
+        exts.contains("*") ? "Any file" : exts.sorted().joined(separator: ", ")
+    }
+}
+
+// MARK: - Add Drop Action Sheet
+
+struct AddDropActionSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    var onAdd: (CustomDropActionConfig) -> Void
+
+    @State private var name = ""
+    @State private var actionType: CustomDropActionType = .shortcut
+    @State private var config = ""
+    @State private var fileExtensions = "*"
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("Add Drop Action")
+                .font(.headline)
+
+            Form {
+                TextField("Name", text: $name)
+
+                Picker("Type", selection: $actionType) {
+                    ForEach(CustomDropActionType.allCases, id: \.self) { type in
+                        Text(type.label).tag(type)
+                    }
+                }
+
+                switch actionType {
+                case .shortcut:
+                    TextField("Shortcut name", text: $config)
+                        .textFieldStyle(.roundedBorder)
+                case .shellScript:
+                    TextField("Shell command (file path as $1)", text: $config)
+                        .textFieldStyle(.roundedBorder)
+                }
+
+                TextField("File extensions (comma-separated, or * for any)", text: $fileExtensions)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(.body, design: .monospaced))
+            }
+
+            HStack {
+                Button("Cancel") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                Spacer()
+                Button("Add") {
+                    let exts = parseExtensions(fileExtensions)
+                    let action = CustomDropActionConfig(
+                        name: name.trimmingCharacters(in: .whitespaces),
+                        actionType: actionType,
+                        config: config.trimmingCharacters(in: .whitespaces),
+                        fileExtensions: exts
+                    )
+                    onAdd(action)
+                    dismiss()
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(!isValid)
+            }
+        }
+        .padding()
+        .frame(width: 420)
+    }
+
+    private var isValid: Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty &&
+        !config.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+}
+
+// MARK: - Edit Drop Action Sheet
+
+struct EditDropActionSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    var onSave: (CustomDropActionConfig) -> Void
+
+    @State private var name: String
+    @State private var actionType: CustomDropActionType
+    @State private var config: String
+    @State private var fileExtensions: String
+    private let actionId: UUID
+
+    init(action: CustomDropActionConfig, onSave: @escaping (CustomDropActionConfig) -> Void) {
+        self.onSave = onSave
+        self.actionId = action.id
+        _name = State(initialValue: action.name)
+        _actionType = State(initialValue: action.actionType)
+        _config = State(initialValue: action.config)
+        _fileExtensions = State(initialValue: action.fileExtensions.sorted().joined(separator: ", "))
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("Edit Drop Action")
+                .font(.headline)
+
+            Form {
+                TextField("Name", text: $name)
+
+                Picker("Type", selection: $actionType) {
+                    ForEach(CustomDropActionType.allCases, id: \.self) { type in
+                        Text(type.label).tag(type)
+                    }
+                }
+
+                switch actionType {
+                case .shortcut:
+                    TextField("Shortcut name", text: $config)
+                        .textFieldStyle(.roundedBorder)
+                case .shellScript:
+                    TextField("Shell command (file path as $1)", text: $config)
+                        .textFieldStyle(.roundedBorder)
+                }
+
+                TextField("File extensions (comma-separated, or * for any)", text: $fileExtensions)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(.body, design: .monospaced))
+            }
+
+            HStack {
+                Button("Cancel") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                Spacer()
+                Button("Save") {
+                    let exts = parseExtensions(fileExtensions)
+                    let updated = CustomDropActionConfig(
+                        id: actionId,
+                        name: name.trimmingCharacters(in: .whitespaces),
+                        actionType: actionType,
+                        config: config.trimmingCharacters(in: .whitespaces),
+                        fileExtensions: exts
+                    )
+                    onSave(updated)
+                    dismiss()
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(!isValid)
+            }
+        }
+        .padding()
+        .frame(width: 420)
+    }
+
+    private var isValid: Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty &&
+        !config.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+}
+
+// MARK: - Edit Pipeline Sheet
+
+struct EditPipelineSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    var onSave: (PipelineConfig) -> Void
+
+    @State private var name: String
+    @State private var steps: [PipelineStep]
+    @State private var fileExtensions: String
+    private let pipelineId: UUID
+
+    init(pipeline: PipelineConfig?, onSave: @escaping (PipelineConfig) -> Void) {
+        self.onSave = onSave
+        if let pipeline {
+            self.pipelineId = pipeline.id
+            _name = State(initialValue: pipeline.name)
+            _steps = State(initialValue: pipeline.steps)
+            _fileExtensions = State(initialValue: pipeline.supportedExtensions.sorted().joined(separator: ", "))
+        } else {
+            self.pipelineId = UUID()
+            _name = State(initialValue: "")
+            _steps = State(initialValue: [])
+            _fileExtensions = State(initialValue: "*")
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Text(name.isEmpty ? "New Pipeline" : "Edit Pipeline")
+                .font(.headline)
+
+            Form {
+                TextField("Pipeline name", text: $name)
+
+                TextField("File extensions (comma-separated, or * for any)", text: $fileExtensions)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(.body, design: .monospaced))
+
+                Section("Steps") {
+                    if steps.isEmpty {
+                        Text("No steps added yet.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    ForEach(Array(steps.enumerated()), id: \.element.id) { index, step in
+                        HStack {
+                            Text("\(index + 1).")
+                                .foregroundStyle(.secondary)
+                                .frame(width: 20)
+
+                            Picker("", selection: Binding(
+                                get: { steps[index].stepType },
+                                set: { steps[index].stepType = $0 }
+                            )) {
+                                ForEach(PipelineStepType.allCases, id: \.self) { type in
+                                    Text(type.rawValue).tag(type)
+                                }
+                            }
+                            .labelsHidden()
+                            .frame(width: 120)
+
+                            if step.stepType == .shortcut || step.stepType == .shellScript {
+                                TextField(
+                                    step.stepType == .shortcut ? "Shortcut name" : "Shell command",
+                                    text: Binding(
+                                        get: { steps[index].config },
+                                        set: { steps[index].config = $0 }
+                                    )
+                                )
+                                .textFieldStyle(.roundedBorder)
+                            } else {
+                                Spacer()
+                            }
+
+                            Button {
+                                moveStepUp(index)
+                            } label: {
+                                Image(systemName: "chevron.up")
+                            }
+                            .buttonStyle(.borderless)
+                            .disabled(index == 0)
+
+                            Button {
+                                moveStepDown(index)
+                            } label: {
+                                Image(systemName: "chevron.down")
+                            }
+                            .buttonStyle(.borderless)
+                            .disabled(index == steps.count - 1)
+
+                            Button(role: .destructive) {
+                                steps.remove(at: index)
+                            } label: {
+                                Image(systemName: "minus.circle")
+                            }
+                            .buttonStyle(.borderless)
+                        }
+                    }
+
+                    Button("Add Step") {
+                        steps.append(PipelineStep(stepType: .compressImage))
+                    }
+                    .controlSize(.small)
+                }
+            }
+
+            HStack {
+                Button("Cancel") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                Spacer()
+                Button("Save") {
+                    let exts = parseExtensions(fileExtensions)
+                    let pipeline = PipelineConfig(
+                        id: pipelineId,
+                        name: name.trimmingCharacters(in: .whitespaces),
+                        steps: steps,
+                        supportedExtensions: exts
+                    )
+                    onSave(pipeline)
+                    dismiss()
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(!isValid)
+            }
+        }
+        .padding()
+        .frame(width: 500, height: 450)
+    }
+
+    private var isValid: Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty && !steps.isEmpty
+    }
+
+    private func moveStepUp(_ index: Int) {
+        guard index > 0 else { return }
+        steps.swapAt(index, index - 1)
+    }
+
+    private func moveStepDown(_ index: Int) {
+        guard index < steps.count - 1 else { return }
+        steps.swapAt(index, index + 1)
+    }
+}
+
+// MARK: - Shared Helpers
+
+private func parseExtensions(_ input: String) -> Set<String> {
+    let trimmed = input.trimmingCharacters(in: .whitespaces)
+    if trimmed.isEmpty || trimmed == "*" {
+        return ["*"]
+    }
+    let exts = trimmed
+        .split(separator: ",")
+        .map { $0.trimmingCharacters(in: .whitespaces).lowercased().replacingOccurrences(of: ".", with: "") }
+        .filter { !$0.isEmpty }
+    return exts.isEmpty ? ["*"] : Set(exts)
 }
 
 struct LaunchAtLoginToggle: View {
