@@ -328,7 +328,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 21,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 6. Keep UI simple — list of actions with inline editing."
     },
     {

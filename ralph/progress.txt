@@ -34,6 +34,9 @@
 - Shell scripts: Process() with /bin/zsh -c, file path passed as $1 via "--" separator
 - Pipeline chaining: DropActionResult.outputPath passes output file path from one step to next
 - PipelineStore persists [PipelineConfig] as JSON in UserDefaults key "dropActionPipelines"
+- CustomDropActionStore persists [CustomDropActionConfig] as JSON in UserDefaults key "customDropActions"
+- parseExtensions() helper: shared file-private function for comma-separated extension parsing
+- sheet(item:) for edit sheets requires Identifiable conformance on the binding type
 
 Started: 2026-03-10
 ---
@@ -390,4 +393,23 @@ Started: 2026-03-10
   - Pipeline chaining relies on stdout containing a file path (starts with "/") as convention for output
   - PipelineStepType enum covers all action types: compressImage, ocr, shortcut, shellScript
   - allActions computed property ensures dynamically added pipelines are always included in matching
+---
+
+## 2026-03-10 - US-021
+- Implemented drop action configuration UI in Settings > Drop Actions tab
+- Files changed: Hoop/Views/SettingsView.swift, Hoop/Services/DropActionService.swift
+- DropActionsSettingsTab with three sections: Built-in Actions (read-only), Custom Actions (add/edit/delete), Pipelines (add/edit/delete)
+- CustomDropActionConfig Codable model with CustomDropActionType enum (shortcut, shellScript)
+- CustomDropActionStore for UserDefaults JSON persistence
+- AddDropActionSheet for creating new custom actions (type picker, config input, file extensions)
+- EditDropActionSheet for modifying existing actions (preserves original UUID)
+- EditPipelineSheet for creating/editing pipelines with step builder (reorder, add/remove steps, step type picker, config input)
+- File type filter per action via comma-separated extensions field (or * for any)
+- DropActionService.allActions now includes custom actions from CustomDropActionStore
+- Settings frame widened to 500x500 to accommodate the new tab content
+- **Learnings for future iterations:**
+  - sheet(item:) binding requires the type to conform to Identifiable — CustomDropActionConfig and PipelineConfig already do
+  - parseExtensions() shared as file-private function between multiple sheet views
+  - PipelineConfig and CustomDropActionConfig init updated to accept optional id for edit-preserve pattern
+  - Built-in actions shown as read-only informational rows (no delete/edit) to differentiate from user-configured ones
 ---
