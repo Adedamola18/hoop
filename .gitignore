@@ -1,5 +1,7 @@
-# Planning
+# Planning & docs
 .planning/
+PRD.md
+COMPETITIVE_RESEARCH.md
 
 # Build artifacts
 build/
