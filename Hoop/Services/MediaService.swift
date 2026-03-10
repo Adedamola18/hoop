@@ -13,11 +13,16 @@ enum PlaybackState {
 struct NowPlayingInfo {
     var title: String?
     var artist: String?
+    var albumName: String?
     var albumArt: NSImage?
     var playbackState: PlaybackState
     var appBundleID: String?
     var duration: TimeInterval?
     var elapsedTime: TimeInterval?
+
+    var isAppleMusic: Bool { appBundleID == "com.apple.Music" }
+    var isSpotify: Bool { appBundleID == "com.spotify.client" }
+    var isRichMediaApp: Bool { isAppleMusic || isSpotify }
 }
 
 protocol MediaServiceProtocol {
@@ -71,6 +76,7 @@ private enum MRCommand: UInt32 {
 private enum MRInfoKey {
     static let title = "kMRMediaRemoteNowPlayingInfoTitle"
     static let artist = "kMRMediaRemoteNowPlayingInfoArtist"
+    static let album = "kMRMediaRemoteNowPlayingInfoAlbum"
     static let artworkData = "kMRMediaRemoteNowPlayingInfoArtworkData"
     static let duration = "kMRMediaRemoteNowPlayingInfoDuration"
     static let elapsedTime = "kMRMediaRemoteNowPlayingInfoElapsedTime"
@@ -223,6 +229,7 @@ final class MediaService: MediaServiceProtocol {
             guard let self else { return }
             self.nowPlaying.title = info[MRInfoKey.title] as? String
             self.nowPlaying.artist = info[MRInfoKey.artist] as? String
+            self.nowPlaying.albumName = info[MRInfoKey.album] as? String
             self.nowPlaying.duration = info[MRInfoKey.duration] as? TimeInterval
             self.nowPlaying.elapsedTime = info[MRInfoKey.elapsedTime] as? TimeInterval
 
