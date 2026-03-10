@@ -44,4 +44,36 @@ Started: 2026-03-10
   - NSTrackingArea with .inVisibleRect auto-updates when view resizes
   - installTrackingArea() must be called after setFrame and on reposition
   - SourceKit single-file diagnostics are noise — always verify with multi-file swiftc -typecheck
+  - Panel frame snap + SwiftUI spring animation pattern: expand frame first (onExpandRequested callback), then set phase for SwiftUI animation
+  - For collapse: set phase first (SwiftUI animates), then delay frame shrink by ~0.5s (onCollapseRequested callback)
+  - Use callback closures (onExpandRequested/onCollapseRequested) on NotchPanel to coordinate frame changes with phase transitions
+---
+
+## 2026-03-10 - US-004
+- Implemented spring animations for expand/collapse transitions
+- Files changed: Hoop/Models/NotchState.swift, Hoop/Window/ScreenDetector.swift, Hoop/Window/NotchPanel.swift, Hoop/Window/NotchWindowManager.swift, Hoop/Views/NotchRootView.swift
+- NotchState: added collapsedSize, expandedWidth (configurable 400-800pt, default 600pt), expandedHeight (200pt)
+- ScreenDetector: added expandedOverlayFrame(expandedWidth:) method
+- NotchPanel: added onExpandRequested/onCollapseRequested callback closures; dwell timer expands frame before setting phase, grace timer sets phase then schedules delayed frame collapse
+- NotchWindowManager: expandPanel() snaps frame to expanded size, schedules expanding->expanded transition after 0.5s; scheduleCollapsePanel() delays frame shrink by 0.5s for animation; cancel logic prevents conflicts between expand/collapse
+- NotchRootView: uses .animation(.spring(response: 0.4, dampingFraction: 0.8)) keyed on isExpanded; shape animates between collapsedSize and full geo size; corner radius animates 10->20
+- **Learnings for future iterations:**
+  - Panel frame snap + SwiftUI spring pattern avoids coordinating two animation systems
+  - Callback closures on NotchPanel keep frame management in the window manager while panel handles mouse events
+  - Cancel pending work items when state reverses (e.g., re-hover during collapse delay)
+---
+
+## 2026-03-10 - US-005
+- Implemented custom NotchShape with concave cutout matching hardware notch profile
+- Files created: Hoop/Views/NotchShape.swift
+- Files changed: Hoop/Views/NotchRootView.swift, Hoop.xcodeproj/project.pbxproj
+- NotchShape is a SwiftUI Shape with animatable cornerRadius, notchWidth, notchDepth
+- Concave cutout uses quad Bezier curves at all notch corners for smooth transitions
+- On non-notch Macs, falls back to simple RoundedRectangle
+- When collapsed (notchDepth=0 or notchWidth >= rect width), draws plain rounded rect
+- NotchRootView passes notchDepth=0 when collapsed, collapsedSize.height when expanded for smooth animated cutout appearance
+- **Learnings for future iterations:**
+  - SwiftUI Shape animatableData with nested AnimatablePair supports multi-property animation
+  - NotchShape gracefully degrades: if notch dimensions exceed rect, falls back to rounded rect (handles collapsed state automatically)
+  - collapsedSize in NotchState doubles as hardware notch dimensions for the cutout
 ---

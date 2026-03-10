@@ -60,7 +60,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 2. Expanded width configurable (400-800pt, default 600pt). Use screen.overlayFrame for collapsed and calculated expanded frame centered on screen."
     },
     {
@@ -75,7 +75,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 2. The concave top edge has two inward curves flanking the camera area. Use Bezier path with control points for smooth curves."
     },
     {
