@@ -32,6 +32,7 @@
 		BB000005 /* PrivacyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000006 /* PrivacyService.swift */; };
 		BB000007 /* PrivacyIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000008 /* PrivacyIndicatorView.swift */; };
 		BB000009 /* FocusService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000A /* FocusService.swift */; };
+		BB00000B /* CollapsedIndicatorBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000C /* CollapsedIndicatorBar.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +63,7 @@
 		BB000006 /* PrivacyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyService.swift; sourceTree = "<group>"; };
 		BB000008 /* PrivacyIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyIndicatorView.swift; sourceTree = "<group>"; };
 		BB00000A /* FocusService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusService.swift; sourceTree = "<group>"; };
+		BB00000C /* CollapsedIndicatorBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollapsedIndicatorBar.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -127,6 +129,7 @@
 				AA00001E /* CollapsedMediaIndicator.swift */,
 				BB000004 /* BatteryIndicator.swift */,
 				BB000008 /* PrivacyIndicatorView.swift */,
+				BB00000C /* CollapsedIndicatorBar.swift */,
 			);
 			path = Widgets;
 			sourceTree = "<group>";
@@ -257,6 +260,7 @@
 				BB000005 /* PrivacyService.swift in Sources */,
 				BB000007 /* PrivacyIndicatorView.swift in Sources */,
 				BB000009 /* FocusService.swift in Sources */,
+				BB00000B /* CollapsedIndicatorBar.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

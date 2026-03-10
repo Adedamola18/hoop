@@ -10,8 +10,9 @@ struct NotchRootView: View {
     let privacyService: PrivacyService
     let focusService: FocusService
 
-    private var hasPrivacyIndicators: Bool {
-        privacyService.isCameraActive || privacyService.isMicrophoneActive || privacyService.isScreenRecording
+    private var hasCollapsedIndicators: Bool {
+        privacyService.isCameraActive || privacyService.isMicrophoneActive ||
+        privacyService.isScreenRecording || focusService.isActive || batteryService.battery.isValid
     }
 
     private var isExpanded: Bool {
@@ -101,12 +102,20 @@ struct NotchRootView: View {
                                 mediaService: mediaService,
                                 collapsedSize: state.collapsedSize
                             )
-                            collapsedIndicators
+                            CollapsedIndicatorBar(
+                                privacyService: privacyService,
+                                focusService: focusService,
+                                batteryService: batteryService
+                            )
                         }
                         .transition(.opacity)
-                    } else if !isExpanded && !hasActiveMedia {
-                        collapsedIndicators
-                            .transition(.opacity)
+                    } else if !isExpanded && !hasActiveMedia && hasCollapsedIndicators {
+                        CollapsedIndicatorBar(
+                            privacyService: privacyService,
+                            focusService: focusService,
+                            batteryService: batteryService
+                        )
+                        .transition(.opacity)
                     } else if isExpanded {
                         Text("Hoop")
                             .font(.system(size: 18, weight: .medium, design: .rounded))
@@ -127,26 +136,4 @@ struct NotchRootView: View {
         .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isTray)
     }
 
-    /// Collapsed notch indicators: privacy dots (left) + focus/battery (right)
-    @ViewBuilder
-    private var collapsedIndicators: some View {
-        HStack {
-            if hasPrivacyIndicators {
-                PrivacyIndicatorView(privacyService: privacyService)
-                    .padding(.leading, 12)
-            }
-            Spacer()
-            HStack(spacing: 6) {
-                if focusService.isActive {
-                    Image(systemName: "moon.fill")
-                        .font(.system(size: 8))
-                        .foregroundStyle(.purple)
-                }
-                if batteryService.battery.isValid {
-                    BatteryIndicator(batteryService: batteryService)
-                }
-            }
-            .padding(.trailing, 12)
-        }
-    }
 }
