@@ -10,6 +10,7 @@ final class NotchWindowManager {
     private var globalClickMonitor: Any?
     private var globalHotkeyMonitor: Any?
     let mediaService = MediaService()
+    let hudService = HUDService()
 
     init() {
         NotificationCenter.default.addObserver(
@@ -27,10 +28,13 @@ final class NotchWindowManager {
         synchronizeWindows()
         updateHotkeyMonitor()
         mediaService.startObserving()
+        hudService.startObserving()
+        wireHUDCallbacks()
     }
 
     deinit {
         mediaService.stopObserving()
+        hudService.stopObserving()
         NotificationCenter.default.removeObserver(self)
         pendingSynchronize?.cancel()
         if let monitor = globalClickMonitor {
@@ -108,7 +112,7 @@ final class NotchWindowManager {
         state.screenHasNotch = screen.hasNotch
         state.collapsedSize = screen.overlayFrame.size
 
-        let rootView = NotchRootView(state: state, mediaService: mediaService)
+        let rootView = NotchRootView(state: state, mediaService: mediaService, hudService: hudService)
         let hostingView = NSHostingView(rootView: rootView)
 
         let panel = NotchPanel(
@@ -139,6 +143,9 @@ final class NotchWindowManager {
             } else {
                 self?.mediaService.previousTrack()
             }
+        }
+        panel.onHUDDismissRequested = { [weak self] in
+            self?.hudService.dismissHUD()
         }
 
         windows[id] = (panel: panel, state: state)
@@ -232,6 +239,70 @@ final class NotchWindowManager {
         }
         collapseWorkItems[id] = work
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
+    }
+
+    // MARK: - HUD
+
+    private var previousPhaseBeforeHUD: [String: NotchState.Phase] = [:]
+
+    private func wireHUDCallbacks() {
+        hudService.onHUDShow = { [weak self] type, level in
+            self?.showHUD()
+        }
+        hudService.onHUDDismiss = { [weak self] in
+            self?.dismissHUD()
+        }
+    }
+
+    private func showHUD() {
+        // Show HUD on primary notch screen (or first available)
+        guard let (id, entry) = windows.first(where: { $0.value.state.screenHasNotch }) ?? windows.first else { return }
+        let screen = NSScreen.screens.first { $0.stableIdentifier == id }
+        guard let screen else { return }
+
+        // Save current phase so we can restore after dismiss
+        if entry.state.phase != .hud {
+            previousPhaseBeforeHUD[id] = entry.state.phase
+        }
+
+        // Cancel any expand/collapse in progress
+        entry.panel.cancelTimers()
+        collapseWorkItems[id]?.cancel()
+        collapseWorkItems.removeValue(forKey: id)
+        expandedTransitionItems[id]?.cancel()
+        expandedTransitionItems.removeValue(forKey: id)
+
+        // Expand panel frame for HUD display (use a narrower HUD frame)
+        let hudWidth: CGFloat = 400
+        let hudHeight: CGFloat = 60
+        let hudFrame = NSRect(
+            x: screen.frame.midX - hudWidth / 2,
+            y: screen.frame.maxY - hudHeight,
+            width: hudWidth,
+            height: hudHeight
+        )
+        entry.panel.setFrame(hudFrame, display: true)
+        entry.panel.installTrackingArea()
+        entry.state.phase = .hud
+    }
+
+    private func dismissHUD() {
+        for (id, entry) in windows where entry.state.phase == .hud {
+            let screen = NSScreen.screens.first { $0.stableIdentifier == id }
+            guard let screen else { continue }
+
+            previousPhaseBeforeHUD.removeValue(forKey: id)
+            entry.state.phase = .idle
+
+            // Delay frame collapse for SwiftUI animation
+            let work = DispatchWorkItem { [weak self] in
+                guard let entry = self?.windows[id] else { return }
+                entry.panel.setFrame(screen.overlayFrame, display: true)
+                entry.panel.installTrackingArea()
+            }
+            collapseWorkItems[id] = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4, execute: work)
+        }
     }
 
     // MARK: - Global Click Monitor

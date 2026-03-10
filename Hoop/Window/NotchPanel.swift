@@ -127,7 +127,7 @@ final class NotchPanel: NSPanel {
 
         guard let state = notchState else { return }
 
-        // Only start grace timer if expanded or expanding
+        // Don't collapse HUD on mouse exit — it has its own auto-dismiss timer
         guard state.phase == .expanding || state.phase == .expanded else { return }
 
         graceTimer?.cancel()
@@ -218,11 +218,18 @@ final class NotchPanel: NSPanel {
 
     // MARK: - Key Events
 
+    /// Called when the HUD should be dismissed (e.g., Escape key while in HUD mode).
+    var onHUDDismissRequested: (() -> Void)?
+
     override func keyDown(with event: NSEvent) {
         // Escape key (keyCode 53) dismisses immediately
         if event.keyCode == 53 {
-            guard let state = notchState,
-                  state.phase == .expanding || state.phase == .expanded else { return }
+            guard let state = notchState else { return }
+            if state.phase == .hud {
+                onHUDDismissRequested?()
+                return
+            }
+            guard state.phase == .expanding || state.phase == .expanded else { return }
             dwellTimer?.cancel()
             dwellTimer = nil
             graceTimer?.cancel()

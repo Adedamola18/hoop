@@ -20,6 +20,8 @@
 		AA00000C /* MediaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001C /* MediaService.swift */; };
 		AA00000D /* MediaPlayerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001D /* MediaPlayerWidget.swift */; };
 		AA00000E /* CollapsedMediaIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001E /* CollapsedMediaIndicator.swift */; };
+		AA00000F /* HUDService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001F /* HUDService.swift */; };
+		AA000009 /* HUDOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000020 /* HUDOverlayView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +40,8 @@
 		AA00001C /* MediaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaService.swift; sourceTree = "<group>"; };
 		AA00001D /* MediaPlayerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlayerWidget.swift; sourceTree = "<group>"; };
 		AA00001E /* CollapsedMediaIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollapsedMediaIndicator.swift; sourceTree = "<group>"; };
+		AA00001F /* HUDService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDService.swift; sourceTree = "<group>"; };
+		AA000020 /* HUDOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDOverlayView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,6 +92,7 @@
 				AA000019 /* NotchRootView.swift */,
 				AA00001A /* NotchShape.swift */,
 				AA00001B /* VisualEffectView.swift */,
+				AA000020 /* HUDOverlayView.swift */,
 				AA000037 /* Widgets */,
 			);
 			path = Views;
@@ -124,6 +129,7 @@
 			isa = PBXGroup;
 			children = (
 				AA00001C /* MediaService.swift */,
+				AA00001F /* HUDService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -209,6 +215,8 @@
 				AA00000C /* MediaService.swift in Sources */,
 				AA00000D /* MediaPlayerWidget.swift in Sources */,
 				AA00000E /* CollapsedMediaIndicator.swift in Sources */,
+				AA00000F /* HUDService.swift in Sources */,
+				AA000009 /* HUDOverlayView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -3,9 +3,14 @@ import SwiftUI
 struct NotchRootView: View {
     let state: NotchState
     let mediaService: MediaService
+    let hudService: HUDService
 
     private var isExpanded: Bool {
         state.phase == .expanding || state.phase == .expanded
+    }
+
+    private var isHUD: Bool {
+        state.phase == .hud
     }
 
     private var hasActiveMedia: Bool {
@@ -13,32 +18,39 @@ struct NotchRootView: View {
         mediaService.nowPlaying.playbackState == .paused
     }
 
+    private var isActive: Bool {
+        isExpanded || isHUD
+    }
+
     var body: some View {
         GeometryReader { geo in
             let shape = NotchShape(
-                cornerRadius: isExpanded ? 20 : 10,
+                cornerRadius: isActive ? 20 : 10,
                 notchWidth: state.collapsedSize.width,
-                notchDepth: isExpanded ? state.collapsedSize.height : 0,
+                notchDepth: isActive ? state.collapsedSize.height : 0,
                 hasNotch: state.screenHasNotch
             )
 
             ZStack {
-                // Vibrancy layer (expanded) — frosted glass
+                // Vibrancy layer (expanded/hud) — frosted glass
                 VisualEffectView(
                     material: .hudWindow,
                     blendingMode: .behindWindow,
-                    isActive: isExpanded
+                    isActive: isActive
                 )
                 .clipShape(shape)
-                .opacity(isExpanded ? 1 : 0)
+                .opacity(isActive ? 1 : 0)
 
                 // Opaque black layer (collapsed) — matches hardware notch
                 shape
                     .fill(.black)
-                    .opacity(isExpanded ? 0 : 1)
+                    .opacity(isActive ? 0 : 1)
 
                 // Content overlay
-                if isExpanded && hasActiveMedia {
+                if isHUD {
+                    HUDOverlayView(hudService: hudService)
+                        .transition(.opacity)
+                } else if isExpanded && hasActiveMedia {
                     MediaPlayerWidget(mediaService: mediaService)
                         .transition(.opacity)
                 } else if !isExpanded && hasActiveMedia {
@@ -49,16 +61,17 @@ struct NotchRootView: View {
                     .transition(.opacity)
                 } else {
                     Text("Hoop")
-                        .font(isExpanded ? .title3 : .caption)
+                        .font(isActive ? .title3 : .caption)
                         .foregroundStyle(.white)
                 }
             }
             .frame(
-                width: isExpanded ? geo.size.width : state.collapsedSize.width,
-                height: isExpanded ? geo.size.height : state.collapsedSize.height
+                width: isActive ? geo.size.width : state.collapsedSize.width,
+                height: isActive ? geo.size.height : state.collapsedSize.height
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isExpanded)
+        .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isHUD)
     }
 }
