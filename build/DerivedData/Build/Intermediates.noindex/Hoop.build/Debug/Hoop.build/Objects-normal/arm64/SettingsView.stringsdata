@@ -1,0 +1,32 @@
+{
+  "source": "/Users/macbook/Documents/utility-apps/notch-nook/Hoop/Views/SettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "General",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 9
+        }
+      },
+      {
+        "comment": "",
+        "key": "Startup",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 19
+        }
+      },
+      {
+        "comment": "",
+        "key": "Launch at login",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 31
+        }
+      }
+    ]
+  },
+  "version": 1
+}

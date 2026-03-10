@@ -1,0 +1,32 @@
+{
+  "source": "/Users/macbook/Documents/utility-apps/notch-nook/Hoop/HoopApp.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Hoop",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 8
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quit Hoop",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 13
+        }
+      },
+      {
+        "comment": "",
+        "key": "Settings...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 10
+        }
+      }
+    ]
+  },
+  "version": 1
+}

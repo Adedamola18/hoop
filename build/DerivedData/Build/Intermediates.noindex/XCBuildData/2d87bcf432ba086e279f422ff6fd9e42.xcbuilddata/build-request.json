@@ -1,0 +1,64 @@
+{
+  "buildCommand" : {
+    "command" : "build",
+    "skipDependencies" : false,
+    "style" : "buildOnly"
+  },
+  "configuredTargets" : [
+    {
+      "guid" : "bcda33324a7fddf29599b5d6fddca5edb6b8be5a99c8c349561549a63c8339e5"
+    }
+  ],
+  "containerPath" : "/Users/macbook/Documents/utility-apps/notch-nook/Hoop.xcodeproj",
+  "continueBuildingAfterErrors" : false,
+  "dependencyScope" : "workspace",
+  "enableIndexBuildArena" : false,
+  "hideShellScriptEnvironment" : false,
+  "parameters" : {
+    "action" : "build",
+    "activeArchitecture" : "arm64",
+    "activeRunDestination" : {
+      "disableOnlyActiveArch" : false,
+      "platform" : "macosx",
+      "sdk" : "macosx26.2",
+      "sdkVariant" : "macos",
+      "supportedArchitectures" : [
+        "arm64e",
+        "arm64",
+        "x86_64"
+      ],
+      "targetArchitecture" : "arm64"
+    },
+    "arenaInfo" : {
+      "buildIntermediatesPath" : "/Users/macbook/Documents/utility-apps/notch-nook/build/DerivedData/Build/Intermediates.noindex",
+      "buildProductsPath" : "/Users/macbook/Documents/utility-apps/notch-nook/build/DerivedData/Build/Products",
+      "derivedDataPath" : "/Users/macbook/Documents/utility-apps/notch-nook/build/DerivedData",
+      "indexDataStoreFolderPath" : "/Users/macbook/Documents/utility-apps/notch-nook/build/DerivedData/Index.noindex/DataStore",
+      "indexEnableDataStore" : true,
+      "indexPCHPath" : "/Users/macbook/Documents/utility-apps/notch-nook/build/DerivedData/Index.noindex/PrecompiledHeaders",
+      "pchPath" : "/Users/macbook/Documents/utility-apps/notch-nook/build/DerivedData/Build/Intermediates.noindex/PrecompiledHeaders"
+    },
+    "configurationName" : "Debug",
+    "overrides" : {
+      "commandLine" : {
+        "table" : {
+
+        }
+      },
+      "synthesized" : {
+        "table" : {
+          "ACTION" : "build",
+          "ENABLE_PREVIEWS" : "NO",
+          "ENABLE_XOJIT_PREVIEWS" : "YES",
+          "ONLY_ACTIVE_ARCH" : "YES"
+        }
+      }
+    }
+  },
+  "schemeCommand" : "launch",
+  "showNonLoggedProgress" : true,
+  "useDryRun" : false,
+  "useImplicitDependencies" : true,
+  "useLegacyBuildLocations" : false,
+  "useParallelTargets" : true
+}
