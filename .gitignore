@@ -1,1 +1,32 @@
+# Planning
 .planning/
+
+# Build artifacts
+build/
+DerivedData/
+
+# Xcode user data
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Swift Package Manager
+.build/
+Packages/
+Package.resolved
+
+# CocoaPods (if used later)
+Pods/
+
+# Secrets / credentials
+*.env
+*.key
+*.pem
+*.p12
+*.mobileprovision
