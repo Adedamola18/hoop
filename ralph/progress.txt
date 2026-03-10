@@ -435,4 +435,25 @@ Started: 2026-03-10
   - Cache UserDefaults JSON stores to avoid repeated decode; invalidate on write
   - drawingGroup() forces Metal-backed rendering — apply to animated content and complex shapes
   - NSWorkspace.urlForApplication is expensive — cache the result keyed by bundleID
+- Sleep/wake: use NSWorkspace.shared.notificationCenter for willSleepNotification/didWakeNotification (not default NotificationCenter)
+- Post-wake resync: delay 1.5s after wake before synchronizeWindows() to let screen parameters settle
+- Ignore didChangeScreenParametersNotification during sleep to avoid processing stale screen data
+- repositionWindow should handle all phases (idle/expanded/hud) with appropriate frame recalculation
+---
+
+## 2026-03-10 - US-023
+- Implemented sleep/wake resilience and display hotplug hardening
+- Files changed: Hoop/Window/NotchWindowManager.swift
+- Added NSWorkspace willSleepNotification/didWakeNotification observers
+- willSleep: sets isSleeping flag, cancels pending syncs, collapses all expanded panels to idle
+- didWake: clears isSleeping, schedules synchronizeWindows() after 1.5s delay for screen params to settle
+- screenConfigurationDidChange now ignores events while sleeping (avoids processing stale screen data)
+- repositionWindow now handles all phases: idle (collapsed frame), expanding/expanded/tray (expanded frame), hud (HUD frame)
+- Display hotplug already handled by existing synchronizeWindows() + 500ms debounce; now hardened with sleep awareness
+- deinit cleans up workspace notification observer and wakeResyncItem
+- **Learnings for future iterations:**
+  - NSWorkspace.willSleepNotification/didWakeNotification must use NSWorkspace.shared.notificationCenter
+  - Screen parameters are unreliable immediately after wake — 1.5s delay before resync avoids incorrect geometry
+  - Setting isSleeping flag prevents didChangeScreenParametersNotification from firing stale syncs during sleep
+  - repositionWindow must handle all Phase cases to correctly reposition after display arrangement changes
 ---

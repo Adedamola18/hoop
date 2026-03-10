@@ -362,7 +362,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 23,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 7. Add 1-2 second delay after wake before re-syncing windows. Test with Sidecar if external monitor unavailable."
     }
   ]
