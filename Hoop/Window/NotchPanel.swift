@@ -17,6 +17,15 @@ final class NotchPanel: NSPanel {
     /// Called when a horizontal swipe is detected. Parameter is true for next track, false for previous.
     var onSwipeSkip: ((Bool) -> Void)?
 
+    /// Called when a drag enters the notch area (transition to .tray).
+    var onDragEntered: (() -> Void)?
+
+    /// Called when a drag exits without dropping (cancel .tray).
+    var onDragExited: (() -> Void)?
+
+    /// Called when files are dropped. Parameter is the list of file URLs.
+    var onFilesDropped: (([URL]) -> Void)?
+
     private var trackingArea: NSTrackingArea?
     private var dwellTimer: DispatchWorkItem?
     private var graceTimer: DispatchWorkItem?
@@ -67,6 +76,9 @@ final class NotchPanel: NSPanel {
         isMovableByWindowBackground = false
 
         acceptsMouseMovedEvents = true
+
+        // Register for file drag-and-drop
+        registerForDraggedTypes([.fileURL])
     }
 
     override var canBecomeKey: Bool { true }
@@ -239,6 +251,48 @@ final class NotchPanel: NSPanel {
             return
         }
         super.keyDown(with: event)
+    }
+
+    // MARK: - Drag and Drop (NSDraggingDestination)
+
+    func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        guard let state = notchState else { return [] }
+        if state.phase == .idle || state.phase == .expanding || state.phase == .expanded {
+            onDragEntered?()
+        }
+        return .copy
+    }
+
+    func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        return .copy
+    }
+
+    func draggingExited(_ sender: NSDraggingInfo?) {
+        guard let state = notchState, state.phase == .tray else { return }
+        onDragExited?()
+    }
+
+    func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        return true
+    }
+
+    func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        let urls = sender.draggingPasteboard.readObjects(
+            forClasses: [NSURL.self],
+            options: [.urlReadingFileURLsOnly: true]
+        ) as? [URL] ?? []
+
+        if urls.isEmpty {
+            onDragExited?()
+            return false
+        }
+
+        onFilesDropped?(urls)
+        return true
+    }
+
+    func concludeDragOperation(_ sender: NSDraggingInfo?) {
+        // Drag complete — tray dismiss is handled by the window manager after processing
     }
 
     /// Cancel all pending timers (called on cleanup).

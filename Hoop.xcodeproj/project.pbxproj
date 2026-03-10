@@ -24,6 +24,7 @@
 		AA000009 /* HUDOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000020 /* HUDOverlayView.swift */; };
 		AA000038 /* ContextService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000039 /* ContextService.swift */; };
 		AA00003B /* ContextRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003A /* ContextRule.swift */; };
+		AA00003D /* DropZoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003C /* DropZoneView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,6 +47,7 @@
 		AA000020 /* HUDOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDOverlayView.swift; sourceTree = "<group>"; };
 		AA000039 /* ContextService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextService.swift; sourceTree = "<group>"; };
 		AA00003A /* ContextRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextRule.swift; sourceTree = "<group>"; };
+		AA00003C /* DropZoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropZoneView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +99,7 @@
 				AA00001A /* NotchShape.swift */,
 				AA00001B /* VisualEffectView.swift */,
 				AA000020 /* HUDOverlayView.swift */,
+				AA00003C /* DropZoneView.swift */,
 				AA000037 /* Widgets */,
 			);
 			path = Views;
@@ -225,6 +228,7 @@
 				AA000009 /* HUDOverlayView.swift in Sources */,
 				AA000038 /* ContextService.swift in Sources */,
 				AA00003B /* ContextRule.swift in Sources */,
+				AA00003D /* DropZoneView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

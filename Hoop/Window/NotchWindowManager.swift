@@ -160,6 +160,15 @@ final class NotchWindowManager {
         panel.onHUDDismissRequested = { [weak self] in
             self?.hudService.dismissHUD()
         }
+        panel.onDragEntered = { [weak self] in
+            self?.showTray(id: id)
+        }
+        panel.onDragExited = { [weak self] in
+            self?.dismissTray(id: id)
+        }
+        panel.onFilesDropped = { [weak self] urls in
+            self?.handleDroppedFiles(urls, id: id)
+        }
 
         windows[id] = (panel: panel, state: state)
     }
@@ -395,5 +404,57 @@ final class NotchWindowManager {
             entry.state.phase = .idle
             immediateCollapse(id: id)
         }
+    }
+
+    // MARK: - Tray (Drop Zone)
+
+    private var previousPhaseBeforeTray: [String: NotchState.Phase] = [:]
+
+    private func showTray(id: String) {
+        guard let entry = windows[id] else { return }
+        let screen = NSScreen.screens.first { $0.stableIdentifier == id }
+        guard let screen else { return }
+
+        // Save current phase to restore on cancel
+        if entry.state.phase != .tray {
+            previousPhaseBeforeTray[id] = entry.state.phase
+        }
+
+        // Cancel any expand/collapse in progress
+        entry.panel.cancelTimers()
+        collapseWorkItems[id]?.cancel()
+        collapseWorkItems.removeValue(forKey: id)
+        expandedTransitionItems[id]?.cancel()
+        expandedTransitionItems.removeValue(forKey: id)
+
+        // Expand panel frame for tray display (same size as expanded)
+        let trayFrame = screen.expandedOverlayFrame(expandedWidth: entry.state.expandedWidth)
+        entry.panel.setFrame(trayFrame, display: true)
+        entry.panel.installTrackingArea()
+        entry.state.phase = .tray
+    }
+
+    private func dismissTray(id: String) {
+        guard let entry = windows[id], entry.state.phase == .tray else { return }
+        let screen = NSScreen.screens.first { $0.stableIdentifier == id }
+        guard let screen else { return }
+
+        previousPhaseBeforeTray.removeValue(forKey: id)
+        entry.state.phase = .idle
+
+        // Delay frame collapse for SwiftUI animation
+        let work = DispatchWorkItem { [weak self] in
+            guard let entry = self?.windows[id] else { return }
+            entry.panel.setFrame(screen.overlayFrame, display: true)
+            entry.panel.installTrackingArea()
+        }
+        collapseWorkItems[id] = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4, execute: work)
+    }
+
+    private func handleDroppedFiles(_ urls: [URL], id: String) {
+        // For now, log and dismiss tray. US-019 will add actual drop actions.
+        print("[Hoop] Files dropped: \(urls.map(\.lastPathComponent))")
+        dismissTray(id: id)
     }
 }

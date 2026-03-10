@@ -19,8 +19,12 @@ struct NotchRootView: View {
         mediaService.nowPlaying.playbackState == .paused
     }
 
+    private var isTray: Bool {
+        state.phase == .tray
+    }
+
     private var isActive: Bool {
-        isExpanded || isHUD
+        isExpanded || isHUD || isTray
     }
 
     /// Whether the media widget should be shown in expanded state.
@@ -56,7 +60,10 @@ struct NotchRootView: View {
                     .opacity(isActive ? 0 : 1)
 
                 // Content overlay
-                if isHUD {
+                if isTray {
+                    DropZoneView()
+                        .transition(.opacity)
+                } else if isHUD {
                     HUDOverlayView(hudService: hudService)
                         .transition(.opacity)
                 } else if isExpanded && shouldShowMediaWidget {
@@ -82,5 +89,6 @@ struct NotchRootView: View {
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isExpanded)
         .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isHUD)
+        .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isTray)
     }
 }
