@@ -20,6 +20,7 @@ final class NotchWindowManager {
     let focusService = FocusService()
     let widgetRegistry = WidgetRegistry()
     let calendarService = CalendarService()
+    let timerService = TimerService()
 
     init() {
         NotificationCenter.default.addObserver(
@@ -99,6 +100,7 @@ final class NotchWindowManager {
 
     private func registerWidgets() {
         widgetRegistry.register(CalendarNotchWidget(calendarService: calendarService))
+        widgetRegistry.register(TimerNotchWidget(timerService: timerService))
     }
 
     // MARK: - Screen Change Handling

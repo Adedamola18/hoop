@@ -38,6 +38,8 @@
 		BB000011 /* WidgetDrawerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000012 /* WidgetDrawerView.swift */; };
 		BB000013 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000014 /* CalendarService.swift */; };
 		BB000015 /* CalendarWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000016 /* CalendarWidget.swift */; };
+		BB000017 /* TimerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000018 /* TimerService.swift */; };
+		BB000019 /* TimerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00001A /* TimerWidget.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -74,6 +76,8 @@
 		BB000012 /* WidgetDrawerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDrawerView.swift; sourceTree = "<group>"; };
 		BB000014 /* CalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
 		BB000016 /* CalendarWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarWidget.swift; sourceTree = "<group>"; };
+		BB000018 /* TimerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerService.swift; sourceTree = "<group>"; };
+		BB00001A /* TimerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerWidget.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -142,6 +146,7 @@
 				BB000008 /* PrivacyIndicatorView.swift */,
 				BB00000C /* CollapsedIndicatorBar.swift */,
 				BB000016 /* CalendarWidget.swift */,
+				BB00001A /* TimerWidget.swift */,
 			);
 			path = Widgets;
 			sourceTree = "<group>";
@@ -178,6 +183,7 @@
 				BB00000A /* FocusService.swift */,
 				BB000010 /* WidgetRegistry.swift */,
 				BB000014 /* CalendarService.swift */,
+				BB000018 /* TimerService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -281,6 +287,8 @@
 				BB000011 /* WidgetDrawerView.swift in Sources */,
 				BB000013 /* CalendarService.swift in Sources */,
 				BB000015 /* CalendarWidget.swift in Sources */,
+				BB000017 /* TimerService.swift in Sources */,
+				BB000019 /* TimerWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
