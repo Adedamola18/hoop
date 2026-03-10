@@ -29,7 +29,11 @@
 - HUD phase takes priority: saves previous phase, transitions to .hud, restores on dismiss
 - HUD frame is narrower than expanded (400pt wide x 60pt tall) — separate from the 600pt expanded frame
 - HUDService owns show/dismiss lifecycle with auto-dismiss timer; NotchWindowManager handles frame changes via callbacks
-- Brightness monitoring: IOKit polling at 0.3s interval via IODisplayGetFloatParameter/IODisplaySetFloatParameter (import IOKit.graphics)
+- Brightness monitoring: IOKit adaptive polling (1s idle, 0.1s when HUD active) via IODisplayGetFloatParameter/IODisplaySetFloatParameter (import IOKit.graphics)
+- Performance: use drawingGroup() on animated SwiftUI views for Metal-backed rendering
+- Performance: cache UserDefaults JSON stores (ContextRuleStore, CustomDropActionStore, PipelineStore) — invalidate on save
+- Performance: cache expensive NSWorkspace lookups (MediaService.sourceAppIcon) — invalidate on bundleID change
+- Performance: schedule ContextService time profile timer at hour boundaries, not every 60s
 - Shortcuts CLI: `/usr/bin/shortcuts run "Name" --input-path <path>` for file input; stdout for output chaining
 - Shell scripts: Process() with /bin/zsh -c, file path passed as $1 via "--" separator
 - Pipeline chaining: DropActionResult.outputPath passes output file path from one step to next
@@ -412,4 +416,23 @@ Started: 2026-03-10
   - parseExtensions() shared as file-private function between multiple sheet views
   - PipelineConfig and CustomDropActionConfig init updated to accept optional id for edit-preserve pattern
   - Built-in actions shown as read-only informational rows (no delete/edit) to differentiate from user-configured ones
+---
+
+## 2026-03-10 - US-022
+- CPU and memory optimization pass
+- Files changed: Hoop/Services/HUDService.swift, Hoop/Services/MediaService.swift, Hoop/Services/ContextService.swift, Hoop/Services/DropActionService.swift, Hoop/Models/ContextRule.swift, Hoop/Views/NotchRootView.swift, Hoop/Views/Widgets/MediaPlayerWidget.swift
+- HUDService brightness polling: adaptive interval (1s idle, 0.1s when HUD active) — was 0.3s always
+- ContextService time profile timer: fires at hour boundaries (~24x/day) instead of every 60s (~1440x/day)
+- ContextRuleStore, CustomDropActionStore, PipelineStore: added in-memory caching with invalidation on save
+- DropActionService.allActions: cached computed property with invalidateActionsCache() method
+- MediaService.sourceAppIcon: cached NSImage, updated only when appBundleID changes (avoids expensive NSWorkspace.urlForApplication per render)
+- drawingGroup() added to NotchRootView inner content and MediaPlayerWidget progress bar
+- TimelineView already guarded by isPlaying check (no change needed)
+- CollapsedMediaIndicator waveform already uses drawingGroup() (no change needed)
+- **Learnings for future iterations:**
+  - Adaptive polling is better than fixed intervals — adjust frequency based on active state
+  - Calendar.current.nextDate(after:matching:matchingPolicy:) for scheduling at specific clock boundaries
+  - Cache UserDefaults JSON stores to avoid repeated decode; invalidate on write
+  - drawingGroup() forces Metal-backed rendering — apply to animated content and complex shapes
+  - NSWorkspace.urlForApplication is expensive — cache the result keyed by bundleID
 ---

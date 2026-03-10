@@ -345,7 +345,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 22,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 7. Profile with Instruments (Time Profiler, Allocations). Eliminate any retain cycles or leaked observers."
     },
     {
