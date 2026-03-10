@@ -91,7 +91,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 2. Bridge NSVisualEffectView via NSViewRepresentable. Escape key requires panel to be key window momentarily."
     },
     {

@@ -13,6 +13,8 @@
 - NSTrackingArea with .inVisibleRect auto-updates on view resize — no need to manually recalculate rect
 - NotchPanel.notchState is set by NotchWindowManager after panel creation
 - SourceKit single-file diagnostics are noise — verify with multi-file swiftc -typecheck
+- NSEvent.addGlobalMonitorForEvents fires only for events outside app windows — use for click-outside dismiss
+- Panel must be makeKey() to receive keyDown events (Escape key handling)
 
 Started: 2026-03-10
 ---
@@ -76,4 +78,19 @@ Started: 2026-03-10
   - SwiftUI Shape animatableData with nested AnimatablePair supports multi-property animation
   - NotchShape gracefully degrades: if notch dimensions exceed rect, falls back to rounded rect (handles collapsed state automatically)
   - collapsedSize in NotchState doubles as hardware notch dimensions for the cutout
+---
+
+## 2026-03-10 - US-006
+- Implemented vibrancy background and dismissal behaviors
+- Files created: Hoop/Views/VisualEffectView.swift
+- Files changed: Hoop/Views/NotchRootView.swift, Hoop/Window/NotchPanel.swift, Hoop/Window/NotchWindowManager.swift, Hoop.xcodeproj/project.pbxproj
+- VisualEffectView: NSViewRepresentable bridging NSVisualEffectView with .hudWindow material and .behindWindow blending
+- NotchRootView: ZStack with vibrancy layer (opacity 1 when expanded, 0 when collapsed) and opaque black layer (inverse), both clipped to NotchShape
+- NotchPanel: keyDown override for Escape key (keyCode 53) triggers immediate dismiss via onDismissRequested callback
+- NotchWindowManager: global click monitor (addGlobalMonitorForEvents) detects clicks outside expanded panel; panel.makeKey() on expand for Escape key reception; immediateCollapse() for instant dismiss with delayed frame shrink
+- **Learnings for future iterations:**
+  - NSEvent.addGlobalMonitorForEvents only fires for events OUTSIDE the app's windows — perfect for click-outside detection
+  - Panel must be made key (makeKey()) to receive keyDown events for Escape
+  - Global click monitor should be installed on expand and removed on collapse to avoid unnecessary processing
+  - ZStack with dual layers (vibrancy + opaque) and animated opacity is cleaner than trying to animate material changes
 ---
