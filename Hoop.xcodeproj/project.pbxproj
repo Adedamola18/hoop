@@ -47,6 +47,9 @@
 		BB000023 /* NotesWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000024 /* NotesWidget.swift */; };
 		BB000025 /* ColorPickerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000026 /* ColorPickerWidget.swift */; };
 		BB000027 /* ConverterWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000028 /* ConverterWidget.swift */; };
+		BB000029 /* WebcamWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00002A /* WebcamWidget.swift */; };
+		BB00002B /* SystemStatsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00002C /* SystemStatsService.swift */; };
+		BB00002D /* SystemStatsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00002E /* SystemStatsWidget.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -92,6 +95,9 @@
 		BB000024 /* NotesWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesWidget.swift; sourceTree = "<group>"; };
 		BB000026 /* ColorPickerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidget.swift; sourceTree = "<group>"; };
 		BB000028 /* ConverterWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConverterWidget.swift; sourceTree = "<group>"; };
+		BB00002A /* WebcamWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebcamWidget.swift; sourceTree = "<group>"; };
+		BB00002C /* SystemStatsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStatsService.swift; sourceTree = "<group>"; };
+		BB00002E /* SystemStatsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStatsWidget.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -166,6 +172,8 @@
 				BB000024 /* NotesWidget.swift */,
 				BB000026 /* ColorPickerWidget.swift */,
 				BB000028 /* ConverterWidget.swift */,
+				BB00002A /* WebcamWidget.swift */,
+				BB00002E /* SystemStatsWidget.swift */,
 			);
 			path = Widgets;
 			sourceTree = "<group>";
@@ -205,6 +213,7 @@
 				BB000018 /* TimerService.swift */,
 				BB00001C /* ClipboardService.swift */,
 				BB000020 /* ShortcutsService.swift */,
+				BB00002C /* SystemStatsService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -317,6 +326,9 @@
 				BB000023 /* NotesWidget.swift in Sources */,
 				BB000025 /* ColorPickerWidget.swift in Sources */,
 				BB000027 /* ConverterWidget.swift in Sources */,
+				BB000029 /* WebcamWidget.swift in Sources */,
+				BB00002B /* SystemStatsService.swift in Sources */,
+				BB00002D /* SystemStatsWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

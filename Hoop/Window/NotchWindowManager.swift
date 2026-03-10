@@ -23,6 +23,7 @@ final class NotchWindowManager {
     let timerService = TimerService()
     let clipboardService = ClipboardService()
     let shortcutsService = ShortcutsService()
+    let systemStatsService = SystemStatsService()
 
     init() {
         NotificationCenter.default.addObserver(
@@ -70,6 +71,7 @@ final class NotchWindowManager {
         privacyService.startObserving()
         focusService.startObserving()
         clipboardService.startObserving()
+        systemStatsService.startObserving()
         calendarService.requestAccessAndStart()
         registerWidgets()
         wireHUDCallbacks()
@@ -85,6 +87,7 @@ final class NotchWindowManager {
         focusService.stopObserving()
         calendarService.stopObserving()
         clipboardService.stopObserving()
+        systemStatsService.stopObserving()
         NotificationCenter.default.removeObserver(self)
         NSWorkspace.shared.notificationCenter.removeObserver(self)
         pendingSynchronize?.cancel()
@@ -110,6 +113,8 @@ final class NotchWindowManager {
         widgetRegistry.register(NotesNotchWidget())
         widgetRegistry.register(ColorPickerNotchWidget())
         widgetRegistry.register(ConverterNotchWidget())
+        widgetRegistry.register(WebcamNotchWidget())
+        widgetRegistry.register(SystemStatsNotchWidget(statsService: systemStatsService))
     }
 
     // MARK: - Screen Change Handling
