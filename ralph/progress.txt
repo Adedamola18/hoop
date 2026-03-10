@@ -243,6 +243,8 @@ Started: 2026-03-10
 - Focus Mode name detection: try com.apple.focus.state "Current" dict, fallback to controlcenter DND, fallback to FocusState assertions
 - Time profile timer fires every 60s to re-evaluate (lightweight — just reads Calendar.current hour)
 - .none is ambiguous between Optional.none and enum .none — use fully qualified ContextService.WidgetHint.none in dictionary assignments
+- NSDraggingDestination methods are optional @objc protocol methods — do NOT use `override` keyword on NSPanel subclass
+- registerForDraggedTypes([.fileURL]) on panel + readObjects(forClasses: [NSURL.self]) for file drop handling
 - CGEventTap for OSD suppression: CGEvent.tapCreate with .cgSessionEventTap, event mask 1<<14 (NSEventTypeSystemDefined), return nil to suppress
 - NX_SUBTYPE_AUX_CONTROL_BUTTONS = 8; data1 bits 16-23 = key type (0=soundUp, 1=soundDown, 7=mute, 21=brightnessUp, 22=brightnessDown)
 - CGEventTap requires Accessibility permission; fails gracefully (returns nil from tapCreate) if not granted
@@ -319,4 +321,24 @@ Started: 2026-03-10
   - Sheet-based add UI with @Environment(\.dismiss) cleaner than inline form for complex inputs
   - Array enumeration with index for in-place mutation of @State array items
   - Custom rules at priority 0 in evaluateRules() means user rules always override built-in logic
+---
+
+## 2026-03-10 - US-018
+- Implemented drop zone UI and drag detection on notch
+- Files created: Hoop/Views/DropZoneView.swift
+- Files changed: Hoop/Window/NotchPanel.swift, Hoop/Window/NotchWindowManager.swift, Hoop/Views/NotchRootView.swift, Hoop.xcodeproj/project.pbxproj
+- NotchPanel registers for .fileURL drag type and implements NSDraggingDestination protocol methods
+- draggingEntered triggers tray mode via onDragEntered callback; draggingExited cancels via onDragExited
+- performDragOperation reads file URLs via readObjects(forClasses: [NSURL.self]) and passes to onFilesDropped
+- DropZoneView shows pulsing arrow.down.doc.fill icon with dashed border and "Drop to process" hint
+- NotchWindowManager.showTray() saves previous phase, expands panel frame, sets .tray phase
+- dismissTray() restores .idle and schedules delayed frame collapse for animation
+- handleDroppedFiles() logs URLs and dismisses tray (actual actions deferred to US-019)
+- NotchRootView shows DropZoneView when isTray is true, with spring animation
+- **Learnings for future iterations:**
+  - NSDraggingDestination methods are optional @objc protocol methods — do NOT use `override` keyword
+  - registerForDraggedTypes([.fileURL]) on NSPanel enables file drop reception
+  - readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) is the reliable way to read dropped file URLs
+  - Tray frame uses same size as expanded frame (expandedOverlayFrame) for consistent drop zone area
+  - .tray phase added to isActive in NotchRootView so vibrancy/shape expansion applies
 ---
