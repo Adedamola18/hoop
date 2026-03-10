@@ -22,6 +22,14 @@ extension DropAction {
 struct DropActionResult {
     let success: Bool
     let message: String
+    /// Optional output file path for pipeline chaining
+    let outputPath: String?
+
+    init(success: Bool, message: String, outputPath: String? = nil) {
+        self.success = success
+        self.message = message
+        self.outputPath = outputPath
+    }
 }
 
 // MARK: - Compress Image Action
@@ -146,6 +154,236 @@ struct OCRAction: DropAction {
     }
 }
 
+// MARK: - Shortcut Drop Action
+
+struct ShortcutDropAction: DropAction {
+    let id: String
+    let name: String
+    let iconName = "shortcuts"
+    let supportedExtensions: Set<String>
+    let shortcutName: String
+
+    init(shortcutName: String, supportedExtensions: Set<String> = ["*"]) {
+        self.id = "shortcut-\(shortcutName)"
+        self.name = "Shortcut: \(shortcutName)"
+        self.shortcutName = shortcutName
+        self.supportedExtensions = supportedExtensions
+    }
+
+    func canHandle(url: URL) -> Bool {
+        supportedExtensions.contains("*") || supportedExtensions.contains(url.pathExtension.lowercased())
+    }
+
+    func execute(urls: [URL]) async throws -> DropActionResult {
+        guard let firstURL = urls.first else {
+            return DropActionResult(success: false, message: "No files provided")
+        }
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/shortcuts")
+        process.arguments = ["run", shortcutName, "--input-path", firstURL.path]
+
+        let stdoutPipe = Pipe()
+        let stderrPipe = Pipe()
+        process.standardOutput = stdoutPipe
+        process.standardError = stderrPipe
+
+        try process.run()
+        process.waitUntilExit()
+
+        let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+        let stdout = String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+        if process.terminationStatus == 0 {
+            // If stdout contains a file path, use it as output for pipeline chaining
+            let outputPath: String? = stdout.hasPrefix("/") ? stdout : nil
+            let msg = stdout.isEmpty ? "Shortcut '\(shortcutName)' completed" : "Shortcut done: \(stdout.prefix(100))"
+            return DropActionResult(success: true, message: msg, outputPath: outputPath)
+        } else {
+            let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+            let stderr = String(data: stderrData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "Unknown error"
+            return DropActionResult(success: false, message: "Shortcut failed: \(stderr.prefix(100))")
+        }
+    }
+}
+
+// MARK: - Shell Script Drop Action
+
+struct ShellScriptDropAction: DropAction {
+    let id: String
+    let name: String
+    let iconName = "terminal"
+    let supportedExtensions: Set<String>
+    let command: String
+
+    init(name: String, command: String, supportedExtensions: Set<String> = ["*"]) {
+        self.id = "shell-\(name.lowercased().replacingOccurrences(of: " ", with: "-"))"
+        self.name = name
+        self.command = command
+        self.supportedExtensions = supportedExtensions
+    }
+
+    func canHandle(url: URL) -> Bool {
+        supportedExtensions.contains("*") || supportedExtensions.contains(url.pathExtension.lowercased())
+    }
+
+    func execute(urls: [URL]) async throws -> DropActionResult {
+        guard let firstURL = urls.first else {
+            return DropActionResult(success: false, message: "No files provided")
+        }
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/zsh")
+        process.arguments = ["-c", command, "--", firstURL.path]
+        process.environment = ProcessInfo.processInfo.environment
+
+        let stdoutPipe = Pipe()
+        let stderrPipe = Pipe()
+        process.standardOutput = stdoutPipe
+        process.standardError = stderrPipe
+
+        try process.run()
+        process.waitUntilExit()
+
+        let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+        let stdout = String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+        if process.terminationStatus == 0 {
+            // If stdout contains a file path, use it as output for pipeline chaining
+            let outputPath: String? = stdout.hasPrefix("/") ? stdout : nil
+            if !stdout.isEmpty {
+                // Copy stdout to clipboard
+                let pasteboard = NSPasteboard.general
+                pasteboard.clearContents()
+                pasteboard.setString(stdout, forType: .string)
+            }
+            let msg = stdout.isEmpty ? "Script completed" : "Output (\(stdout.count) chars) → clipboard"
+            return DropActionResult(success: true, message: msg, outputPath: outputPath)
+        } else {
+            let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+            let stderr = String(data: stderrData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "Unknown error"
+            return DropActionResult(success: false, message: "Script failed: \(stderr.prefix(100))")
+        }
+    }
+}
+
+// MARK: - Pipeline Configuration (Codable)
+
+enum PipelineStepType: String, Codable, CaseIterable {
+    case compressImage
+    case ocr
+    case shortcut
+    case shellScript
+}
+
+struct PipelineStep: Codable, Identifiable {
+    let id: UUID
+    var stepType: PipelineStepType
+    /// For shortcut: shortcut name. For shellScript: command string. For built-ins: unused.
+    var config: String
+
+    init(stepType: PipelineStepType, config: String = "") {
+        self.id = UUID()
+        self.stepType = stepType
+        self.config = config
+    }
+}
+
+struct PipelineConfig: Codable, Identifiable {
+    let id: UUID
+    var name: String
+    var steps: [PipelineStep]
+    var supportedExtensions: Set<String>
+
+    init(name: String, steps: [PipelineStep], supportedExtensions: Set<String> = ["*"]) {
+        self.id = UUID()
+        self.name = name
+        self.steps = steps
+        self.supportedExtensions = supportedExtensions
+    }
+}
+
+// MARK: - Pipeline Drop Action
+
+struct PipelineDropAction: DropAction {
+    let id: String
+    let name: String
+    let iconName = "arrow.triangle.branch"
+    let supportedExtensions: Set<String>
+    let pipeline: PipelineConfig
+
+    init(pipeline: PipelineConfig) {
+        self.id = "pipeline-\(pipeline.id.uuidString)"
+        self.name = pipeline.name
+        self.supportedExtensions = pipeline.supportedExtensions
+        self.pipeline = pipeline
+    }
+
+    func canHandle(url: URL) -> Bool {
+        supportedExtensions.contains("*") || supportedExtensions.contains(url.pathExtension.lowercased())
+    }
+
+    func execute(urls: [URL]) async throws -> DropActionResult {
+        var currentURLs = urls
+
+        for (index, step) in pipeline.steps.enumerated() {
+            let action = makeAction(for: step)
+            let result = try await action.execute(urls: currentURLs)
+
+            if !result.success {
+                return DropActionResult(
+                    success: false,
+                    message: "Pipeline failed at step \(index + 1): \(result.message)"
+                )
+            }
+
+            // Chain: if step produced an output path, use it as input for next step
+            if let outputPath = result.outputPath {
+                currentURLs = [URL(fileURLWithPath: outputPath)]
+            }
+            // Otherwise keep currentURLs for next step
+        }
+
+        return DropActionResult(
+            success: true,
+            message: "Pipeline '\(pipeline.name)' completed (\(pipeline.steps.count) steps)"
+        )
+    }
+
+    private func makeAction(for step: PipelineStep) -> any DropAction {
+        switch step.stepType {
+        case .compressImage:
+            return CompressImageAction()
+        case .ocr:
+            return OCRAction()
+        case .shortcut:
+            return ShortcutDropAction(shortcutName: step.config)
+        case .shellScript:
+            return ShellScriptDropAction(name: "Pipeline Step", command: step.config)
+        }
+    }
+}
+
+// MARK: - Pipeline Store (UserDefaults persistence)
+
+struct PipelineStore {
+    private static let key = "dropActionPipelines"
+
+    static func load() -> [PipelineConfig] {
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let pipelines = try? JSONDecoder().decode([PipelineConfig].self, from: data) else {
+            return []
+        }
+        return pipelines
+    }
+
+    static func save(_ pipelines: [PipelineConfig]) {
+        if let data = try? JSONEncoder().encode(pipelines) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
+}
+
 // MARK: - Drop Action Service
 
 @Observable
@@ -165,9 +403,17 @@ final class DropActionService {
         OCRAction()
     ]
 
+    /// All available actions: built-in + pipelines loaded from UserDefaults.
+    var allActions: [any DropAction] {
+        var actions: [any DropAction] = builtInActions
+        let pipelines = PipelineStore.load()
+        actions.append(contentsOf: pipelines.map { PipelineDropAction(pipeline: $0) })
+        return actions
+    }
+
     /// Find matching actions for dropped files and start selection.
     func handleDrop(urls: [URL]) {
-        let matching = builtInActions.filter { action in
+        let matching = allActions.filter { action in
             urls.contains { action.canHandle(url: $0) }
         }
 
