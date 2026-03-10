@@ -36,6 +36,8 @@
 		BB00000D /* WidgetProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000E /* WidgetProtocol.swift */; };
 		BB00000F /* WidgetRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000010 /* WidgetRegistry.swift */; };
 		BB000011 /* WidgetDrawerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000012 /* WidgetDrawerView.swift */; };
+		BB000013 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000014 /* CalendarService.swift */; };
+		BB000015 /* CalendarWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000016 /* CalendarWidget.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -70,6 +72,8 @@
 		BB00000E /* WidgetProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetProtocol.swift; sourceTree = "<group>"; };
 		BB000010 /* WidgetRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetRegistry.swift; sourceTree = "<group>"; };
 		BB000012 /* WidgetDrawerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDrawerView.swift; sourceTree = "<group>"; };
+		BB000014 /* CalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
+		BB000016 /* CalendarWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarWidget.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -137,6 +141,7 @@
 				BB000004 /* BatteryIndicator.swift */,
 				BB000008 /* PrivacyIndicatorView.swift */,
 				BB00000C /* CollapsedIndicatorBar.swift */,
+				BB000016 /* CalendarWidget.swift */,
 			);
 			path = Widgets;
 			sourceTree = "<group>";
@@ -172,6 +177,7 @@
 				BB000006 /* PrivacyService.swift */,
 				BB00000A /* FocusService.swift */,
 				BB000010 /* WidgetRegistry.swift */,
+				BB000014 /* CalendarService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -273,6 +279,8 @@
 				BB00000D /* WidgetProtocol.swift in Sources */,
 				BB00000F /* WidgetRegistry.swift in Sources */,
 				BB000011 /* WidgetDrawerView.swift in Sources */,
+				BB000013 /* CalendarService.swift in Sources */,
+				BB000015 /* CalendarWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

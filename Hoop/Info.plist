@@ -24,5 +24,7 @@
 	<true/>
 	<key>LSBackgroundOnly</key>
 	<false/>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>NotchNook shows your upcoming events in the Calendar widget.</string>
 </dict>
 </plist>
