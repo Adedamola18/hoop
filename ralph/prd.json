@@ -213,8 +213,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 14,
-      "passes": false,
-      "notes": "New service. Add PrivacyService.swift to Services/, PrivacyIndicatorView.swift to Views/Widgets/."
+      "passes": true,
+      "notes": "PrivacyService polls camera/mic every 2s. Green/orange dots in collapsed notch. collapsedIndicators ViewBuilder in NotchRootView."
     },
     {
       "id": "US-015",
