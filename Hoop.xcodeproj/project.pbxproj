@@ -51,6 +51,10 @@
 		BB00002B /* SystemStatsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00002C /* SystemStatsService.swift */; };
 		BB00002D /* SystemStatsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00002E /* SystemStatsWidget.swift */; };
 		BB00002F /* GestureSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000030 /* GestureSettings.swift */; };
+		BB000031 /* CallService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000032 /* CallService.swift */; };
+		BB000033 /* IncomingCallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000034 /* IncomingCallView.swift */; };
+		BB000035 /* AirDropService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000036 /* AirDropService.swift */; };
+		BB000037 /* AirDropIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000038 /* AirDropIndicatorView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -100,6 +104,10 @@
 		BB00002C /* SystemStatsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStatsService.swift; sourceTree = "<group>"; };
 		BB00002E /* SystemStatsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStatsWidget.swift; sourceTree = "<group>"; };
 		BB000030 /* GestureSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureSettings.swift; sourceTree = "<group>"; };
+		BB000032 /* CallService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallService.swift; sourceTree = "<group>"; };
+		BB000034 /* IncomingCallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingCallView.swift; sourceTree = "<group>"; };
+		BB000036 /* AirDropService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirDropService.swift; sourceTree = "<group>"; };
+		BB000038 /* AirDropIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirDropIndicatorView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -154,6 +162,8 @@
 				AA00003C /* DropZoneView.swift */,
 				AA000040A /* DropActionSelectionView.swift */,
 				BB000012 /* WidgetDrawerView.swift */,
+				BB000034 /* IncomingCallView.swift */,
+				BB000038 /* AirDropIndicatorView.swift */,
 				AA000037 /* Widgets */,
 			);
 			path = Views;
@@ -217,6 +227,8 @@
 				BB00001C /* ClipboardService.swift */,
 				BB000020 /* ShortcutsService.swift */,
 				BB00002C /* SystemStatsService.swift */,
+				BB000032 /* CallService.swift */,
+				BB000036 /* AirDropService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -333,6 +345,10 @@
 				BB00002B /* SystemStatsService.swift in Sources */,
 				BB00002D /* SystemStatsWidget.swift in Sources */,
 				BB00002F /* GestureSettings.swift in Sources */,
+				BB000031 /* CallService.swift in Sources */,
+				BB000033 /* IncomingCallView.swift in Sources */,
+				BB000035 /* AirDropService.swift in Sources */,
+				BB000037 /* AirDropIndicatorView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

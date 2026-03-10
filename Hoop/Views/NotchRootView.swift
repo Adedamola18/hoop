@@ -10,6 +10,8 @@ struct NotchRootView: View {
     let privacyService: PrivacyService
     let focusService: FocusService
     let widgetRegistry: WidgetRegistry
+    let callService: CallService
+    let airDropService: AirDropService
 
     private var hasCollapsedIndicators: Bool {
         privacyService.isCameraActive || privacyService.isMicrophoneActive ||
@@ -90,6 +92,12 @@ struct NotchRootView: View {
                             .transition(.opacity)
                     } else if isHUD {
                         HUDOverlayView(hudService: hudService)
+                            .transition(.opacity)
+                    } else if callService.isCallActive {
+                        IncomingCallView(callService: callService)
+                            .transition(.opacity)
+                    } else if airDropService.isTransferActive && !isExpanded {
+                        AirDropIndicatorView(airDropService: airDropService)
                             .transition(.opacity)
                     } else if isExpanded && shouldShowMediaWidget {
                         MediaPlayerWidget(
