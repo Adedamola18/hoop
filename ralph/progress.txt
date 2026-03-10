@@ -29,6 +29,7 @@
 - HUD phase takes priority: saves previous phase, transitions to .hud, restores on dismiss
 - HUD frame is narrower than expanded (400pt wide x 60pt tall) — separate from the 600pt expanded frame
 - HUDService owns show/dismiss lifecycle with auto-dismiss timer; NotchWindowManager handles frame changes via callbacks
+- Brightness monitoring: IOKit polling at 0.3s interval via IODisplayGetFloatParameter/IODisplaySetFloatParameter (import IOKit.graphics)
 
 Started: 2026-03-10
 ---
@@ -218,4 +219,22 @@ Started: 2026-03-10
   - Default output device can change (e.g., headphones plugged in) — must listen for kAudioHardwarePropertyDefaultOutputDevice and re-wire volume listener
   - HUD phase saves/restores previous phase to avoid disrupting expand/collapse state
   - Separate HUD frame dimensions (400x60) from expanded frame (600x200) — HUD is a slim overlay
+---
+
+## 2026-03-10 - US-013
+- Extended HUDService with brightness monitoring via IOKit display services
+- HUDOverlayView updated to support interactive brightness drag (setBrightness on drag)
+- Files changed: Hoop/Services/HUDService.swift, Hoop/Views/HUDOverlayView.swift
+- Brightness uses polling (DispatchSourceTimer at 0.3s) since IOKit has no notification API for display brightness
+- IODisplayGetFloatParameter reads brightness, IODisplaySetFloatParameter sets it
+- IOServiceMatching("IODisplayConnect") iterates display services to find the built-in display
+- Delta threshold of 0.005 filters out floating-point noise from repeated reads
+- lastKnownBrightness seeded on start so first real change triggers HUD (not initial read)
+- HUD type indicator already handled: speaker icon for volume, sun.max.fill for brightness
+- **Learnings for future iterations:**
+  - IOKit brightness API: IODisplayGetFloatParameter/IODisplaySetFloatParameter with kIODisplayBrightnessKey
+  - No notification for brightness changes — must poll; 0.3s interval is responsive without CPU overhead
+  - import IOKit.graphics for IODisplay functions and kIODisplayBrightnessKey
+  - IOServiceGetMatchingServices with "IODisplayConnect" finds display services; iterate until IODisplayGetFloatParameter succeeds
+  - kIOMainPortDefault replaces deprecated kIOMasterPortDefault on macOS 12+
 ---

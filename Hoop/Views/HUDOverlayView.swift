@@ -34,8 +34,11 @@ struct HUDOverlayView: View {
                             let clamped = max(0, min(1, ratio))
                             dragLevel = clamped
                             hudService.currentLevel = clamped
-                            if hudService.hudType == .volume {
+                            switch hudService.hudType {
+                            case .volume:
                                 hudService.setVolume(clamped)
+                            case .brightness:
+                                hudService.setBrightness(clamped)
                             }
                         }
                         .onEnded { _ in

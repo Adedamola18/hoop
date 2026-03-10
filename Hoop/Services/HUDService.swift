@@ -2,6 +2,7 @@ import AppKit
 import CoreAudio
 import AudioToolbox
 import Observation
+import IOKit.graphics
 
 enum HUDType {
     case volume
@@ -41,15 +42,22 @@ final class HUDService {
     /// Callback fired when HUD should dismiss.
     var onHUDDismiss: (() -> Void)?
 
+    // MARK: - Brightness State
+
+    private var brightnessPollingTimer: DispatchSourceTimer?
+    private var lastKnownBrightness: Float = -1
+
     func startObserving() {
         fetchDefaultOutputDevice()
         installDefaultDeviceListener()
         installVolumeListener()
+        startBrightnessPolling()
     }
 
     func stopObserving() {
         removeVolumeListener()
         removeDefaultDeviceListener()
+        stopBrightnessPolling()
     }
 
     // MARK: - Volume Control
@@ -183,6 +191,84 @@ final class HUDService {
         )
         if status == noErr {
             showHUD(type: .volume, level: volume)
+        }
+    }
+
+    // MARK: - Brightness Monitoring (IOKit polling)
+
+    private func startBrightnessPolling() {
+        // Seed initial brightness so the first real change triggers the HUD
+        lastKnownBrightness = readBrightness() ?? -1
+
+        let timer = DispatchSource.makeTimerSource(queue: .main)
+        timer.schedule(deadline: .now() + 0.3, repeating: 0.3)
+        timer.setEventHandler { [weak self] in
+            self?.pollBrightness()
+        }
+        timer.resume()
+        brightnessPollingTimer = timer
+    }
+
+    private func stopBrightnessPolling() {
+        brightnessPollingTimer?.cancel()
+        brightnessPollingTimer = nil
+    }
+
+    private func pollBrightness() {
+        guard let brightness = readBrightness() else { return }
+        let delta = abs(brightness - lastKnownBrightness)
+        if delta > 0.005 { // ignore noise
+            lastKnownBrightness = brightness
+            showHUD(type: .brightness, level: brightness)
+        }
+    }
+
+    /// Read display brightness via IOKit `IODisplayGetFloatParameter`.
+    private func readBrightness() -> Float? {
+        var iterator: io_iterator_t = 0
+        let result = IOServiceGetMatchingServices(
+            kIOMainPortDefault,
+            IOServiceMatching("IODisplayConnect"),
+            &iterator
+        )
+        guard result == kIOReturnSuccess else { return nil }
+        defer { IOObjectRelease(iterator) }
+
+        var service = IOIteratorNext(iterator)
+        while service != 0 {
+            var brightness: Float = 0
+            let err = IODisplayGetFloatParameter(service, 0, kIODisplayBrightnessKey as CFString, &brightness)
+            IOObjectRelease(service)
+            if err == kIOReturnSuccess {
+                return brightness
+            }
+            service = IOIteratorNext(iterator)
+        }
+        return nil
+    }
+
+    /// Set display brightness via IOKit `IODisplaySetFloatParameter`.
+    func setBrightness(_ level: Float) {
+        let clamped = max(0, min(1, level))
+
+        var iterator: io_iterator_t = 0
+        let result = IOServiceGetMatchingServices(
+            kIOMainPortDefault,
+            IOServiceMatching("IODisplayConnect"),
+            &iterator
+        )
+        guard result == kIOReturnSuccess else { return }
+        defer { IOObjectRelease(iterator) }
+
+        var service = IOIteratorNext(iterator)
+        while service != 0 {
+            let err = IODisplaySetFloatParameter(service, 0, kIODisplayBrightnessKey as CFString, clamped)
+            IOObjectRelease(service)
+            if err == kIOReturnSuccess {
+                lastKnownBrightness = clamped
+                return
+            }
+            service = IOIteratorNext(iterator)
         }
     }
 }

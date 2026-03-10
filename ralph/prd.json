@@ -203,7 +203,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 13,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 4. Use CoreDisplay or IOKit for brightness reading. May need polling if no notification API available."
     },
     {
