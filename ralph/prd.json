@@ -156,7 +156,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 10,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 3. Keep animations minimal for performance. Use drawingGroup() for Metal rendering."
     },
     {

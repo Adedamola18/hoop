@@ -157,3 +157,21 @@ Started: 2026-03-10
   - MediaService is shared across all panels via NotchWindowManager (single instance)
   - Widget visibility tied to isActive check on playback state — no unnecessary rendering when no media
 ---
+
+## 2026-03-10 - US-010
+- Implemented collapsed media live activity indicator
+- Files created: Hoop/Views/Widgets/CollapsedMediaIndicator.swift
+- Files changed: Hoop/Views/NotchRootView.swift, Hoop.xcodeproj/project.pbxproj
+- CollapsedMediaIndicator shows album art peek (circle) on left and waveform bars on right of collapsed notch
+- Waveform uses TimelineView(.animation) at 30fps only when media is actively playing
+- When paused: static staggered bars (no TimelineView, saves CPU)
+- drawingGroup() applied to waveform for Metal-backed rendering
+- 4 bars oscillate at different frequencies/phases for organic look
+- Album art falls back to music.note icon when no artwork available
+- NotchRootView shows indicator in collapsed state when media is active, hides otherwise
+- **Learnings for future iterations:**
+  - TimelineView(.animation) with minimumInterval controls frame rate — use 1/30 for subtle animations
+  - drawingGroup() forces Metal rendering — apply to animated shapes for performance
+  - Guard TimelineView behind isPlaying check to avoid running animations when paused/stopped
+  - Sine-based animation with offset frequencies/phases creates natural waveform without keyframes
+---
