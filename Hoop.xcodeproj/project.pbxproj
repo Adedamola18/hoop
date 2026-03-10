@@ -17,6 +17,7 @@
 		AA000008 /* NotchRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000019 /* NotchRootView.swift */; };
 		AA00000A /* NotchShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001A /* NotchShape.swift */; };
 		AA00000B /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001B /* VisualEffectView.swift */; };
+		AA00000C /* MediaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001C /* MediaService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +33,7 @@
 		AA000019 /* NotchRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchRootView.swift; sourceTree = "<group>"; };
 		AA00001A /* NotchShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchShape.swift; sourceTree = "<group>"; };
 		AA00001B /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
+		AA00001C /* MediaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +63,7 @@
 				AA000034 /* Window */,
 				AA000033 /* Views */,
 				AA000035 /* Models */,
+				AA000036 /* Services */,
 				AA000014 /* Info.plist */,
 			);
 			path = Hoop;
@@ -101,6 +104,14 @@
 				AA000017 /* NotchState.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		AA000036 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				AA00001C /* MediaService.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -181,6 +192,7 @@
 				AA000008 /* NotchRootView.swift in Sources */,
 				AA00000A /* NotchShape.swift in Sources */,
 				AA00000B /* VisualEffectView.swift in Sources */,
+				AA00000C /* MediaService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
