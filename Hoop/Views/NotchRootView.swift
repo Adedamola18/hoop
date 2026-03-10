@@ -5,6 +5,7 @@ struct NotchRootView: View {
     let mediaService: MediaService
     let hudService: HUDService
     let contextService: ContextService
+    let dropActionService: DropActionService
 
     private var isExpanded: Bool {
         state.phase == .expanding || state.phase == .expanded
@@ -60,8 +61,11 @@ struct NotchRootView: View {
                     .opacity(isActive ? 0 : 1)
 
                 // Content overlay
-                if isTray {
+                if isTray, case .idle = dropActionService.dropPhase {
                     DropZoneView()
+                        .transition(.opacity)
+                } else if isTray {
+                    DropActionSelectionView(dropActionService: dropActionService)
                         .transition(.opacity)
                 } else if isHUD {
                     HUDOverlayView(hudService: hudService)

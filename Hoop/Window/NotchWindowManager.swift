@@ -12,6 +12,7 @@ final class NotchWindowManager {
     let mediaService = MediaService()
     let hudService = HUDService()
     let contextService = ContextService()
+    let dropActionService = DropActionService()
 
     init() {
         NotificationCenter.default.addObserver(
@@ -38,6 +39,7 @@ final class NotchWindowManager {
         hudService.startObserving()
         contextService.startObserving()
         wireHUDCallbacks()
+        wireDropActionCallbacks()
     }
 
     deinit {
@@ -125,7 +127,7 @@ final class NotchWindowManager {
         state.screenHasNotch = screen.hasNotch
         state.collapsedSize = screen.overlayFrame.size
 
-        let rootView = NotchRootView(state: state, mediaService: mediaService, hudService: hudService, contextService: contextService)
+        let rootView = NotchRootView(state: state, mediaService: mediaService, hudService: hudService, contextService: contextService, dropActionService: dropActionService)
         let hostingView = NSHostingView(rootView: rootView)
 
         let panel = NotchPanel(
@@ -453,8 +455,20 @@ final class NotchWindowManager {
     }
 
     private func handleDroppedFiles(_ urls: [URL], id: String) {
-        // For now, log and dismiss tray. US-019 will add actual drop actions.
         print("[Hoop] Files dropped: \(urls.map(\.lastPathComponent))")
-        dismissTray(id: id)
+        dropActionService.handleDrop(urls: urls)
+        // Tray stays open — DropActionSelectionView shows action selection / result
+    }
+
+    private func wireDropActionCallbacks() {
+        dropActionService.onDismissAfterResult = { [weak self] in
+            self?.dropActionService.reset()
+            // Dismiss tray for all panels currently in tray phase
+            for (id, entry) in self?.windows ?? [:] {
+                if entry.state.phase == .tray {
+                    self?.dismissTray(id: id)
+                }
+            }
+        }
     }
 }
