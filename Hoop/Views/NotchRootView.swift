@@ -11,7 +11,7 @@ struct NotchRootView: View {
     let focusService: FocusService
 
     private var hasPrivacyIndicators: Bool {
-        privacyService.isCameraActive || privacyService.isMicrophoneActive
+        privacyService.isCameraActive || privacyService.isMicrophoneActive || privacyService.isScreenRecording
     }
 
     private var isExpanded: Bool {

@@ -1,6 +1,7 @@
 import AVFoundation
 import AppKit
 import CoreAudio
+import CoreGraphics
 import Observation
 
 @Observable
@@ -8,8 +9,10 @@ final class PrivacyService {
 
     var isCameraActive: Bool = false
     var isMicrophoneActive: Bool = false
+    var isScreenRecording: Bool = false
     var cameraAppName: String?
     var microphoneAppName: String?
+    var screenRecordingAppName: String?
 
     private var pollTimer: Timer?
 
@@ -29,6 +32,7 @@ final class PrivacyService {
     private func refreshPrivacyState() {
         checkCameraState()
         checkMicrophoneState()
+        checkScreenRecordingState()
     }
 
     // MARK: - Camera Detection
@@ -138,5 +142,52 @@ final class PrivacyService {
             }
         }
         return nil
+    }
+
+    // MARK: - Screen Recording Detection
+
+    private func checkScreenRecordingState() {
+        // Check for screen recording by looking for known recording apps
+        // that are running, since CGDisplayStream-based detection requires
+        // screen recording permission which we don't want to request.
+        let recordingApps = [
+            "com.apple.screencaptureui": "Screenshot",
+            "com.apple.QuickTimePlayerX": "QuickTime",
+            "com.obsproject.obs-studio": "OBS",
+            "com.loom.desktop": "Loom",
+            "com.techsmith.camtasia": "Camtasia",
+            "com.getcleanshot.app": "CleanShot",
+            "com.ScreenSnapAI.ScreenSnapAI": "ScreenSnap",
+        ]
+
+        let wasRecording = isScreenRecording
+        var foundApp: String?
+
+        for app in NSWorkspace.shared.runningApplications {
+            if let bundleID = app.bundleIdentifier,
+               let name = recordingApps[bundleID] {
+                foundApp = name
+                break
+            }
+        }
+
+        // Also check if the macOS screen recording indicator is active
+        // by looking for the ScreenCaptureKit daemon
+        if foundApp == nil {
+            let hasCaptureDaemon = NSWorkspace.shared.runningApplications.contains {
+                $0.bundleIdentifier == "com.apple.screencaptured"
+            }
+            if hasCaptureDaemon {
+                foundApp = "Screen Recording"
+            }
+        }
+
+        isScreenRecording = foundApp != nil
+
+        if isScreenRecording && !wasRecording {
+            screenRecordingAppName = foundApp
+        } else if !isScreenRecording {
+            screenRecordingAppName = nil
+        }
     }
 }
