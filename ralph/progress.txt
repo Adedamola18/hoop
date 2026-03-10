@@ -249,6 +249,11 @@ Started: 2026-03-10
 - NX_SUBTYPE_AUX_CONTROL_BUTTONS = 8; data1 bits 16-23 = key type (0=soundUp, 1=soundDown, 7=mute, 21=brightnessUp, 22=brightnessDown)
 - CGEventTap requires Accessibility permission; fails gracefully (returns nil from tapCreate) if not granted
 - Event tap can be disabled by system timeout — handle .tapDisabledByTimeout by re-enabling
+- DropActionService manages drop lifecycle: idle -> selecting/executing -> result -> auto-dismiss
+- Vision framework OCR: VNRecognizeTextRequest with .accurate level, CGImageSourceCreateWithURL for image loading
+- NSImage resize: lockFocus/draw/unlockFocus pattern, then tiffRepresentation -> NSBitmapImageRep -> JPEG compression
+- DropAction protocol with canHandle(url:)/execute(urls:) — extensible for future custom actions
+- Pattern matching on @Observable enum: `case .idle = service.dropPhase` works in SwiftUI if conditions
 ---
 
 ## 2026-03-10 - US-014
@@ -341,4 +346,26 @@ Started: 2026-03-10
   - readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) is the reliable way to read dropped file URLs
   - Tray frame uses same size as expanded frame (expandedOverlayFrame) for consistent drop zone area
   - .tray phase added to isActive in NotchRootView so vibrancy/shape expansion applies
+---
+
+## 2026-03-10 - US-019
+- Implemented built-in drop actions: compress image and OCR text extraction
+- Files created: Hoop/Services/DropActionService.swift, Hoop/Views/DropActionSelectionView.swift
+- Files changed: Hoop/Window/NotchWindowManager.swift, Hoop/Views/NotchRootView.swift, Hoop.xcodeproj/project.pbxproj
+- DropAction protocol with id, name, iconName, supportedExtensions, canHandle(), execute()
+- CompressImageAction: resizes to max 1024px, JPEG compresses at 0.7 quality, copies to clipboard
+- OCRAction: uses Vision VNRecognizeTextRequest with .accurate level, copies extracted text to clipboard
+- DropActionService (@Observable) manages lifecycle: idle -> selecting -> executing -> result with auto-dismiss
+- If single action matches file type, executes immediately; if multiple, shows selection UI
+- DropActionSelectionView shows action buttons, progress spinner, and success/failure result
+- NotchWindowManager wires DropActionService, keeps tray open during action execution
+- Auto-dismiss after 2s on result, then dismisses tray
+- NotchRootView shows DropZoneView when tray+idle, DropActionSelectionView when tray+processing
+- **Learnings for future iterations:**
+  - Vision OCR: CGImageSourceCreateWithURL -> CGImageSourceCreateImageAtIndex for CGImage loading
+  - NSImage resize: lockFocus/draw/unlockFocus then tiffRepresentation -> NSBitmapImageRep -> JPEG
+  - withCheckedThrowingContinuation wraps VNRecognizeTextRequest callback into async/await
+  - DropAction protocol is extensible — US-020 will add Shortcuts/shell script actions
+  - Pattern matching enum on @Observable: `case .idle = service.dropPhase` in SwiftUI if conditions
+  - Tray stays open during processing — auto-dismiss callback on service triggers dismissTray
 ---

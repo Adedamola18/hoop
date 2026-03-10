@@ -297,7 +297,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 19,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 6. Use NSImage for resize, Vision framework for OCR. Copy results to NSPasteboard.general."
     },
     {
