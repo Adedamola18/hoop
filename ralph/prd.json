@@ -170,7 +170,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 11,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 3. Detect horizontal scroll events with sufficient delta threshold to distinguish from vertical scroll."
     },
     {

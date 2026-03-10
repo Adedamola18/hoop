@@ -24,6 +24,7 @@
 - Services directory: Hoop/Services/ with PBXGroup AA000036
 - Widgets directory: Hoop/Views/Widgets/ with PBXGroup AA000037
 - MediaService is shared across all panels — single instance owned by NotchWindowManager
+- Scroll wheel swipe detection: accumulate scrollingDeltaX, fire once per gesture when threshold exceeded, reset on phase .began/.ended
 
 Started: 2026-03-10
 ---
@@ -174,4 +175,22 @@ Started: 2026-03-10
   - drawingGroup() forces Metal rendering — apply to animated shapes for performance
   - Guard TimelineView behind isPlaying check to avoid running animations when paused/stopped
   - Sine-based animation with offset frequencies/phases creates natural waveform without keyframes
+---
+
+## 2026-03-10 - US-011
+- Implemented media gesture controls: horizontal two-finger swipe on expanded notch skips tracks
+- Files changed: Hoop/Window/NotchPanel.swift, Hoop/Window/NotchWindowManager.swift
+- NotchPanel.scrollWheel override detects continuous trackpad scroll events
+- Accumulates horizontal delta, fires skip action once threshold (30pt) is exceeded per gesture
+- Swipe left (negative deltaX) = next track, swipe right = previous track
+- NSHapticFeedbackManager provides alignment haptic on successful skip
+- onSwipeSkip callback wired in NotchWindowManager to MediaService.nextTrack/previousTrack
+- Only active when panel is in expanding/expanded phase
+- Gesture resets on phase begin/end to prevent accidental multi-fires
+- **Learnings for future iterations:**
+  - NSEvent.scrollWheel with event.phase tracks gesture lifecycle (began/changed/ended/cancelled)
+  - event.scrollingDeltaX is negative for left-swipe (natural scrolling direction)
+  - Check event.phase != [] to filter trackpad (continuous) from mouse wheel (discrete) events
+  - NSHapticFeedbackManager.defaultPerformer.perform(.alignment) for subtle tactile feedback
+  - Fire-once pattern with boolean flag prevents repeated actions during momentum phase
 ---
