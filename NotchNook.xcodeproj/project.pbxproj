@@ -10,6 +10,11 @@
 		AA000001 /* NotchNookApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000011 /* NotchNookApp.swift */; };
 		AA000002 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000012 /* AppDelegate.swift */; };
 		AA000003 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000013 /* SettingsView.swift */; };
+		AA000004 /* NotchPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000015 /* NotchPanel.swift */; };
+		AA000005 /* ScreenDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000016 /* ScreenDetector.swift */; };
+		AA000006 /* NotchState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000017 /* NotchState.swift */; };
+		AA000007 /* NotchWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000018 /* NotchWindowManager.swift */; };
+		AA000008 /* NotchRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000019 /* NotchRootView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -18,6 +23,11 @@
 		AA000012 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		AA000013 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AA000014 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA000015 /* NotchPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchPanel.swift; sourceTree = "<group>"; };
+		AA000016 /* ScreenDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenDetector.swift; sourceTree = "<group>"; };
+		AA000017 /* NotchState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchState.swift; sourceTree = "<group>"; };
+		AA000018 /* NotchWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchWindowManager.swift; sourceTree = "<group>"; };
+		AA000019 /* NotchRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchRootView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,7 +54,9 @@
 			children = (
 				AA000011 /* NotchNookApp.swift */,
 				AA000012 /* AppDelegate.swift */,
+				AA000034 /* Window */,
 				AA000033 /* Views */,
+				AA000035 /* Models */,
 				AA000014 /* Info.plist */,
 			);
 			path = NotchNook;
@@ -62,8 +74,27 @@
 			isa = PBXGroup;
 			children = (
 				AA000013 /* SettingsView.swift */,
+				AA000019 /* NotchRootView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		AA000034 /* Window */ = {
+			isa = PBXGroup;
+			children = (
+				AA000015 /* NotchPanel.swift */,
+				AA000016 /* ScreenDetector.swift */,
+				AA000018 /* NotchWindowManager.swift */,
+			);
+			path = Window;
+			sourceTree = "<group>";
+		};
+		AA000035 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				AA000017 /* NotchState.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -137,6 +168,11 @@
 				AA000001 /* NotchNookApp.swift in Sources */,
 				AA000002 /* AppDelegate.swift in Sources */,
 				AA000003 /* SettingsView.swift in Sources */,
+				AA000004 /* NotchPanel.swift in Sources */,
+				AA000005 /* ScreenDetector.swift in Sources */,
+				AA000006 /* NotchState.swift in Sources */,
+				AA000007 /* NotchWindowManager.swift in Sources */,
+				AA000008 /* NotchRootView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
