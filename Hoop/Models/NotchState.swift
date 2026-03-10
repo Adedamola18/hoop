@@ -77,6 +77,15 @@ final class NotchState {
         return w > 0 ? max(400, min(800, w)) : 600
     }
 
-    /// Height of the expanded overlay.
-    static let expandedHeight: CGFloat = 200
+    /// Configurable expanded height (150-400pt, default 200pt).
+    var expandedHeight: CGFloat {
+        let h = UserDefaults.standard.double(forKey: "expandedHeight")
+        return h > 0 ? max(150, min(400, h)) : 200
+    }
+
+    /// Configurable content padding (8-32pt, default 16pt).
+    var contentPadding: CGFloat {
+        let p = UserDefaults.standard.double(forKey: "contentPadding")
+        return p > 0 ? max(8, min(32, p)) : 16
+    }
 }

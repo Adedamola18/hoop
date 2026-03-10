@@ -53,8 +53,7 @@ extension NSScreen {
     }
 
     /// Frame for the expanded overlay, centered at the top of the screen.
-    func expandedOverlayFrame(expandedWidth: CGFloat = 600) -> NSRect {
-        let expandedHeight: CGFloat = NotchState.expandedHeight
+    func expandedOverlayFrame(expandedWidth: CGFloat = 600, expandedHeight: CGFloat = 200) -> NSRect {
         return NSRect(
             x: frame.midX - expandedWidth / 2,
             y: frame.maxY - expandedHeight,

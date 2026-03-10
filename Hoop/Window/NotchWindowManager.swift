@@ -285,7 +285,7 @@ final class NotchWindowManager {
             entry.panel.installTrackingArea()
         case .expanding, .expanded, .tray:
             // Reposition expanded frame to match new screen geometry
-            let expandedFrame = screen.expandedOverlayFrame(expandedWidth: entry.state.expandedWidth)
+            let expandedFrame = screen.expandedOverlayFrame(expandedWidth: entry.state.expandedWidth, expandedHeight: entry.state.expandedHeight)
             entry.panel.setFrame(expandedFrame, display: true)
             entry.panel.installTrackingArea()
         case .hud:
@@ -315,7 +315,7 @@ final class NotchWindowManager {
         collapseWorkItems.removeValue(forKey: id)
 
         // Snap panel frame to expanded size (SwiftUI spring animates the visual content)
-        let expandedFrame = screen.expandedOverlayFrame(expandedWidth: entry.state.expandedWidth)
+        let expandedFrame = screen.expandedOverlayFrame(expandedWidth: entry.state.expandedWidth, expandedHeight: entry.state.expandedHeight)
         entry.panel.setFrame(expandedFrame, display: true)
         entry.panel.installTrackingArea()
 
@@ -546,7 +546,7 @@ final class NotchWindowManager {
         expandedTransitionItems.removeValue(forKey: id)
 
         // Expand panel frame for tray display (same size as expanded)
-        let trayFrame = screen.expandedOverlayFrame(expandedWidth: entry.state.expandedWidth)
+        let trayFrame = screen.expandedOverlayFrame(expandedWidth: entry.state.expandedWidth, expandedHeight: entry.state.expandedHeight)
         entry.panel.setFrame(trayFrame, display: true)
         entry.panel.installTrackingArea()
         entry.state.phase = .tray
