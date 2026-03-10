@@ -107,7 +107,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 7,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 2. Add to existing SettingsView TabView. Global hotkey uses NSEvent.addGlobalMonitorForEvents with key combo matching."
     },
     {

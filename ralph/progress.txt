@@ -15,6 +15,9 @@
 - SourceKit single-file diagnostics are noise — verify with multi-file swiftc -typecheck
 - NSEvent.addGlobalMonitorForEvents fires only for events outside app windows — use for click-outside dismiss
 - Panel must be makeKey() to receive keyDown events (Escape key handling)
+- ActivationTrigger enum in NotchState.swift with .current static property reads from UserDefaults
+- Use Notification.Name.activationTriggerDidChange to broadcast settings changes across components
+- Carbon.HIToolbox for key code constants (kVK_ANSI_*) and UCKeyTranslate for display strings
 
 Started: 2026-03-10
 ---
@@ -93,4 +96,22 @@ Started: 2026-03-10
   - Panel must be made key (makeKey()) to receive keyDown events for Escape
   - Global click monitor should be installed on expand and removed on collapse to avoid unnecessary processing
   - ZStack with dual layers (vibrancy + opaque) and animated opacity is cleaner than trying to animate material changes
+---
+
+## 2026-03-10 - US-007
+- Implemented activation trigger settings: hover (default), click, keyboard shortcut
+- Files changed: Hoop/Models/NotchState.swift, Hoop/Views/SettingsView.swift, Hoop/Window/NotchPanel.swift, Hoop/Window/NotchWindowManager.swift
+- Added ActivationTrigger enum (hover/click/hotkey) with UserDefaults persistence
+- Settings > General > Activation section with trigger picker
+- Hover: shows configurable delay slider (100-500ms, default 200ms)
+- Hotkey: shows shortcut recorder (default Option+N), uses Carbon.HIToolbox for key code translation
+- NotchPanel.mouseEntered only triggers dwell on .hover; mouseDown override for .click trigger
+- NotchWindowManager: global hotkey monitor via NSEvent.addGlobalMonitorForEvents(.keyDown) for .hotkey trigger
+- Notification.Name.activationTriggerDidChange broadcast on settings change for immediate behavior update
+- **Learnings for future iterations:**
+  - Carbon.HIToolbox provides kVK_ANSI_* key code constants for hotkey matching
+  - UCKeyTranslate converts key codes to display characters for the shortcut label
+  - NSEvent.addGlobalMonitorForEvents(.keyDown) requires Accessibility permission for global hotkeys
+  - ActivationTrigger.current static property reads from UserDefaults — no need to pass trigger through the object graph
+  - Use Notification for settings changes that affect multiple components (panel + window manager)
 ---
