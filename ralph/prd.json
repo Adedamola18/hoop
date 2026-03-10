@@ -312,7 +312,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 20,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 6. Use Process() for shell scripts. Pass file path as $1 argument. Capture stdout for pipeline chaining."
     },
     {

@@ -30,6 +30,10 @@
 - HUD frame is narrower than expanded (400pt wide x 60pt tall) — separate from the 600pt expanded frame
 - HUDService owns show/dismiss lifecycle with auto-dismiss timer; NotchWindowManager handles frame changes via callbacks
 - Brightness monitoring: IOKit polling at 0.3s interval via IODisplayGetFloatParameter/IODisplaySetFloatParameter (import IOKit.graphics)
+- Shortcuts CLI: `/usr/bin/shortcuts run "Name" --input-path <path>` for file input; stdout for output chaining
+- Shell scripts: Process() with /bin/zsh -c, file path passed as $1 via "--" separator
+- Pipeline chaining: DropActionResult.outputPath passes output file path from one step to next
+- PipelineStore persists [PipelineConfig] as JSON in UserDefaults key "dropActionPipelines"
 
 Started: 2026-03-10
 ---
@@ -368,4 +372,22 @@ Started: 2026-03-10
   - DropAction protocol is extensible — US-020 will add Shortcuts/shell script actions
   - Pattern matching enum on @Observable: `case .idle = service.dropPhase` in SwiftUI if conditions
   - Tray stays open during processing — auto-dismiss callback on service triggers dismissTray
+---
+
+## 2026-03-10 - US-020
+- Implemented Shortcuts integration, shell script drop actions, and multi-step pipeline support
+- Files changed: Hoop/Services/DropActionService.swift
+- ShortcutDropAction: invokes macOS Shortcuts via `/usr/bin/shortcuts run` CLI with `--input-path` for file input
+- ShellScriptDropAction: runs shell commands via Process() with /bin/zsh, passes file path as $1, copies stdout to clipboard
+- PipelineConfig/PipelineStep: Codable models for multi-step pipeline definitions (stepType + config string)
+- PipelineDropAction: chains actions sequentially, passing outputPath from one step as input URLs to the next
+- PipelineStore: JSON persistence to UserDefaults for user-configured pipelines
+- DropActionService.allActions now combines builtInActions + pipeline actions loaded from PipelineStore
+- DropActionResult extended with optional outputPath for pipeline chaining
+- **Learnings for future iterations:**
+  - `/usr/bin/shortcuts run "Name" --input-path <path>` is the file-input approach for Shortcuts CLI
+  - Process() arguments: use "--" separator then positional args; $1 in shell script receives the file path
+  - Pipeline chaining relies on stdout containing a file path (starts with "/") as convention for output
+  - PipelineStepType enum covers all action types: compressImage, ocr, shortcut, shellScript
+  - allActions computed property ensures dynamically added pipelines are always included in matching
 ---
