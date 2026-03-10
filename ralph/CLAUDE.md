@@ -21,21 +21,25 @@ Hoop/
     NotchState.swift       -- @Observable NotchState with Phase enum, ActivationTrigger
     ContextRule.swift       -- ContextRule model for app/time/focus-based widget switching
   Services/
-    MediaService.swift     -- @Observable, MediaRemote dlopen/dlsym, NowPlayingInfo
+    MediaService.swift     -- @Observable, MediaRemote dlopen/dlsym, NowPlayingInfo (with albumName, isRichMediaApp)
     HUDService.swift       -- @Observable, CoreAudio volume + IOKit brightness monitoring
     ContextService.swift   -- @Observable, frontmost app detection, rule evaluation
     DropActionService.swift -- @Observable, file drag-and-drop actions, pipelines
+    BatteryService.swift   -- @Observable, IOPSCopyPowerSourcesInfo polling every 30s
+    PrivacyService.swift   -- @Observable, AVCaptureDevice camera + AudioObject mic detection
   Views/
-    NotchRootView.swift    -- Main view with NotchShape, phase-based content switching
+    NotchRootView.swift    -- Main view with NotchShape, theme-based backgrounds, collapsedIndicators
     NotchShape.swift       -- Custom Shape with concave notch cutout
-    SettingsView.swift     -- Settings window (General tab)
+    SettingsView.swift     -- Settings window (General, Appearance, HUD, Context, Drop Actions tabs)
     VisualEffectView.swift -- NSVisualEffectView wrapper (NSViewRepresentable)
     HUDOverlayView.swift   -- Volume/brightness HUD slider display
     DropZoneView.swift     -- File drop zone indicator
     DropActionSelectionView.swift -- Action selection after file drop
     Widgets/
-      MediaPlayerWidget.swift       -- Expanded media controls
+      MediaPlayerWidget.swift       -- Expanded media controls (with album name for rich apps)
       CollapsedMediaIndicator.swift -- Album art peek + waveform bars
+      BatteryIndicator.swift        -- Color-coded battery % with charging bolt
+      PrivacyIndicatorView.swift    -- Green/orange dots for camera/mic in use
   Window/
     NotchWindowManager.swift -- Central manager: owns all services, creates/positions panels
     NotchPanel.swift         -- NSPanel subclass with tracking areas, gesture handling
@@ -61,6 +65,11 @@ Hoop/
 - Carbon.HIToolbox for key code constants (kVK_ANSI_*) and UCKeyTranslate
 - Services PBXGroup ID: AA000036
 - Widgets PBXGroup ID: AA000037
+- New PBXBuildFile/PBXFileReference IDs use BB0000xx prefix (BB000001-BB000008 already used)
+- ThemeMode enum in NotchState.swift; NotchRootView switches background via state.themeMode
+- NotchRootView has collapsedIndicators ViewBuilder (privacy dots left, battery right)
+- New services must be added to NotchWindowManager (init, start/stopObserving) and passed through to NotchRootView
+- NotchRootView constructor: (state:, mediaService:, hudService:, contextService:, dropActionService:, batteryService:, privacyService:)
 - Shortcuts CLI: `/usr/bin/shortcuts run "Name" --input-path <path>` for file input
 - Shell scripts: Process() with /bin/zsh -c, file path passed as $1 via "--" separator
 
