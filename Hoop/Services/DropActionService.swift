@@ -154,6 +154,44 @@ struct OCRAction: DropAction {
     }
 }
 
+// MARK: - AirDrop Action
+
+struct AirDropAction: DropAction {
+    let id = "airdrop"
+    let name = "AirDrop"
+    let iconName = "airplayaudio"
+    let supportedExtensions: Set<String> = ["*"]
+
+    func canHandle(url: URL) -> Bool {
+        // AirDrop can handle any file
+        return true
+    }
+
+    func execute(urls: [URL]) async throws -> DropActionResult {
+        guard !urls.isEmpty else {
+            return DropActionResult(success: false, message: "No files to AirDrop")
+        }
+
+        return await MainActor.run {
+            guard let airdropService = NSSharingService(named: .sendViaAirDrop) else {
+                return DropActionResult(success: false, message: "AirDrop not available")
+            }
+
+            let items: [Any] = urls as [Any]
+            guard airdropService.canPerform(withItems: items) else {
+                return DropActionResult(success: false, message: "AirDrop cannot send these files")
+            }
+
+            airdropService.perform(withItems: items)
+            let count = urls.count
+            return DropActionResult(
+                success: true,
+                message: "AirDrop opened for \(count) file\(count == 1 ? "" : "s")"
+            )
+        }
+    }
+}
+
 // MARK: - Shortcut Drop Action
 
 struct ShortcutDropAction: DropAction {
@@ -477,7 +515,8 @@ final class DropActionService {
 
     private let builtInActions: [any DropAction] = [
         CompressImageAction(),
-        OCRAction()
+        OCRAction(),
+        AirDropAction()
     ]
 
     /// Cached combined actions list. Invalidated when custom actions or pipelines change.
