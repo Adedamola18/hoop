@@ -9,6 +9,8 @@ final class NotchWindowManager {
     private var expandedTransitionItems: [String: DispatchWorkItem] = [:]
     private var globalClickMonitor: Any?
     private var globalHotkeyMonitor: Any?
+    private var isSleeping = false
+    private var wakeResyncItem: DispatchWorkItem?
     let mediaService = MediaService()
     let hudService = HUDService()
     let contextService = ContextService()
@@ -33,6 +35,18 @@ final class NotchWindowManager {
             name: .hudSettingsDidChange,
             object: nil
         )
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(willSleep(_:)),
+            name: NSWorkspace.willSleepNotification,
+            object: nil
+        )
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(didWake(_:)),
+            name: NSWorkspace.didWakeNotification,
+            object: nil
+        )
         synchronizeWindows()
         updateHotkeyMonitor()
         mediaService.startObserving()
@@ -47,7 +61,9 @@ final class NotchWindowManager {
         hudService.stopObserving()
         contextService.stopObserving()
         NotificationCenter.default.removeObserver(self)
+        NSWorkspace.shared.notificationCenter.removeObserver(self)
         pendingSynchronize?.cancel()
+        wakeResyncItem?.cancel()
         if let monitor = globalClickMonitor {
             NSEvent.removeMonitor(monitor)
         }
@@ -62,7 +78,41 @@ final class NotchWindowManager {
     // MARK: - Screen Change Handling
 
     @objc private func screenConfigurationDidChange(_ notification: Notification) {
+        // Ignore screen change events while sleeping — we'll resync on wake
+        guard !isSleeping else { return }
         scheduleSynchronize()
+    }
+
+    @objc private func willSleep(_ notification: Notification) {
+        isSleeping = true
+        // Cancel any pending synchronization — we'll resync on wake
+        pendingSynchronize?.cancel()
+        pendingSynchronize = nil
+        wakeResyncItem?.cancel()
+        wakeResyncItem = nil
+
+        // Collapse any expanded panels gracefully
+        for (id, entry) in windows {
+            if entry.state.phase != .idle {
+                entry.panel.cancelTimers()
+                entry.state.phase = .idle
+                collapseWorkItems[id]?.cancel()
+                collapseWorkItems.removeValue(forKey: id)
+                expandedTransitionItems[id]?.cancel()
+                expandedTransitionItems.removeValue(forKey: id)
+            }
+        }
+    }
+
+    @objc private func didWake(_ notification: Notification) {
+        isSleeping = false
+        // Delay resync by 1.5s to let screen parameters settle after wake
+        wakeResyncItem?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            self?.synchronizeWindows()
+        }
+        wakeResyncItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: work)
     }
 
     @objc private func hudSettingsDidChange(_ notification: Notification) {
@@ -180,9 +230,26 @@ final class NotchWindowManager {
         entry.state.screenHasNotch = screen.hasNotch
         entry.state.collapsedSize = screen.overlayFrame.size
 
-        // Only reposition if not currently expanded
-        if entry.state.phase == .idle {
+        switch entry.state.phase {
+        case .idle:
             entry.panel.setFrame(screen.overlayFrame, display: true)
+            entry.panel.installTrackingArea()
+        case .expanding, .expanded, .tray:
+            // Reposition expanded frame to match new screen geometry
+            let expandedFrame = screen.expandedOverlayFrame(expandedWidth: entry.state.expandedWidth)
+            entry.panel.setFrame(expandedFrame, display: true)
+            entry.panel.installTrackingArea()
+        case .hud:
+            // Reposition HUD frame centered on new screen geometry
+            let hudWidth: CGFloat = 400
+            let hudHeight: CGFloat = 60
+            let hudFrame = NSRect(
+                x: screen.frame.midX - hudWidth / 2,
+                y: screen.frame.maxY - hudHeight,
+                width: hudWidth,
+                height: hudHeight
+            )
+            entry.panel.setFrame(hudFrame, display: true)
             entry.panel.installTrackingArea()
         }
     }
