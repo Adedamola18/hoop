@@ -9,6 +9,10 @@ struct SettingsView: View {
                 .tabItem {
                     Label("General", systemImage: "gear")
                 }
+            AppearanceSettingsTab()
+                .tabItem {
+                    Label("Appearance", systemImage: "paintbrush")
+                }
             HUDSettingsTab()
                 .tabItem {
                     Label("HUD", systemImage: "slider.horizontal.3")
@@ -23,6 +27,34 @@ struct SettingsView: View {
                 }
         }
         .frame(width: 500, height: 500)
+    }
+}
+
+struct AppearanceSettingsTab: View {
+    @State private var selectedTheme: ThemeMode = ThemeMode.current
+
+    var body: some View {
+        Form {
+            Section("Theme") {
+                Picker("Appearance", selection: $selectedTheme) {
+                    ForEach(ThemeMode.allCases, id: \.rawValue) { mode in
+                        Label(mode.label, systemImage: mode.icon)
+                            .tag(mode)
+                    }
+                }
+                .pickerStyle(.radioGroup)
+                .onChange(of: selectedTheme) { _, newValue in
+                    UserDefaults.standard.set(newValue.rawValue, forKey: "themeMode")
+                    NotificationCenter.default.post(name: .themeModeDidChange, object: nil)
+                }
+
+                Text("Solid Dark matches the hardware notch. Translucent adds a frosted overlay. Liquid Glass uses a lighter frosted effect.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+        .padding()
     }
 }
 

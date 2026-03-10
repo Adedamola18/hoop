@@ -35,6 +35,12 @@ final class NotchWindowManager {
             name: .hudSettingsDidChange,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(themeModeDidChange(_:)),
+            name: .themeModeDidChange,
+            object: nil
+        )
         NSWorkspace.shared.notificationCenter.addObserver(
             self,
             selector: #selector(willSleep(_:)),
@@ -117,6 +123,13 @@ final class NotchWindowManager {
 
     @objc private func hudSettingsDidChange(_ notification: Notification) {
         hudService.updateSuppressionState()
+    }
+
+    @objc private func themeModeDidChange(_ notification: Notification) {
+        let newTheme = ThemeMode.current
+        for (_, entry) in windows {
+            entry.state.themeMode = newTheme
+        }
     }
 
     @objc private func activationTriggerDidChange(_ notification: Notification) {

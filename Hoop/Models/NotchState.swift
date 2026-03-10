@@ -4,6 +4,34 @@ import Observation
 extension Notification.Name {
     static let activationTriggerDidChange = Notification.Name("activationTriggerDidChange")
     static let hudSettingsDidChange = Notification.Name("hudSettingsDidChange")
+    static let themeModeDidChange = Notification.Name("themeModeDidChange")
+}
+
+enum ThemeMode: Int, CaseIterable {
+    case solidDark = 0
+    case translucentDark = 1
+    case liquidGlass = 2
+
+    var label: String {
+        switch self {
+        case .solidDark: "Solid Dark"
+        case .translucentDark: "Translucent Dark"
+        case .liquidGlass: "Liquid Glass"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .solidDark: "circle.fill"
+        case .translucentDark: "circle.lefthalf.filled"
+        case .liquidGlass: "drop.fill"
+        }
+    }
+
+    static var current: ThemeMode {
+        let raw = UserDefaults.standard.integer(forKey: "themeMode")
+        return ThemeMode(rawValue: raw) ?? .solidDark
+    }
 }
 
 enum ActivationTrigger: Int, CaseIterable {
@@ -38,6 +66,7 @@ final class NotchState {
 
     var phase: Phase = .idle
     var screenHasNotch: Bool = true
+    var themeMode: ThemeMode = ThemeMode.current
 
     /// Size of the collapsed notch/pill area in points. Set by NotchWindowManager.
     var collapsedSize: CGSize = .zero
