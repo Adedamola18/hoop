@@ -249,7 +249,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 16,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 5. Use DistributedNotificationCenter for Focus Mode changes if public API insufficient."
     },
     {

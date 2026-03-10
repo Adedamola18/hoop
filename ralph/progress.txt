@@ -239,6 +239,10 @@ Started: 2026-03-10
   - kIOMainPortDefault replaces deprecated kIOMasterPortDefault on macOS 12+
 - NSWorkspace notifications (didActivateApplicationNotification) use NSWorkspace.shared.notificationCenter, NOT default NotificationCenter
 - ContextService is @Observable, shared across panels via NotchWindowManager (like MediaService)
+- DistributedNotificationCenter.default() for "com.apple.doNotDisturb" detects Focus Mode changes
+- Focus Mode name detection: try com.apple.focus.state "Current" dict, fallback to controlcenter DND, fallback to FocusState assertions
+- Time profile timer fires every 60s to re-evaluate (lightweight — just reads Calendar.current hour)
+- .none is ambiguous between Optional.none and enum .none — use fully qualified ContextService.WidgetHint.none in dictionary assignments
 - CGEventTap for OSD suppression: CGEvent.tapCreate with .cgSessionEventTap, event mask 1<<14 (NSEventTypeSystemDefined), return nil to suppress
 - NX_SUBTYPE_AUX_CONTROL_BUTTONS = 8; data1 bits 16-23 = key type (0=soundUp, 1=soundDown, 7=mute, 21=brightnessUp, 22=brightnessDown)
 - CGEventTap requires Accessibility permission; fails gracefully (returns nil from tapCreate) if not granted
@@ -278,4 +282,23 @@ Started: 2026-03-10
   - Use NSWorkspace.shared.notificationCenter (not default NotificationCenter) for workspace notifications
   - @Observable ContextService can be shared across panels like MediaService
   - TextEditor works for multi-line bundle ID editing in settings
+---
+
+## 2026-03-10 - US-016
+- Implemented time-of-day profiles and Focus Mode integration
+- Files changed: Hoop/Services/ContextService.swift, Hoop/Views/SettingsView.swift
+- ContextService extended with TimeProfile enum (morning/afternoon/evening) with configurable hour boundaries
+- TimeProfileConfig stores per-profile widget hints and start hours (persisted as JSON in UserDefaults)
+- Focus Mode detection via DistributedNotificationCenter ("com.apple.doNotDisturb") with multi-level fallback
+- FocusModeConfig stores Focus Mode name -> WidgetHint assignments
+- evaluateRules() priority: Focus Mode override > Time profile > Frontmost app matching
+- Timer fires every 60s to re-evaluate time profile (reads Calendar hour)
+- Settings > Context tab extended with scrollable form: time profile toggles/pickers and Focus Mode assignment list
+- Users can add/remove Focus Mode entries with custom names and widget assignments
+- **Learnings for future iterations:**
+  - DistributedNotificationCenter.default() for "com.apple.doNotDisturb" fires on Focus Mode state changes
+  - Focus Mode name reading is best-effort — multiple UserDefaults suites tried in fallback order
+  - .none is ambiguous in Dictionary<String, WidgetHint> context — must use ContextService.WidgetHint.none
+  - ScrollView wrapping Form allows the Context tab to accommodate growing content
+  - Time profile config uses Codable struct persisted as JSON Data in UserDefaults for structured storage
 ---
