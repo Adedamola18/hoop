@@ -237,6 +237,8 @@ Started: 2026-03-10
   - import IOKit.graphics for IODisplay functions and kIODisplayBrightnessKey
   - IOServiceGetMatchingServices with "IODisplayConnect" finds display services; iterate until IODisplayGetFloatParameter succeeds
   - kIOMainPortDefault replaces deprecated kIOMasterPortDefault on macOS 12+
+- NSWorkspace notifications (didActivateApplicationNotification) use NSWorkspace.shared.notificationCenter, NOT default NotificationCenter
+- ContextService is @Observable, shared across panels via NotchWindowManager (like MediaService)
 - CGEventTap for OSD suppression: CGEvent.tapCreate with .cgSessionEventTap, event mask 1<<14 (NSEventTypeSystemDefined), return nil to suppress
 - NX_SUBTYPE_AUX_CONTROL_BUTTONS = 8; data1 bits 16-23 = key type (0=soundUp, 1=soundDown, 7=mute, 21=brightnessUp, 22=brightnessDown)
 - CGEventTap requires Accessibility permission; fails gracefully (returns nil from tapCreate) if not granted
@@ -259,4 +261,21 @@ Started: 2026-03-10
   - Key type extracted from NSEvent.data1 bits 16-23: 0=soundUp, 1=soundDown, 7=mute, 21=brightnessUp, 22=brightnessDown
   - CGEventTap callback is a C function pointer — use Unmanaged to pass self as refcon
   - System may disable tap on timeout; always handle .tapDisabledByTimeout to re-enable
+---
+
+## 2026-03-10 - US-015
+- Implemented frontmost app detection and context-aware widget switching
+- Files created: Hoop/Services/ContextService.swift
+- Files changed: Hoop/Views/NotchRootView.swift, Hoop/Window/NotchWindowManager.swift, Hoop/Views/SettingsView.swift, Hoop.xcodeproj/project.pbxproj
+- ContextService (@Observable) monitors frontmost app via NSWorkspace.didActivateApplicationNotification
+- Built-in media app bundle IDs: Spotify, Apple Music, iTunes, Tidal, Amazon Music, SoundCloud, Plexamp, Cider
+- Widget hint system: evaluates frontmost app against media app list, exposes widgetHint (.media/.none)
+- NotchRootView uses contextService.widgetHint to decide whether to show MediaPlayerWidget when expanded
+- Settings > Context tab with enable/disable toggle and editable media app bundle ID list
+- User can reset to default media app list
+- **Learnings for future iterations:**
+  - NSWorkspace.didActivateApplicationNotification delivers NSRunningApplication via userInfoKey
+  - Use NSWorkspace.shared.notificationCenter (not default NotificationCenter) for workspace notifications
+  - @Observable ContextService can be shared across panels like MediaService
+  - TextEditor works for multi-line bundle ID editing in settings
 ---

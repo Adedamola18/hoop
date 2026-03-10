@@ -234,7 +234,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 15,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 5. Depends on Phase 3 (media widget) and Phase 4 (HUD) being available to switch between."
     },
     {
