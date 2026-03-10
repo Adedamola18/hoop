@@ -1,6 +1,29 @@
 import Foundation
 import Observation
 
+extension Notification.Name {
+    static let activationTriggerDidChange = Notification.Name("activationTriggerDidChange")
+}
+
+enum ActivationTrigger: Int, CaseIterable {
+    case hover = 0
+    case click = 1
+    case hotkey = 2
+
+    var label: String {
+        switch self {
+        case .hover: "Hover"
+        case .click: "Click"
+        case .hotkey: "Keyboard Shortcut"
+        }
+    }
+
+    static var current: ActivationTrigger {
+        let raw = UserDefaults.standard.integer(forKey: "activationTrigger")
+        return ActivationTrigger(rawValue: raw) ?? .hover
+    }
+}
+
 @Observable
 final class NotchState {
 

@@ -98,6 +98,8 @@ final class NotchPanel: NSPanel {
         graceTimer?.cancel()
         graceTimer = nil
 
+        // Only trigger on hover if activation trigger is hover
+        guard ActivationTrigger.current == .hover else { return }
         guard let state = notchState, state.phase == .idle else { return }
 
         // Start dwell timer — expand frame first, then transition to expanding
@@ -135,6 +137,28 @@ final class NotchPanel: NSPanel {
         }
         graceTimer = work
         DispatchQueue.main.asyncAfter(deadline: .now() + graceDelay, execute: work)
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        // Click-to-activate: toggle expand/collapse when trigger is .click
+        guard ActivationTrigger.current == .click else {
+            super.mouseDown(with: event)
+            return
+        }
+
+        guard let state = notchState else { return }
+
+        if state.phase == .idle {
+            onExpandRequested?()
+            state.phase = .expanding
+        } else if state.phase == .expanding || state.phase == .expanded {
+            dwellTimer?.cancel()
+            dwellTimer = nil
+            graceTimer?.cancel()
+            graceTimer = nil
+            state.phase = .idle
+            onDismissRequested?()
+        }
     }
 
     // MARK: - Key Events

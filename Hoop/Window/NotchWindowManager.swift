@@ -8,6 +8,7 @@ final class NotchWindowManager {
     private var collapseWorkItems: [String: DispatchWorkItem] = [:]
     private var expandedTransitionItems: [String: DispatchWorkItem] = [:]
     private var globalClickMonitor: Any?
+    private var globalHotkeyMonitor: Any?
 
     init() {
         NotificationCenter.default.addObserver(
@@ -16,7 +17,14 @@ final class NotchWindowManager {
             name: NSApplication.didChangeScreenParametersNotification,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(activationTriggerDidChange(_:)),
+            name: .activationTriggerDidChange,
+            object: nil
+        )
         synchronizeWindows()
+        updateHotkeyMonitor()
     }
 
     deinit {
@@ -25,6 +33,7 @@ final class NotchWindowManager {
         if let monitor = globalClickMonitor {
             NSEvent.removeMonitor(monitor)
         }
+        removeHotkeyMonitor()
         for (_, entry) in windows {
             entry.panel.cancelTimers()
         }
@@ -36,6 +45,19 @@ final class NotchWindowManager {
 
     @objc private func screenConfigurationDidChange(_ notification: Notification) {
         scheduleSynchronize()
+    }
+
+    @objc private func activationTriggerDidChange(_ notification: Notification) {
+        updateHotkeyMonitor()
+
+        // Collapse any expanded panels when trigger changes
+        for (id, entry) in windows {
+            if entry.state.phase == .expanding || entry.state.phase == .expanded {
+                entry.panel.cancelTimers()
+                entry.state.phase = .idle
+                immediateCollapse(id: id)
+            }
+        }
     }
 
     /// Debounce rapid screen changes (e.g., connecting/disconnecting monitors)
@@ -231,6 +253,53 @@ final class NotchWindowManager {
                 entry.state.phase = .idle
                 immediateCollapse(id: id)
             }
+        }
+    }
+
+    // MARK: - Global Hotkey Monitor
+
+    private func updateHotkeyMonitor() {
+        removeHotkeyMonitor()
+
+        guard ActivationTrigger.current == .hotkey else { return }
+
+        let targetKeyCode = UInt16({
+            let v = UserDefaults.standard.object(forKey: "hotkeyKeyCode")
+            return (v as? Int) ?? 0x2D // kVK_ANSI_N
+        }())
+        let targetModifiers: NSEvent.ModifierFlags = {
+            let v = UserDefaults.standard.object(forKey: "hotkeyModifierFlags")
+            let raw = (v as? Int) ?? Int(NSEvent.ModifierFlags.option.rawValue)
+            return NSEvent.ModifierFlags(rawValue: UInt(raw))
+        }()
+        let relevantFlags: NSEvent.ModifierFlags = [.command, .option, .control, .shift]
+
+        globalHotkeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            let eventFlags = event.modifierFlags.intersection(relevantFlags)
+            let wantedFlags = targetModifiers.intersection(relevantFlags)
+            guard event.keyCode == targetKeyCode, eventFlags == wantedFlags else { return }
+            self?.toggleHotkeyActivation()
+        }
+    }
+
+    private func removeHotkeyMonitor() {
+        if let monitor = globalHotkeyMonitor {
+            NSEvent.removeMonitor(monitor)
+            globalHotkeyMonitor = nil
+        }
+    }
+
+    private func toggleHotkeyActivation() {
+        // Find primary screen panel (first with notch, or first available)
+        guard let (id, entry) = windows.first(where: { $0.value.state.screenHasNotch }) ?? windows.first else { return }
+
+        if entry.state.phase == .idle {
+            expandPanel(id: id)
+            entry.state.phase = .expanding
+        } else if entry.state.phase == .expanding || entry.state.phase == .expanded {
+            entry.panel.cancelTimers()
+            entry.state.phase = .idle
+            immediateCollapse(id: id)
         }
     }
 }
