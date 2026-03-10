@@ -9,6 +9,7 @@ final class NotchWindowManager {
     private var expandedTransitionItems: [String: DispatchWorkItem] = [:]
     private var globalClickMonitor: Any?
     private var globalHotkeyMonitor: Any?
+    let mediaService = MediaService()
 
     init() {
         NotificationCenter.default.addObserver(
@@ -25,9 +26,11 @@ final class NotchWindowManager {
         )
         synchronizeWindows()
         updateHotkeyMonitor()
+        mediaService.startObserving()
     }
 
     deinit {
+        mediaService.stopObserving()
         NotificationCenter.default.removeObserver(self)
         pendingSynchronize?.cancel()
         if let monitor = globalClickMonitor {
@@ -105,7 +108,7 @@ final class NotchWindowManager {
         state.screenHasNotch = screen.hasNotch
         state.collapsedSize = screen.overlayFrame.size
 
-        let rootView = NotchRootView(state: state)
+        let rootView = NotchRootView(state: state, mediaService: mediaService)
         let hostingView = NSHostingView(rootView: rootView)
 
         let panel = NotchPanel(

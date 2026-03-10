@@ -2,9 +2,15 @@ import SwiftUI
 
 struct NotchRootView: View {
     let state: NotchState
+    let mediaService: MediaService
 
     private var isExpanded: Bool {
         state.phase == .expanding || state.phase == .expanded
+    }
+
+    private var hasActiveMedia: Bool {
+        mediaService.nowPlaying.playbackState == .playing ||
+        mediaService.nowPlaying.playbackState == .paused
     }
 
     var body: some View {
@@ -32,9 +38,14 @@ struct NotchRootView: View {
                     .opacity(isExpanded ? 0 : 1)
 
                 // Content overlay
-                Text("Hoop")
-                    .font(isExpanded ? .title3 : .caption)
-                    .foregroundStyle(.white)
+                if isExpanded && hasActiveMedia {
+                    MediaPlayerWidget(mediaService: mediaService)
+                        .transition(.opacity)
+                } else {
+                    Text("Hoop")
+                        .font(isExpanded ? .title3 : .caption)
+                        .foregroundStyle(.white)
+                }
             }
             .frame(
                 width: isExpanded ? geo.size.width : state.collapsedSize.width,
