@@ -15,6 +15,7 @@ final class NotchWindowManager {
     let hudService = HUDService()
     let contextService = ContextService()
     let dropActionService = DropActionService()
+    let batteryService = BatteryService()
 
     init() {
         NotificationCenter.default.addObserver(
@@ -58,6 +59,7 @@ final class NotchWindowManager {
         mediaService.startObserving()
         hudService.startObserving()
         contextService.startObserving()
+        batteryService.startObserving()
         wireHUDCallbacks()
         wireDropActionCallbacks()
     }
@@ -66,6 +68,7 @@ final class NotchWindowManager {
         mediaService.stopObserving()
         hudService.stopObserving()
         contextService.stopObserving()
+        batteryService.stopObserving()
         NotificationCenter.default.removeObserver(self)
         NSWorkspace.shared.notificationCenter.removeObserver(self)
         pendingSynchronize?.cancel()
@@ -190,7 +193,7 @@ final class NotchWindowManager {
         state.screenHasNotch = screen.hasNotch
         state.collapsedSize = screen.overlayFrame.size
 
-        let rootView = NotchRootView(state: state, mediaService: mediaService, hudService: hudService, contextService: contextService, dropActionService: dropActionService)
+        let rootView = NotchRootView(state: state, mediaService: mediaService, hudService: hudService, contextService: contextService, dropActionService: dropActionService, batteryService: batteryService)
         let hostingView = NSHostingView(rootView: rootView)
 
         let panel = NotchPanel(

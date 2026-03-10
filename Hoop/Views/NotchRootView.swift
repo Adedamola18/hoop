@@ -6,6 +6,7 @@ struct NotchRootView: View {
     let hudService: HUDService
     let contextService: ContextService
     let dropActionService: DropActionService
+    let batteryService: BatteryService
 
     private var isExpanded: Bool {
         state.phase == .expanding || state.phase == .expanded
@@ -89,11 +90,31 @@ struct NotchRootView: View {
                         )
                         .transition(.opacity)
                     } else if !isExpanded && hasActiveMedia {
-                        CollapsedMediaIndicator(
-                            mediaService: mediaService,
-                            collapsedSize: state.collapsedSize
-                        )
+                        ZStack {
+                            CollapsedMediaIndicator(
+                                mediaService: mediaService,
+                                collapsedSize: state.collapsedSize
+                            )
+                            // Battery overlaid on collapsed notch (right side)
+                            if batteryService.battery.isValid {
+                                HStack {
+                                    Spacer()
+                                    BatteryIndicator(batteryService: batteryService)
+                                        .padding(.trailing, 12)
+                                }
+                            }
+                        }
                         .transition(.opacity)
+                    } else if !isExpanded && !hasActiveMedia {
+                        // No media — just show battery in collapsed notch
+                        if batteryService.battery.isValid {
+                            HStack {
+                                Spacer()
+                                BatteryIndicator(batteryService: batteryService)
+                                    .padding(.trailing, 12)
+                            }
+                            .transition(.opacity)
+                        }
                     } else if isExpanded {
                         Text("Hoop")
                             .font(.system(size: 18, weight: .medium, design: .rounded))

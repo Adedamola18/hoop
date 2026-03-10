@@ -21,12 +21,14 @@
 		AA00000D /* MediaPlayerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001D /* MediaPlayerWidget.swift */; };
 		AA00000E /* CollapsedMediaIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001E /* CollapsedMediaIndicator.swift */; };
 		AA00000F /* HUDService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001F /* HUDService.swift */; };
-		AA000009 /* HUDOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000020 /* HUDOverlayView.swift */; };
+		AA000009 /* HUDOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00002F /* HUDOverlayView.swift */; };
 		AA000038 /* ContextService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000039 /* ContextService.swift */; };
 		AA00003B /* ContextRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003A /* ContextRule.swift */; };
 		AA00003D /* DropZoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003C /* DropZoneView.swift */; };
 		AA00003F /* DropActionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003E /* DropActionService.swift */; };
-		AA000041 /* DropActionSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000040A /* DropActionSelectionView.swift */; };
+		AA00004B /* DropActionSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000040A /* DropActionSelectionView.swift */; };
+		BB000001 /* BatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000002 /* BatteryService.swift */; };
+		BB000003 /* BatteryIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000004 /* BatteryIndicator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,12 +48,14 @@
 		AA00001D /* MediaPlayerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlayerWidget.swift; sourceTree = "<group>"; };
 		AA00001E /* CollapsedMediaIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollapsedMediaIndicator.swift; sourceTree = "<group>"; };
 		AA00001F /* HUDService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDService.swift; sourceTree = "<group>"; };
-		AA000020 /* HUDOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDOverlayView.swift; sourceTree = "<group>"; };
+		AA00002F /* HUDOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDOverlayView.swift; sourceTree = "<group>"; };
 		AA000039 /* ContextService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextService.swift; sourceTree = "<group>"; };
 		AA00003A /* ContextRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextRule.swift; sourceTree = "<group>"; };
 		AA00003C /* DropZoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropZoneView.swift; sourceTree = "<group>"; };
 		AA00003E /* DropActionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropActionService.swift; sourceTree = "<group>"; };
 		AA000040A /* DropActionSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropActionSelectionView.swift; sourceTree = "<group>"; };
+		BB000002 /* BatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryService.swift; sourceTree = "<group>"; };
+		BB000004 /* BatteryIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryIndicator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,7 +106,7 @@
 				AA000019 /* NotchRootView.swift */,
 				AA00001A /* NotchShape.swift */,
 				AA00001B /* VisualEffectView.swift */,
-				AA000020 /* HUDOverlayView.swift */,
+				AA00002F /* HUDOverlayView.swift */,
 				AA00003C /* DropZoneView.swift */,
 				AA000040A /* DropActionSelectionView.swift */,
 				AA000037 /* Widgets */,
@@ -115,6 +119,7 @@
 			children = (
 				AA00001D /* MediaPlayerWidget.swift */,
 				AA00001E /* CollapsedMediaIndicator.swift */,
+				BB000004 /* BatteryIndicator.swift */,
 			);
 			path = Widgets;
 			sourceTree = "<group>";
@@ -145,6 +150,7 @@
 				AA00001F /* HUDService.swift */,
 				AA000039 /* ContextService.swift */,
 				AA00003E /* DropActionService.swift */,
+				BB000002 /* BatteryService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -236,7 +242,9 @@
 				AA00003B /* ContextRule.swift in Sources */,
 				AA00003D /* DropZoneView.swift in Sources */,
 				AA00003F /* DropActionService.swift in Sources */,
-				AA000041 /* DropActionSelectionView.swift in Sources */,
+				AA00004B /* DropActionSelectionView.swift in Sources */,
+				BB000001 /* BatteryService.swift in Sources */,
+				BB000003 /* BatteryIndicator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
