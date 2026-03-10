@@ -25,6 +25,10 @@
 - Widgets directory: Hoop/Views/Widgets/ with PBXGroup AA000037
 - MediaService is shared across all panels — single instance owned by NotchWindowManager
 - Scroll wheel swipe detection: accumulate scrollingDeltaX, fire once per gesture when threshold exceeded, reset on phase .began/.ended
+- CoreAudio volume monitoring: AudioObjectAddPropertyListenerBlock on kAudioHardwareServiceDeviceProperty_VirtualMainVolume (requires AudioToolbox import)
+- HUD phase takes priority: saves previous phase, transitions to .hud, restores on dismiss
+- HUD frame is narrower than expanded (400pt wide x 60pt tall) — separate from the 600pt expanded frame
+- HUDService owns show/dismiss lifecycle with auto-dismiss timer; NotchWindowManager handles frame changes via callbacks
 
 Started: 2026-03-10
 ---
@@ -193,4 +197,25 @@ Started: 2026-03-10
   - Check event.phase != [] to filter trackpad (continuous) from mouse wheel (discrete) events
   - NSHapticFeedbackManager.defaultPerformer.perform(.alignment) for subtle tactile feedback
   - Fire-once pattern with boolean flag prevents repeated actions during momentum phase
+---
+
+## 2026-03-10 - US-012
+- Implemented volume monitoring and HUD slider view
+- Files created: Hoop/Services/HUDService.swift, Hoop/Views/HUDOverlayView.swift
+- Files changed: Hoop/Window/NotchPanel.swift, Hoop/Window/NotchWindowManager.swift, Hoop/Views/NotchRootView.swift, Hoop.xcodeproj/project.pbxproj
+- HUDService monitors system volume via CoreAudio AudioObjectAddPropertyListenerBlock on default output device
+- Listens for default output device changes and re-wires volume listener accordingly
+- HUDOverlayView renders slim horizontal slider with volume icon, filled capsule bar, and percentage label
+- Slider supports interactive drag to adjust volume via AudioObjectSetPropertyData
+- Auto-dismiss after configurable timeout (default 2s, range 1-5s via UserDefaults)
+- NotchState.phase transitions to .hud when volume changes, back to .idle on dismiss
+- HUD frame is 400x60pt (narrower than expanded 600x200pt)
+- NotchPanel keyDown handles Escape in HUD mode via onHUDDismissRequested callback
+- NotchRootView shows HUDOverlayView when in .hud phase with spring animation
+- **Learnings for future iterations:**
+  - kAudioHardwareServiceDeviceProperty_VirtualMainVolume requires `import AudioToolbox` (not just CoreAudio)
+  - AudioObjectPropertyListenerBlock callback fires on arbitrary thread — always dispatch to main
+  - Default output device can change (e.g., headphones plugged in) — must listen for kAudioHardwarePropertyDefaultOutputDevice and re-wire volume listener
+  - HUD phase saves/restores previous phase to avoid disrupting expand/collapse state
+  - Separate HUD frame dimensions (400x60) from expanded frame (600x200) — HUD is a slim overlay
 ---
