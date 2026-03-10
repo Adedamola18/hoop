@@ -19,6 +19,9 @@ final class NotchWindowManager {
     deinit {
         NotificationCenter.default.removeObserver(self)
         pendingSynchronize?.cancel()
+        for (_, entry) in windows {
+            entry.panel.cancelTimers()
+        }
     }
 
     // MARK: - Screen Change Handling
@@ -46,6 +49,7 @@ final class NotchWindowManager {
         // Remove windows for disconnected screens
         let staleIdentifiers = Set(windows.keys).subtracting(currentIdentifiers)
         for id in staleIdentifiers {
+            windows[id]?.panel.cancelTimers()
             windows[id]?.panel.orderOut(nil)
             windows.removeValue(forKey: id)
         }
@@ -75,7 +79,9 @@ final class NotchWindowManager {
             defer: false
         )
         panel.contentView = hostingView
+        panel.notchState = state
         panel.setFrame(screen.overlayFrame, display: true)
+        panel.installTrackingArea()
         panel.orderFront(nil)
 
         windows[screen.stableIdentifier] = (panel: panel, state: state)
@@ -85,5 +91,6 @@ final class NotchWindowManager {
         guard let entry = windows[id] else { return }
         entry.state.screenHasNotch = screen.hasNotch
         entry.panel.setFrame(screen.overlayFrame, display: true)
+        entry.panel.installTrackingArea()
     }
 }

@@ -1,0 +1,47 @@
+# Ralph Progress Log
+
+## Codebase Patterns
+- Build verify: swiftc -typecheck -sdk $(xcrun --show-sdk-path) -target arm64-apple-macos14.0 <files>
+- Always update project.pbxproj when adding new Swift files (PBXFileReference + PBXBuildFile + PBXGroup + PBXSourcesBuildPhase)
+- Use @Observable (Observation framework) not @Published/ObservableObject (macOS 14+)
+- LSUIElement agent: Info.plist with LSUIElement=true, no dock icon
+- MenuBarExtra + Settings scene pattern for menu bar app
+- SMAppService as sole source of truth for launch-at-login state (no UserDefaults)
+- SettingsLink is built-in SwiftUI, no need for SettingsAccess SPM package
+- NSScreen notch detection: use auxiliaryTopLeftArea/auxiliaryTopRightArea
+- Xcode.app is NOT installed — only CLI tools. Use swiftc -typecheck, not xcodebuild build.
+- NSTrackingArea with .inVisibleRect auto-updates on view resize — no need to manually recalculate rect
+- NotchPanel.notchState is set by NotchWindowManager after panel creation
+- SourceKit single-file diagnostics are noise — verify with multi-file swiftc -typecheck
+
+Started: 2026-03-10
+---
+
+## 2026-03-10 - Pre-Ralph (GSD Phase 1 Plan 01)
+- App shell created: Xcode project, LSUIElement agent, MenuBarExtra, settings with launch-at-login
+- Files: NotchNookApp.swift, AppDelegate.swift, Info.plist, Views/SettingsView.swift, project.pbxproj, xcscheme
+- Commits: 77cde7d (project setup), d871361 (settings window)
+- **Learnings:**
+  - SettingsLink works within MenuBarExtra on macOS 14+
+  - swiftc -typecheck is sufficient build verification without Xcode.app
+---
+
+## 2026-03-10 - US-001, US-002 (pre-existing)
+- Already implemented from GSD Phase 1 Plan 02
+- Verified typecheck passes, marked as passing in PRD
+---
+
+## 2026-03-10 - US-003
+- Implemented mouse tracking and hover detection for notch expansion
+- Files changed: Hoop/Window/NotchPanel.swift, Hoop/Window/NotchWindowManager.swift
+- NotchPanel now has NSTrackingArea with mouseEntered/mouseExited
+- 200ms dwell timer (configurable via UserDefaults "hoverDwellDelayMs") before triggering expansion
+- 300ms grace timer on mouse exit before collapsing
+- ignoresMouseEvents set to false (was true) to receive mouse events
+- NotchState.phase transitions: idle -> expanding on dwell, expanding/expanded -> idle on grace timeout
+- NotchWindowManager wires notchState to panel and installs tracking areas
+- **Learnings for future iterations:**
+  - NSTrackingArea with .inVisibleRect auto-updates when view resizes
+  - installTrackingArea() must be called after setFrame and on reposition
+  - SourceKit single-file diagnostics are noise — always verify with multi-file swiftc -typecheck
+---
