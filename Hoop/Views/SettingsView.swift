@@ -13,8 +13,12 @@ struct SettingsView: View {
                 .tabItem {
                     Label("HUD", systemImage: "slider.horizontal.3")
                 }
+            ContextSettingsTab()
+                .tabItem {
+                    Label("Context", systemImage: "app.connected.to.app.below.fill")
+                }
         }
-        .frame(width: 450, height: 300)
+        .frame(width: 450, height: 350)
     }
 }
 
@@ -204,6 +208,59 @@ struct GeneralSettingsTab: View {
         ]
         guard let first = chars.lowercased().first else { return kVK_ANSI_N }
         return charToKeyCode[first] ?? kVK_ANSI_N
+    }
+}
+
+struct ContextSettingsTab: View {
+    @State private var contextSwitchingEnabled: Bool = {
+        let v = UserDefaults.standard.object(forKey: "contextSwitchingEnabled")
+        return (v as? Bool) ?? true
+    }()
+    @State private var mediaApps: String = {
+        if let stored = UserDefaults.standard.array(forKey: "contextMediaAppBundleIDs") as? [String] {
+            return stored.sorted().joined(separator: "\n")
+        }
+        return ContextService.defaultMediaAppBundleIDs.sorted().joined(separator: "\n")
+    }()
+
+    var body: some View {
+        Form {
+            Section("Widget Switching") {
+                Toggle("Auto-switch widgets based on frontmost app", isOn: $contextSwitchingEnabled)
+                    .onChange(of: contextSwitchingEnabled) { _, newValue in
+                        UserDefaults.standard.set(newValue, forKey: "contextSwitchingEnabled")
+                    }
+
+                if contextSwitchingEnabled {
+                    Text("When a media app is frontmost, the media widget is shown in the expanded notch.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            if contextSwitchingEnabled {
+                Section("Media App Bundle IDs") {
+                    TextEditor(text: $mediaApps)
+                        .font(.system(.caption, design: .monospaced))
+                        .frame(height: 100)
+                        .onChange(of: mediaApps) { _, newValue in
+                            let ids = newValue
+                                .split(separator: "\n")
+                                .map { $0.trimmingCharacters(in: .whitespaces) }
+                                .filter { !$0.isEmpty }
+                            UserDefaults.standard.set(ids, forKey: "contextMediaAppBundleIDs")
+                        }
+
+                    Button("Reset to Defaults") {
+                        let defaults = ContextService.defaultMediaAppBundleIDs.sorted()
+                        mediaApps = defaults.joined(separator: "\n")
+                        UserDefaults.standard.set(defaults, forKey: "contextMediaAppBundleIDs")
+                    }
+                    .controlSize(.small)
+                }
+            }
+        }
+        .padding()
     }
 }
 

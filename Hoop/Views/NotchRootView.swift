@@ -4,6 +4,7 @@ struct NotchRootView: View {
     let state: NotchState
     let mediaService: MediaService
     let hudService: HUDService
+    let contextService: ContextService
 
     private var isExpanded: Bool {
         state.phase == .expanding || state.phase == .expanded
@@ -20,6 +21,14 @@ struct NotchRootView: View {
 
     private var isActive: Bool {
         isExpanded || isHUD
+    }
+
+    /// Whether the media widget should be shown in expanded state.
+    /// Shows if: media is active AND (context hints media OR context switching disabled).
+    private var shouldShowMediaWidget: Bool {
+        guard hasActiveMedia else { return false }
+        if !contextService.isEnabled { return true }
+        return contextService.widgetHint == .media || hasActiveMedia
     }
 
     var body: some View {
@@ -50,7 +59,7 @@ struct NotchRootView: View {
                 if isHUD {
                     HUDOverlayView(hudService: hudService)
                         .transition(.opacity)
-                } else if isExpanded && hasActiveMedia {
+                } else if isExpanded && shouldShowMediaWidget {
                     MediaPlayerWidget(mediaService: mediaService)
                         .transition(.opacity)
                 } else if !isExpanded && hasActiveMedia {
