@@ -237,4 +237,26 @@ Started: 2026-03-10
   - import IOKit.graphics for IODisplay functions and kIODisplayBrightnessKey
   - IOServiceGetMatchingServices with "IODisplayConnect" finds display services; iterate until IODisplayGetFloatParameter succeeds
   - kIOMainPortDefault replaces deprecated kIOMasterPortDefault on macOS 12+
+- CGEventTap for OSD suppression: CGEvent.tapCreate with .cgSessionEventTap, event mask 1<<14 (NSEventTypeSystemDefined), return nil to suppress
+- NX_SUBTYPE_AUX_CONTROL_BUTTONS = 8; data1 bits 16-23 = key type (0=soundUp, 1=soundDown, 7=mute, 21=brightnessUp, 22=brightnessDown)
+- CGEventTap requires Accessibility permission; fails gracefully (returns nil from tapCreate) if not granted
+- Event tap can be disabled by system timeout — handle .tapDisabledByTimeout by re-enabling
+---
+
+## 2026-03-10 - US-014
+- Implemented native HUD suppression via CGEventTap and Settings > HUD tab
+- Files changed: Hoop/Services/HUDService.swift, Hoop/Views/SettingsView.swift, Hoop/Models/NotchState.swift, Hoop/Window/NotchWindowManager.swift
+- CGEventTap intercepts NX_SYSDEFINED events for volume/brightness keys at session level
+- Returns nil from tap callback to suppress native OSD when custom HUD is active
+- Graceful fallback: if Accessibility permission not granted, CGEvent.tapCreate returns nil and both HUDs show
+- Settings > HUD tab with "Replace system HUD" toggle (default: on) and auto-dismiss timeout slider (1-5s)
+- hudSettingsDidChange notification wires settings changes to HUDService.updateSuppressionState()
+- Event tap handles .tapDisabledByTimeout by re-enabling itself
+- **Learnings for future iterations:**
+  - CGEventTap with .defaultTap option can intercept AND suppress events (return nil); .listenOnly cannot suppress
+  - Event mask for NSEventTypeSystemDefined is 1 << 14 (CGEventType raw value 14)
+  - NX_SUBTYPE_AUX_CONTROL_BUTTONS (8) is the subtype for media/function key events
+  - Key type extracted from NSEvent.data1 bits 16-23: 0=soundUp, 1=soundDown, 7=mute, 21=brightnessUp, 22=brightnessDown
+  - CGEventTap callback is a C function pointer — use Unmanaged to pass self as refcon
+  - System may disable tap on timeout; always handle .tapDisabledByTimeout to re-enable
 ---

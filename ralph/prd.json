@@ -219,7 +219,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 14,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 4. Native HUD suppression is fragile across OS versions. Make it degrade gracefully. Requires Accessibility permission."
     },
     {
