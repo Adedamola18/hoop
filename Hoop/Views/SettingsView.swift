@@ -18,7 +18,7 @@ struct SettingsView: View {
                     Label("Context", systemImage: "app.connected.to.app.below.fill")
                 }
         }
-        .frame(width: 450, height: 350)
+        .frame(width: 450, height: 450)
     }
 }
 
@@ -222,45 +222,199 @@ struct ContextSettingsTab: View {
         }
         return ContextService.defaultMediaAppBundleIDs.sorted().joined(separator: "\n")
     }()
+    @State private var timeProfilesEnabled: Bool = {
+        let v = UserDefaults.standard.object(forKey: "timeProfilesEnabled")
+        return (v as? Bool) ?? false
+    }()
+    @State private var focusModeEnabled: Bool = {
+        let v = UserDefaults.standard.object(forKey: "focusModeEnabled")
+        return (v as? Bool) ?? false
+    }()
+    @State private var timeConfig: ContextService.TimeProfileConfig = {
+        if let data = UserDefaults.standard.data(forKey: "timeProfileConfig"),
+           let config = try? JSONDecoder().decode(ContextService.TimeProfileConfig.self, from: data) {
+            return config
+        }
+        return ContextService.TimeProfileConfig()
+    }()
+    @State private var focusConfig: ContextService.FocusModeConfig = {
+        if let data = UserDefaults.standard.data(forKey: "focusModeConfig"),
+           let config = try? JSONDecoder().decode(ContextService.FocusModeConfig.self, from: data) {
+            return config
+        }
+        return ContextService.FocusModeConfig()
+    }()
+    @State private var newFocusModeName: String = ""
 
     var body: some View {
-        Form {
-            Section("Widget Switching") {
-                Toggle("Auto-switch widgets based on frontmost app", isOn: $contextSwitchingEnabled)
-                    .onChange(of: contextSwitchingEnabled) { _, newValue in
-                        UserDefaults.standard.set(newValue, forKey: "contextSwitchingEnabled")
-                    }
-
-                if contextSwitchingEnabled {
-                    Text("When a media app is frontmost, the media widget is shown in the expanded notch.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            if contextSwitchingEnabled {
-                Section("Media App Bundle IDs") {
-                    TextEditor(text: $mediaApps)
-                        .font(.system(.caption, design: .monospaced))
-                        .frame(height: 100)
-                        .onChange(of: mediaApps) { _, newValue in
-                            let ids = newValue
-                                .split(separator: "\n")
-                                .map { $0.trimmingCharacters(in: .whitespaces) }
-                                .filter { !$0.isEmpty }
-                            UserDefaults.standard.set(ids, forKey: "contextMediaAppBundleIDs")
+        ScrollView {
+            Form {
+                Section("Widget Switching") {
+                    Toggle("Auto-switch widgets based on frontmost app", isOn: $contextSwitchingEnabled)
+                        .onChange(of: contextSwitchingEnabled) { _, newValue in
+                            UserDefaults.standard.set(newValue, forKey: "contextSwitchingEnabled")
                         }
 
-                    Button("Reset to Defaults") {
-                        let defaults = ContextService.defaultMediaAppBundleIDs.sorted()
-                        mediaApps = defaults.joined(separator: "\n")
-                        UserDefaults.standard.set(defaults, forKey: "contextMediaAppBundleIDs")
+                    if contextSwitchingEnabled {
+                        Text("When a media app is frontmost, the media widget is shown in the expanded notch.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
-                    .controlSize(.small)
+                }
+
+                if contextSwitchingEnabled {
+                    Section("Media App Bundle IDs") {
+                        TextEditor(text: $mediaApps)
+                            .font(.system(.caption, design: .monospaced))
+                            .frame(height: 80)
+                            .onChange(of: mediaApps) { _, newValue in
+                                let ids = newValue
+                                    .split(separator: "\n")
+                                    .map { $0.trimmingCharacters(in: .whitespaces) }
+                                    .filter { !$0.isEmpty }
+                                UserDefaults.standard.set(ids, forKey: "contextMediaAppBundleIDs")
+                            }
+
+                        Button("Reset to Defaults") {
+                            let defaults = ContextService.defaultMediaAppBundleIDs.sorted()
+                            mediaApps = defaults.joined(separator: "\n")
+                            UserDefaults.standard.set(defaults, forKey: "contextMediaAppBundleIDs")
+                        }
+                        .controlSize(.small)
+                    }
+                }
+
+                // MARK: - Time-of-Day Profiles
+
+                Section("Time-of-Day Profiles") {
+                    Toggle("Enable time-based widget profiles", isOn: $timeProfilesEnabled)
+                        .onChange(of: timeProfilesEnabled) { _, newValue in
+                            UserDefaults.standard.set(newValue, forKey: "timeProfilesEnabled")
+                        }
+
+                    if timeProfilesEnabled {
+                        Text("Widgets change based on the time of day. Focus Mode overrides take priority.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        ForEach(ContextService.TimeProfile.allCases) { profile in
+                            HStack {
+                                Image(systemName: profile.defaultIcon)
+                                    .frame(width: 20)
+                                Text(profile.label)
+
+                                Spacer()
+
+                                Picker("Start", selection: Binding(
+                                    get: { timeConfig.startHour(for: profile) },
+                                    set: { newHour in
+                                        timeConfig.setStartHour(newHour, for: profile)
+                                        saveTimeConfig()
+                                    }
+                                )) {
+                                    ForEach(0..<24, id: \.self) { hour in
+                                        Text(formatHour(hour)).tag(hour)
+                                    }
+                                }
+                                .frame(width: 90)
+
+                                Picker("Widget", selection: Binding(
+                                    get: { timeConfig.widgetHint(for: profile) },
+                                    set: { newHint in
+                                        timeConfig.setWidgetHint(newHint, for: profile)
+                                        saveTimeConfig()
+                                    }
+                                )) {
+                                    ForEach(ContextService.WidgetHint.allCases, id: \.self) { hint in
+                                        Text(hint.rawValue.capitalized).tag(hint)
+                                    }
+                                }
+                                .frame(width: 90)
+                            }
+                        }
+                    }
+                }
+
+                // MARK: - Focus Mode Integration
+
+                Section("Focus Mode") {
+                    Toggle("Override widgets based on active Focus Mode", isOn: $focusModeEnabled)
+                        .onChange(of: focusModeEnabled) { _, newValue in
+                            UserDefaults.standard.set(newValue, forKey: "focusModeEnabled")
+                        }
+
+                    if focusModeEnabled {
+                        Text("When a macOS Focus Mode is active, the assigned widget is shown instead of the default.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        ForEach(Array(focusConfig.assignments.keys.sorted()), id: \.self) { name in
+                            HStack {
+                                Text(name)
+                                Spacer()
+                                Picker("Widget", selection: Binding(
+                                    get: { focusConfig.assignments[name] ?? .none },
+                                    set: { newHint in
+                                        focusConfig.assignments[name] = newHint
+                                        saveFocusConfig()
+                                    }
+                                )) {
+                                    ForEach(ContextService.WidgetHint.allCases, id: \.self) { hint in
+                                        Text(hint.rawValue.capitalized).tag(hint)
+                                    }
+                                }
+                                .frame(width: 90)
+
+                                Button(role: .destructive) {
+                                    focusConfig.assignments.removeValue(forKey: name)
+                                    saveFocusConfig()
+                                } label: {
+                                    Image(systemName: "minus.circle")
+                                }
+                                .buttonStyle(.borderless)
+                            }
+                        }
+
+                        HStack {
+                            TextField("Focus Mode name", text: $newFocusModeName)
+                                .textFieldStyle(.roundedBorder)
+                            Button("Add") {
+                                let name = newFocusModeName.trimmingCharacters(in: .whitespaces)
+                                guard !name.isEmpty else { return }
+                                focusConfig.assignments[name] = ContextService.WidgetHint.none
+                                saveFocusConfig()
+                                newFocusModeName = ""
+                            }
+                            .disabled(newFocusModeName.trimmingCharacters(in: .whitespaces).isEmpty)
+                        }
+                    }
                 }
             }
+            .padding()
         }
-        .padding()
+    }
+
+    private func saveTimeConfig() {
+        if let data = try? JSONEncoder().encode(timeConfig) {
+            UserDefaults.standard.set(data, forKey: "timeProfileConfig")
+        }
+    }
+
+    private func saveFocusConfig() {
+        if let data = try? JSONEncoder().encode(focusConfig) {
+            UserDefaults.standard.set(data, forKey: "focusModeConfig")
+        }
+    }
+
+    private func formatHour(_ hour: Int) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h a"
+        var components = DateComponents()
+        components.hour = hour
+        if let date = Calendar.current.date(from: components) {
+            return formatter.string(from: date)
+        }
+        return "\(hour):00"
     }
 }
 
