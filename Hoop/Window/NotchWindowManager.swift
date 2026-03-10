@@ -25,6 +25,12 @@ final class NotchWindowManager {
             name: .activationTriggerDidChange,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(hudSettingsDidChange(_:)),
+            name: .hudSettingsDidChange,
+            object: nil
+        )
         synchronizeWindows()
         updateHotkeyMonitor()
         mediaService.startObserving()
@@ -52,6 +58,10 @@ final class NotchWindowManager {
 
     @objc private func screenConfigurationDidChange(_ notification: Notification) {
         scheduleSynchronize()
+    }
+
+    @objc private func hudSettingsDidChange(_ notification: Notification) {
+        hudService.updateSuppressionState()
     }
 
     @objc private func activationTriggerDidChange(_ notification: Notification) {

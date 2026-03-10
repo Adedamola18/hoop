@@ -9,8 +9,58 @@ struct SettingsView: View {
                 .tabItem {
                     Label("General", systemImage: "gear")
                 }
+            HUDSettingsTab()
+                .tabItem {
+                    Label("HUD", systemImage: "slider.horizontal.3")
+                }
         }
         .frame(width: 450, height: 300)
+    }
+}
+
+struct HUDSettingsTab: View {
+    @State private var hudReplacementEnabled: Bool = {
+        let v = UserDefaults.standard.object(forKey: "hudReplacementEnabled")
+        return (v as? Bool) ?? true
+    }()
+    @State private var autoDismissTimeout: Double = {
+        let t = UserDefaults.standard.double(forKey: "hudDismissTimeout")
+        return t > 0 ? max(1, min(5, t)) : 2
+    }()
+
+    var body: some View {
+        Form {
+            Section("HUD Replacement") {
+                Toggle("Replace system volume & brightness HUD", isOn: $hudReplacementEnabled)
+                    .onChange(of: hudReplacementEnabled) { _, newValue in
+                        UserDefaults.standard.set(newValue, forKey: "hudReplacementEnabled")
+                        NotificationCenter.default.post(name: .hudSettingsDidChange, object: nil)
+                    }
+
+                if hudReplacementEnabled {
+                    Text("Shows a slim slider inside the notch instead of the native macOS HUD. Requires Accessibility permission for suppression.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Section("Auto-Dismiss") {
+                VStack(alignment: .leading) {
+                    HStack {
+                        Text("Timeout")
+                        Spacer()
+                        Text(String(format: "%.1fs", autoDismissTimeout))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $autoDismissTimeout, in: 1...5, step: 0.5)
+                        .onChange(of: autoDismissTimeout) { _, newValue in
+                            UserDefaults.standard.set(newValue, forKey: "hudDismissTimeout")
+                        }
+                }
+            }
+        }
+        .padding()
     }
 }
 

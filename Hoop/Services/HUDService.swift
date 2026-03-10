@@ -3,6 +3,7 @@ import CoreAudio
 import AudioToolbox
 import Observation
 import IOKit.graphics
+import CoreGraphics
 
 enum HUDType {
     case volume
@@ -16,6 +17,12 @@ final class HUDService {
     var hudType: HUDType = .volume
     var isShowingHUD: Bool = false
 
+    /// Whether the custom HUD replaces the native macOS HUD. Opt-in via Settings (default: on).
+    var hudReplacementEnabled: Bool {
+        let v = UserDefaults.standard.object(forKey: "hudReplacementEnabled")
+        return (v as? Bool) ?? true
+    }
+
     /// Auto-dismiss timeout in seconds. Configurable 1-5s, default 2s.
     var autoDismissTimeout: TimeInterval {
         let t = UserDefaults.standard.double(forKey: "hudDismissTimeout")
@@ -25,6 +32,21 @@ final class HUDService {
     private var dismissWorkItem: DispatchWorkItem?
     private var defaultDeviceID: AudioDeviceID = kAudioObjectUnknown
     private var volumeListenerBlock: AudioObjectPropertyListenerBlock?
+
+    // MARK: - OSD Suppression (CGEventTap)
+
+    private var eventTap: CFMachPort?
+    private var eventTapRunLoopSource: CFRunLoopSource?
+
+    /// NX_SUBTYPE_AUX_CONTROL_BUTTONS
+    private static let auxControlSubtype: Int64 = 8
+    /// Key types for OSD-triggering keys
+    private static let soundUpKeyType: Int32 = 0       // NX_KEYTYPE_SOUND_UP
+    private static let soundDownKeyType: Int32 = 1     // NX_KEYTYPE_SOUND_DOWN
+    private static let muteKeyType: Int32 = 7          // NX_KEYTYPE_MUTE
+    private static let brightnessUpKeyType: Int32 = 21 // Brightness up
+    private static let brightnessDownKeyType: Int32 = 22 // Brightness down
+
     private var volumePropertyAddress = AudioObjectPropertyAddress(
         mSelector: kAudioHardwareServiceDeviceProperty_VirtualMainVolume,
         mScope: kAudioObjectPropertyScopeOutput,
@@ -52,12 +74,23 @@ final class HUDService {
         installDefaultDeviceListener()
         installVolumeListener()
         startBrightnessPolling()
+        installEventTapIfNeeded()
     }
 
     func stopObserving() {
         removeVolumeListener()
         removeDefaultDeviceListener()
         stopBrightnessPolling()
+        removeEventTap()
+    }
+
+    /// Re-evaluate whether the event tap should be active (called when settings change).
+    func updateSuppressionState() {
+        if hudReplacementEnabled {
+            installEventTapIfNeeded()
+        } else {
+            removeEventTap()
+        }
     }
 
     // MARK: - Volume Control
@@ -191,6 +224,88 @@ final class HUDService {
         )
         if status == noErr {
             showHUD(type: .volume, level: volume)
+        }
+    }
+
+    // MARK: - Native HUD Suppression (CGEventTap)
+
+    private func installEventTapIfNeeded() {
+        guard hudReplacementEnabled, eventTap == nil else { return }
+
+        // Create a CGEventTap to intercept system-defined events (media/brightness keys).
+        // Returning nil from the callback suppresses the native OSD.
+        // Requires Accessibility permission; fails gracefully if not granted.
+        let tapCallback: CGEventTapCallBack = { proxy, type, event, refcon -> Unmanaged<CGEvent>? in
+            // Re-enable tap if it gets disabled by the system (e.g., timeout)
+            if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+                if let refcon {
+                    let service = Unmanaged<HUDService>.fromOpaque(refcon).takeUnretainedValue()
+                    if let tap = service.eventTap {
+                        CGEvent.tapEnable(tap: tap, enable: true)
+                    }
+                }
+                return Unmanaged.passRetained(event)
+            }
+
+            guard type == .keyDown || type == .keyUp || CGEventType(rawValue: 14) == type else {
+                return Unmanaged.passRetained(event)
+            }
+
+            let nsEvent = NSEvent(cgEvent: event)
+            guard let nsEvent, nsEvent.subtype.rawValue == HUDService.auxControlSubtype else {
+                return Unmanaged.passRetained(event)
+            }
+
+            let keyType = Int32((nsEvent.data1 >> 16) & 0xFF)
+            let suppressedKeys: [Int32] = [
+                HUDService.soundUpKeyType,
+                HUDService.soundDownKeyType,
+                HUDService.muteKeyType,
+                HUDService.brightnessUpKeyType,
+                HUDService.brightnessDownKeyType,
+            ]
+
+            if suppressedKeys.contains(keyType) {
+                // Check if replacement is still enabled (read from UserDefaults for thread safety)
+                let enabled = UserDefaults.standard.object(forKey: "hudReplacementEnabled") as? Bool ?? true
+                if enabled {
+                    return nil // Suppress native OSD
+                }
+            }
+
+            return Unmanaged.passRetained(event)
+        }
+
+        let refcon = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
+
+        guard let tap = CGEvent.tapCreate(
+            tap: .cgSessionEventTap,
+            place: .headInsertEventTap,
+            options: .defaultTap,
+            eventsOfInterest: CGEventMask(1 << 14), // NSEventTypeSystemDefined = 14
+            callback: tapCallback,
+            userInfo: refcon
+        ) else {
+            // Accessibility permission not granted or tap creation failed — degrade gracefully.
+            // Both native and custom HUD will show, which is acceptable per AC.
+            return
+        }
+
+        eventTap = tap
+        let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
+        eventTapRunLoopSource = source
+        CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
+        CGEvent.tapEnable(tap: tap, enable: true)
+    }
+
+    private func removeEventTap() {
+        if let source = eventTapRunLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
+            eventTapRunLoopSource = nil
+        }
+        if let tap = eventTap {
+            CGEvent.tapEnable(tap: tap, enable: false)
+            eventTap = nil
         }
     }
 

@@ -3,6 +3,7 @@ import Observation
 
 extension Notification.Name {
     static let activationTriggerDidChange = Notification.Name("activationTriggerDidChange")
+    static let hudSettingsDidChange = Notification.Name("hudSettingsDidChange")
 }
 
 enum ActivationTrigger: Int, CaseIterable {
