@@ -265,7 +265,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 17,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 5. Keep rule engine simple — condition+action pairs, no complex boolean logic for v1."
     },
     {

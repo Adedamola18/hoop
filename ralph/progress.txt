@@ -302,3 +302,21 @@ Started: 2026-03-10
   - ScrollView wrapping Form allows the Context tab to accommodate growing content
   - Time profile config uses Codable struct persisted as JSON Data in UserDefaults for structured storage
 ---
+
+## 2026-03-10 - US-017
+- Implemented custom context rules engine and settings UI
+- Files created: Hoop/Models/ContextRule.swift
+- Files changed: Hoop/Services/ContextService.swift, Hoop/Views/SettingsView.swift, Hoop.xcodeproj/project.pbxproj
+- ContextRule model with Codable support: condition (app/time/focus) + widget hint + enabled flag
+- RuleCondition enum with .app(bundleID:), .time(profile:), .focus(modeName:) cases
+- ContextRuleStore helper for UserDefaults persistence (JSON-encoded array)
+- ContextService.evaluateRules() now checks custom rules first (priority 0), then falls through to Focus > Time > App
+- Settings > Context tab has "Custom Rules" section at top with list, enable/disable toggle, reorder (up/down), delete
+- AddContextRuleSheet modal for creating new rules with condition type picker, value input, and widget assignment
+- Rules evaluated in array order — first match wins
+- **Learnings for future iterations:**
+  - ContextRule references ContextService types (WidgetHint, TimeProfile) — works in multi-file compilation but SourceKit single-file reports errors (expected)
+  - Sheet-based add UI with @Environment(\.dismiss) cleaner than inline form for complex inputs
+  - Array enumeration with index for in-place mutation of @State array items
+  - Custom rules at priority 0 in evaluateRules() means user rules always override built-in logic
+---
