@@ -133,6 +133,13 @@ final class NotchWindowManager {
         panel.onDismissRequested = { [weak self] in
             self?.immediateCollapse(id: id)
         }
+        panel.onSwipeSkip = { [weak self] isNext in
+            if isNext {
+                self?.mediaService.nextTrack()
+            } else {
+                self?.mediaService.previousTrack()
+            }
+        }
 
         windows[id] = (panel: panel, state: state)
     }

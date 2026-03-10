@@ -14,6 +14,9 @@ final class NotchPanel: NSPanel {
     /// Called when the user dismisses via Escape key or click outside.
     var onDismissRequested: (() -> Void)?
 
+    /// Called when a horizontal swipe is detected. Parameter is true for next track, false for previous.
+    var onSwipeSkip: ((Bool) -> Void)?
+
     private var trackingArea: NSTrackingArea?
     private var dwellTimer: DispatchWorkItem?
     private var graceTimer: DispatchWorkItem?
@@ -158,6 +161,58 @@ final class NotchPanel: NSPanel {
             graceTimer = nil
             state.phase = .idle
             onDismissRequested?()
+        }
+    }
+
+    // MARK: - Scroll / Swipe Events
+
+    /// Accumulated horizontal scroll delta for swipe detection.
+    private var accumulatedScrollDeltaX: CGFloat = 0
+
+    /// Minimum horizontal delta to trigger a track skip.
+    private let swipeThreshold: CGFloat = 30.0
+
+    /// Whether a swipe action has already fired for the current gesture.
+    private var swipeActionFired = false
+
+    override func scrollWheel(with event: NSEvent) {
+        guard let state = notchState,
+              state.phase == .expanding || state.phase == .expanded else {
+            super.scrollWheel(with: event)
+            return
+        }
+
+        // Only process trackpad scroll events (continuous touch), not mouse wheel (discrete)
+        guard event.phase != [] || event.momentumPhase != [] else {
+            super.scrollWheel(with: event)
+            return
+        }
+
+        // Reset accumulator at gesture start
+        if event.phase == .began {
+            accumulatedScrollDeltaX = 0
+            swipeActionFired = false
+        }
+
+        accumulatedScrollDeltaX += event.scrollingDeltaX
+
+        // Fire once per gesture when threshold exceeded
+        if !swipeActionFired && abs(accumulatedScrollDeltaX) > swipeThreshold {
+            swipeActionFired = true
+            let isNext = accumulatedScrollDeltaX < 0 // swipe left = next track
+            onSwipeSkip?(isNext)
+
+            // Haptic feedback
+            NSHapticFeedbackManager.defaultPerformer.perform(
+                .alignment,
+                performanceTime: .default
+            )
+        }
+
+        // Reset on gesture end
+        if event.phase == .ended || event.phase == .cancelled {
+            accumulatedScrollDeltaX = 0
+            swipeActionFired = false
         }
     }
 
