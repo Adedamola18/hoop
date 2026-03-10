@@ -59,21 +59,31 @@ struct ContextRule: Codable, Identifiable {
     }
 }
 
-/// Persistence helper for context rules.
+/// Persistence helper for context rules with in-memory cache.
 enum ContextRuleStore {
     private static let key = "contextRules"
+    private static var cachedRules: [ContextRule]?
 
     static func load() -> [ContextRule] {
+        if let cached = cachedRules { return cached }
         guard let data = UserDefaults.standard.data(forKey: key),
               let rules = try? JSONDecoder().decode([ContextRule].self, from: data) else {
+            cachedRules = []
             return []
         }
+        cachedRules = rules
         return rules
     }
 
     static func save(_ rules: [ContextRule]) {
+        cachedRules = rules
         if let data = try? JSONEncoder().encode(rules) {
             UserDefaults.standard.set(data, forKey: key)
         }
+    }
+
+    /// Invalidate the cache (e.g., if UserDefaults are modified externally).
+    static func invalidateCache() {
+        cachedRules = nil
     }
 }

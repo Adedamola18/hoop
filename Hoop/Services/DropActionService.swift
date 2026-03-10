@@ -415,16 +415,21 @@ struct CustomDropActionConfig: Codable, Identifiable {
 
 struct CustomDropActionStore {
     private static let key = "customDropActions"
+    private static var cached: [CustomDropActionConfig]?
 
     static func load() -> [CustomDropActionConfig] {
+        if let cached { return cached }
         guard let data = UserDefaults.standard.data(forKey: key),
               let actions = try? JSONDecoder().decode([CustomDropActionConfig].self, from: data) else {
+            cached = []
             return []
         }
+        cached = actions
         return actions
     }
 
     static func save(_ actions: [CustomDropActionConfig]) {
+        cached = actions
         if let data = try? JSONEncoder().encode(actions) {
             UserDefaults.standard.set(data, forKey: key)
         }
@@ -435,16 +440,21 @@ struct CustomDropActionStore {
 
 struct PipelineStore {
     private static let key = "dropActionPipelines"
+    private static var cached: [PipelineConfig]?
 
     static func load() -> [PipelineConfig] {
+        if let cached { return cached }
         guard let data = UserDefaults.standard.data(forKey: key),
               let pipelines = try? JSONDecoder().decode([PipelineConfig].self, from: data) else {
+            cached = []
             return []
         }
+        cached = pipelines
         return pipelines
     }
 
     static func save(_ pipelines: [PipelineConfig]) {
+        cached = pipelines
         if let data = try? JSONEncoder().encode(pipelines) {
             UserDefaults.standard.set(data, forKey: key)
         }
@@ -470,14 +480,24 @@ final class DropActionService {
         OCRAction()
     ]
 
+    /// Cached combined actions list. Invalidated when custom actions or pipelines change.
+    private var cachedAllActions: [any DropAction]?
+
     /// All available actions: built-in + custom actions + pipelines loaded from UserDefaults.
     var allActions: [any DropAction] {
+        if let cached = cachedAllActions { return cached }
         var actions: [any DropAction] = builtInActions
         let customActions = CustomDropActionStore.load()
         actions.append(contentsOf: customActions.map { $0.toDropAction() })
         let pipelines = PipelineStore.load()
         actions.append(contentsOf: pipelines.map { PipelineDropAction(pipeline: $0) })
+        cachedAllActions = actions
         return actions
+    }
+
+    /// Invalidate cached actions (call when custom actions or pipelines are modified).
+    func invalidateActionsCache() {
+        cachedAllActions = nil
     }
 
     /// Find matching actions for dropped files and start selection.

@@ -140,10 +140,14 @@ final class MediaService: MediaServiceProtocol {
 
     var nowPlaying = NowPlayingInfo(playbackState: .unknown)
 
+    /// Cached source app icon, updated when appBundleID changes. Avoids expensive NSWorkspace lookups per render.
+    var sourceAppIcon: NSImage?
+
     var isAvailable: Bool { MediaRemoteLoader.shared.isLoaded }
 
     private var isObserving = false
     private let loader = MediaRemoteLoader.shared
+    private var lastIconBundleID: String?
 
     // MARK: - Commands
 
@@ -251,7 +255,19 @@ final class MediaService: MediaServiceProtocol {
             if let client = client,
                let bundleID = (client as? NSObject)?.value(forKey: "bundleIdentifier") as? String {
                 self.nowPlaying.appBundleID = bundleID
+                self.updateSourceAppIcon(bundleID: bundleID)
             }
+        }
+    }
+
+    /// Update cached source app icon only when the bundle ID changes.
+    private func updateSourceAppIcon(bundleID: String) {
+        guard bundleID != lastIconBundleID else { return }
+        lastIconBundleID = bundleID
+        if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) {
+            sourceAppIcon = NSWorkspace.shared.icon(forFile: url.path)
+        } else {
+            sourceAppIcon = nil
         }
     }
 }

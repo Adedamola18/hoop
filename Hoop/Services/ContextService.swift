@@ -280,9 +280,21 @@ final class ContextService {
 
     private func scheduleTimeProfileTimer() {
         timeProfileTimer?.invalidate()
-        // Fire every 60 seconds to check if the time profile changed
-        timeProfileTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            self?.updateTimeProfile()
+        // Schedule to fire at the next hour boundary (+5s buffer), then re-schedule.
+        // Much more efficient than polling every 60s — fires ~24 times/day instead of ~1440.
+        let calendar = Calendar.current
+        let now = Date()
+        if let nextHour = calendar.nextDate(after: now, matching: DateComponents(minute: 0, second: 5), matchingPolicy: .nextTime) {
+            let interval = nextHour.timeIntervalSince(now)
+            timeProfileTimer = Timer.scheduledTimer(withTimeInterval: max(interval, 1), repeats: false) { [weak self] _ in
+                self?.updateTimeProfile()
+                self?.scheduleTimeProfileTimer() // Re-schedule for next hour
+            }
+        } else {
+            // Fallback: fire every 5 minutes
+            timeProfileTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in
+                self?.updateTimeProfile()
+            }
         }
     }
 

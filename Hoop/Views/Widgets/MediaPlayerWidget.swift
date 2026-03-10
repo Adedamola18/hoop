@@ -10,12 +10,9 @@ struct MediaPlayerWidget: View {
         info.playbackState == .playing || info.playbackState == .paused
     }
 
+    /// Use cached icon from MediaService instead of expensive NSWorkspace lookup per render.
     private var sourceAppIcon: NSImage? {
-        guard let bundleID = info.appBundleID,
-              let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else {
-            return nil
-        }
-        return NSWorkspace.shared.icon(forFile: url.path)
+        mediaService.sourceAppIcon
     }
 
     private var progressFraction: Double {
@@ -113,5 +110,6 @@ struct MediaPlayerWidget: View {
             }
         }
         .frame(height: 3)
+        .drawingGroup()
     }
 }

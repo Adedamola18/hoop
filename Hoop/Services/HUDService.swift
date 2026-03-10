@@ -116,6 +116,7 @@ final class HUDService {
         isShowingHUD = true
         onHUDShow?(type, level)
         scheduleDismiss()
+        updateBrightnessPollingRate()
     }
 
     func dismissHUD() {
@@ -123,6 +124,7 @@ final class HUDService {
         dismissWorkItem = nil
         isShowingHUD = false
         onHUDDismiss?()
+        updateBrightnessPollingRate()
     }
 
     private func scheduleDismiss() {
@@ -311,17 +313,32 @@ final class HUDService {
 
     // MARK: - Brightness Monitoring (IOKit polling)
 
+    /// Adaptive brightness polling interval: slow when idle, fast when HUD is active.
+    private var brightnessPollingInterval: TimeInterval {
+        isShowingHUD && hudType == .brightness ? 0.1 : 1.0
+    }
+
     private func startBrightnessPolling() {
         // Seed initial brightness so the first real change triggers the HUD
         lastKnownBrightness = readBrightness() ?? -1
+        scheduleBrightnessTimer(interval: 1.0)
+    }
 
+    private func scheduleBrightnessTimer(interval: TimeInterval) {
+        brightnessPollingTimer?.cancel()
         let timer = DispatchSource.makeTimerSource(queue: .main)
-        timer.schedule(deadline: .now() + 0.3, repeating: 0.3)
+        timer.schedule(deadline: .now() + interval, repeating: interval)
         timer.setEventHandler { [weak self] in
             self?.pollBrightness()
         }
         timer.resume()
         brightnessPollingTimer = timer
+    }
+
+    /// Adjust brightness polling rate when HUD state changes.
+    private func updateBrightnessPollingRate() {
+        guard brightnessPollingTimer != nil else { return }
+        scheduleBrightnessTimer(interval: brightnessPollingInterval)
     }
 
     private func stopBrightnessPolling() {
