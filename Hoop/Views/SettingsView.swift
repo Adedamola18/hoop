@@ -17,6 +17,10 @@ struct SettingsView: View {
                 .tabItem {
                     Label("HUD", systemImage: "slider.horizontal.3")
                 }
+            WidgetsSettingsTab()
+                .tabItem {
+                    Label("Widgets", systemImage: "square.grid.2x2")
+                }
             ContextSettingsTab()
                 .tabItem {
                     Label("Context", systemImage: "app.connected.to.app.below.fill")
@@ -51,6 +55,61 @@ struct AppearanceSettingsTab: View {
                 Text("Solid Dark matches the hardware notch. Translucent adds a frosted overlay. Liquid Glass uses a lighter frosted effect.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+        .padding()
+    }
+}
+
+struct WidgetsSettingsTab: View {
+    @State private var enabledIDs: Set<String> = {
+        if let stored = UserDefaults.standard.array(forKey: "enabledWidgetIDs") as? [String] {
+            return Set(stored)
+        }
+        return []
+    }()
+    @State private var widgetOrder: [String] = {
+        UserDefaults.standard.stringArray(forKey: "widgetOrder") ?? []
+    }()
+
+    private let allWidgets: [(id: String, name: String, icon: String)] = [
+        ("calendar", "Calendar", "calendar"),
+        ("timer", "Timer & Stopwatch", "timer"),
+        ("clipboard", "Clipboard History", "doc.on.clipboard"),
+        ("shortcuts", "Shortcuts", "shortcuts"),
+        ("notes", "Quick Notes", "note.text"),
+        ("colorpicker", "Color Picker", "eyedropper"),
+        ("converter", "Unit Converter", "arrow.left.arrow.right"),
+        ("webcam", "Webcam Preview", "web.camera"),
+        ("systemstats", "System Stats", "gauge.with.dots.needle.bottom.50percent"),
+    ]
+
+    var body: some View {
+        Form {
+            Section("Enabled Widgets") {
+                Text("Toggle widgets on or off. Drag to reorder.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                ForEach(allWidgets, id: \.id) { widget in
+                    HStack {
+                        Toggle(isOn: Binding(
+                            get: { enabledIDs.contains(widget.id) },
+                            set: { newValue in
+                                if newValue {
+                                    enabledIDs.insert(widget.id)
+                                } else {
+                                    enabledIDs.remove(widget.id)
+                                }
+                                UserDefaults.standard.set(Array(enabledIDs), forKey: "enabledWidgetIDs")
+                            }
+                        )) {
+                            Label(widget.name, systemImage: widget.icon)
+                        }
+                        .toggleStyle(.checkbox)
+                    }
+                }
             }
         }
         .formStyle(.grouped)
@@ -119,8 +178,24 @@ struct GeneralSettingsTab: View {
         return (v as? Int) ?? Int(kVK_ANSI_N)
     }()
     @State private var isRecordingHotkey = false
+    @State private var expandedWidth: Double = {
+        let w = UserDefaults.standard.double(forKey: "expandedWidth")
+        return w > 0 ? max(400, min(800, w)) : 600
+    }()
+    @State private var expandedHeight: Double = {
+        let h = UserDefaults.standard.double(forKey: "expandedHeight")
+        return h > 0 ? max(150, min(400, h)) : 200
+    }()
+    @State private var contentPadding: Double = {
+        let p = UserDefaults.standard.double(forKey: "contentPadding")
+        return p > 0 ? max(8, min(32, p)) : 16
+    }()
+    @State private var horizontalSwipe: HorizontalSwipeAction = .current
+    @State private var verticalSwipe: VerticalSwipeAction = .current
+    @State private var longPress: LongPressAction = .current
 
     var body: some View {
+        ScrollView {
         Form {
             Section("Startup") {
                 LaunchAtLoginToggle()
@@ -185,8 +260,82 @@ struct GeneralSettingsTab: View {
                     }
                 }
             }
+
+            Section("Expanded Size") {
+                VStack(alignment: .leading) {
+                    HStack {
+                        Text("Width")
+                        Spacer()
+                        Text("\(Int(expandedWidth))pt")
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $expandedWidth, in: 400...800, step: 25)
+                        .onChange(of: expandedWidth) { _, newValue in
+                            UserDefaults.standard.set(newValue, forKey: "expandedWidth")
+                        }
+                }
+
+                VStack(alignment: .leading) {
+                    HStack {
+                        Text("Height")
+                        Spacer()
+                        Text("\(Int(expandedHeight))pt")
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $expandedHeight, in: 150...400, step: 25)
+                        .onChange(of: expandedHeight) { _, newValue in
+                            UserDefaults.standard.set(newValue, forKey: "expandedHeight")
+                        }
+                }
+
+                VStack(alignment: .leading) {
+                    HStack {
+                        Text("Content Padding")
+                        Spacer()
+                        Text("\(Int(contentPadding))pt")
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $contentPadding, in: 8...32, step: 2)
+                        .onChange(of: contentPadding) { _, newValue in
+                            UserDefaults.standard.set(newValue, forKey: "contentPadding")
+                        }
+                }
+            }
+
+            Section("Gestures") {
+                Picker("Horizontal Swipe", selection: $horizontalSwipe) {
+                    ForEach(HorizontalSwipeAction.allCases, id: \.self) { action in
+                        Text(action.label).tag(action)
+                    }
+                }
+                .onChange(of: horizontalSwipe) { _, newValue in
+                    UserDefaults.standard.set(newValue.rawValue, forKey: "gestureHorizontalSwipe")
+                }
+
+                Picker("Swipe Down", selection: $verticalSwipe) {
+                    ForEach(VerticalSwipeAction.allCases, id: \.self) { action in
+                        Text(action.label).tag(action)
+                    }
+                }
+                .onChange(of: verticalSwipe) { _, newValue in
+                    UserDefaults.standard.set(newValue.rawValue, forKey: "gestureVerticalSwipe")
+                }
+
+                Picker("Long Press", selection: $longPress) {
+                    ForEach(LongPressAction.allCases, id: \.self) { action in
+                        Text(action.label).tag(action)
+                    }
+                }
+                .onChange(of: longPress) { _, newValue in
+                    UserDefaults.standard.set(newValue.rawValue, forKey: "gestureLongPress")
+                }
+            }
         }
         .padding()
+        }
     }
 
     private var hotkeyDisplayString: String {
