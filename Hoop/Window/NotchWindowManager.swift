@@ -21,6 +21,7 @@ final class NotchWindowManager {
     let widgetRegistry = WidgetRegistry()
     let calendarService = CalendarService()
     let timerService = TimerService()
+    let clipboardService = ClipboardService()
 
     init() {
         NotificationCenter.default.addObserver(
@@ -67,6 +68,7 @@ final class NotchWindowManager {
         batteryService.startObserving()
         privacyService.startObserving()
         focusService.startObserving()
+        clipboardService.startObserving()
         calendarService.requestAccessAndStart()
         registerWidgets()
         wireHUDCallbacks()
@@ -81,6 +83,7 @@ final class NotchWindowManager {
         privacyService.stopObserving()
         focusService.stopObserving()
         calendarService.stopObserving()
+        clipboardService.stopObserving()
         NotificationCenter.default.removeObserver(self)
         NSWorkspace.shared.notificationCenter.removeObserver(self)
         pendingSynchronize?.cancel()
@@ -101,6 +104,7 @@ final class NotchWindowManager {
     private func registerWidgets() {
         widgetRegistry.register(CalendarNotchWidget(calendarService: calendarService))
         widgetRegistry.register(TimerNotchWidget(timerService: timerService))
+        widgetRegistry.register(ClipboardNotchWidget(clipboardService: clipboardService))
     }
 
     // MARK: - Screen Change Handling

@@ -40,6 +40,8 @@
 		BB000015 /* CalendarWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000016 /* CalendarWidget.swift */; };
 		BB000017 /* TimerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000018 /* TimerService.swift */; };
 		BB000019 /* TimerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00001A /* TimerWidget.swift */; };
+		BB00001B /* ClipboardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00001C /* ClipboardService.swift */; };
+		BB00001D /* ClipboardWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00001E /* ClipboardWidget.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -78,6 +80,8 @@
 		BB000016 /* CalendarWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarWidget.swift; sourceTree = "<group>"; };
 		BB000018 /* TimerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerService.swift; sourceTree = "<group>"; };
 		BB00001A /* TimerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerWidget.swift; sourceTree = "<group>"; };
+		BB00001C /* ClipboardService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardService.swift; sourceTree = "<group>"; };
+		BB00001E /* ClipboardWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardWidget.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -147,6 +151,7 @@
 				BB00000C /* CollapsedIndicatorBar.swift */,
 				BB000016 /* CalendarWidget.swift */,
 				BB00001A /* TimerWidget.swift */,
+				BB00001E /* ClipboardWidget.swift */,
 			);
 			path = Widgets;
 			sourceTree = "<group>";
@@ -184,6 +189,7 @@
 				BB000010 /* WidgetRegistry.swift */,
 				BB000014 /* CalendarService.swift */,
 				BB000018 /* TimerService.swift */,
+				BB00001C /* ClipboardService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -289,6 +295,8 @@
 				BB000015 /* CalendarWidget.swift in Sources */,
 				BB000017 /* TimerService.swift in Sources */,
 				BB000019 /* TimerWidget.swift in Sources */,
+				BB00001B /* ClipboardService.swift in Sources */,
+				BB00001D /* ClipboardWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
