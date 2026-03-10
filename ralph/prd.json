@@ -229,8 +229,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 15,
-      "passes": false,
-      "notes": "New service. Use DistributedNotificationCenter for 'com.apple.doNotDisturb' changes."
+      "passes": true,
+      "notes": "FocusService.swift detects DND via DistributedNotificationCenter + UserDefaults. Purple moon icon in collapsedIndicators."
     },
     {
       "id": "US-016",
@@ -244,8 +244,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 16,
-      "passes": false,
-      "notes": "Can integrate into PrivacyService or standalone. CGDisplayStream or polling CGWindowListCopyWindowInfo."
+      "passes": true,
+      "notes": "Integrated into PrivacyService. Detects recording apps + screencaptured daemon. Pulsing red dot in PrivacyIndicatorView."
     },
     {
       "id": "US-017",
@@ -259,8 +259,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 17,
-      "passes": false,
-      "notes": "Depends on US-013 through US-016. Creates CollapsedIndicatorBar.swift in Views/Widgets/."
+      "passes": true,
+      "notes": "CollapsedIndicatorBar.swift with priority ordering and compact mode. Replaces inline collapsedIndicators in NotchRootView."
     },
     {
       "id": "US-018",
@@ -276,8 +276,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 18,
-      "passes": false,
-      "notes": "Foundation for all widgets. Add Models/WidgetProtocol.swift, Services/WidgetRegistry.swift, Views/WidgetDrawerView.swift."
+      "passes": true,
+      "notes": "NotchWidget protocol + WidgetRegistry + WidgetDrawerView. Registry persists enabled IDs and order via UserDefaults."
     },
     {
       "id": "US-019",
@@ -293,8 +293,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 19,
-      "passes": false,
-      "notes": "Depends on US-018. Add Services/CalendarService.swift, Views/Widgets/CalendarWidget.swift. Import EventKit."
+      "passes": true,
+      "notes": "CalendarService with EKEventStore, CalendarWidget with color bars and relative time. Registered in WidgetRegistry."
     },
     {
       "id": "US-020",
@@ -309,8 +309,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 20,
-      "passes": false,
-      "notes": "Depends on US-018. Add Services/TimerService.swift, Views/Widgets/TimerWidget.swift."
+      "passes": true,
+      "notes": "TimerService with countdown/stopwatch modes, presets, laps, completion sound. Registered in WidgetRegistry."
     },
     {
       "id": "US-021",
@@ -325,8 +325,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 21,
-      "passes": false,
-      "notes": "Depends on US-018. Add Services/ClipboardService.swift, Views/Widgets/ClipboardWidget.swift."
+      "passes": true,
+      "notes": "ClipboardService polls NSPasteboard, stores 20 entries. Widget has search and click-to-copy."
     },
     {
       "id": "US-022",
@@ -341,8 +341,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 22,
-      "passes": false,
-      "notes": "Depends on US-018. Add Services/ShortcutsService.swift, Views/Widgets/ShortcutsWidget.swift."
+      "passes": true,
+      "notes": "ShortcutsService uses /usr/bin/shortcuts CLI. Widget shows favorites grid with run status."
     },
     {
       "id": "US-023",
@@ -357,8 +357,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 23,
-      "passes": false,
-      "notes": "Depends on US-018. Add Views/Widgets/NotesWidget.swift."
+      "passes": true,
+      "notes": "NotesWidget with text field, clipboard copy on submit, recent notes persisted in UserDefaults."
     },
     {
       "id": "US-024",
@@ -374,8 +374,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 24,
-      "passes": false,
-      "notes": "Depends on US-018. Add Services/WebcamService.swift, Views/Widgets/WebcamWidget.swift. Import AVFoundation."
+      "passes": true,
+      "notes": "WebcamWidget with AVCaptureSession, low preset, auto-stop on disappear. NSCameraUsageDescription added."
     },
     {
       "id": "US-025",
@@ -390,8 +390,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 25,
-      "passes": false,
-      "notes": "Depends on US-018. Add Views/Widgets/ColorPickerWidget.swift."
+      "passes": true,
+      "notes": "NSColorSampler integration, hex/RGB copy, 10-color history."
     },
     {
       "id": "US-026",
@@ -405,8 +405,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 26,
-      "passes": false,
-      "notes": "Depends on US-018. Add Views/Widgets/ConverterWidget.swift. Use Foundation Measurement types for units."
+      "passes": true,
+      "notes": "Length/weight/temperature converter with swap and live display."
     },
     {
       "id": "US-027",
@@ -421,8 +421,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 27,
-      "passes": false,
-      "notes": "Depends on US-018. Add Services/SystemStatsService.swift, Views/Widgets/SystemStatsWidget.swift. Use host_processor_info for CPU, host_statistics64 for memory."
+      "passes": true,
+      "notes": "SystemStatsService with host_statistics/host_statistics64. Widget shows CPU bar chart and memory pressure bar."
     },
     {
       "id": "US-028",
@@ -437,8 +437,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 28,
-      "passes": false,
-      "notes": "Standalone live activity. Add Services/CallService.swift, Views/IncomingCallView.swift."
+      "passes": true,
+      "notes": "CallService monitors DistributedNotificationCenter for FaceTime calls. IncomingCallView with accept/decline buttons."
     },
     {
       "id": "US-029",
@@ -451,8 +451,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 29,
-      "passes": false,
-      "notes": "Standalone live activity indicator."
+      "passes": true,
+      "notes": "AirDropService monitors Downloads folder for new files. AirDropIndicatorView shows transfer direction and filename."
     },
     {
       "id": "US-030",
@@ -465,8 +465,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 30,
-      "passes": false,
-      "notes": "Enhances existing DropActionService. Add AirDrop as a built-in drop action."
+      "passes": true,
+      "notes": "Added AirDropAction struct using NSSharingService(.sendViaAirDrop) as built-in drop action."
     },
     {
       "id": "US-031",
@@ -496,8 +496,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 32,
-      "passes": false,
-      "notes": "Enhance existing NotchPanel gesture handling. Add GestureSettings model."
+      "passes": true,
+      "notes": "Added GestureSettings.swift with configurable actions. NotchPanel supports horizontal/vertical swipe and long press with UserDefaults-backed preferences."
     },
     {
       "id": "US-033",
@@ -511,8 +511,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 33,
-      "passes": false,
-      "notes": "expandedWidth already exists in NotchState. Add expandedHeight and contentPadding."
+      "passes": true,
+      "notes": "Added expandedHeight (150-400pt) and contentPadding (8-32pt) to NotchState. Updated ScreenDetector and NotchWindowManager."
     },
     {
       "id": "US-034",
@@ -527,8 +527,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 34,
-      "passes": false,
-      "notes": "Replaces existing SettingsView.swift. Depends on most features being built first."
+      "passes": true,
+      "notes": "Added Widgets tab, expanded size sliders, gesture pickers to General. 6-tab settings: General, Appearance, HUD, Widgets, Context, Drop Actions."
     },
     {
       "id": "US-035",
