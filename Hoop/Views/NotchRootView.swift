@@ -41,6 +41,12 @@ struct NotchRootView: View {
                 if isExpanded && hasActiveMedia {
                     MediaPlayerWidget(mediaService: mediaService)
                         .transition(.opacity)
+                } else if !isExpanded && hasActiveMedia {
+                    CollapsedMediaIndicator(
+                        mediaService: mediaService,
+                        collapsedSize: state.collapsedSize
+                    )
+                    .transition(.opacity)
                 } else {
                     Text("Hoop")
                         .font(isExpanded ? .title3 : .caption)

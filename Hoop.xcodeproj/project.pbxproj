@@ -19,6 +19,7 @@
 		AA00000B /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001B /* VisualEffectView.swift */; };
 		AA00000C /* MediaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001C /* MediaService.swift */; };
 		AA00000D /* MediaPlayerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001D /* MediaPlayerWidget.swift */; };
+		AA00000E /* CollapsedMediaIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001E /* CollapsedMediaIndicator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 		AA00001B /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
 		AA00001C /* MediaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaService.swift; sourceTree = "<group>"; };
 		AA00001D /* MediaPlayerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlayerWidget.swift; sourceTree = "<group>"; };
+		AA00001E /* CollapsedMediaIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollapsedMediaIndicator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,6 +97,7 @@
 			isa = PBXGroup;
 			children = (
 				AA00001D /* MediaPlayerWidget.swift */,
+				AA00001E /* CollapsedMediaIndicator.swift */,
 			);
 			path = Widgets;
 			sourceTree = "<group>";
@@ -205,6 +208,7 @@
 				AA00000B /* VisualEffectView.swift in Sources */,
 				AA00000C /* MediaService.swift in Sources */,
 				AA00000D /* MediaPlayerWidget.swift in Sources */,
+				AA00000E /* CollapsedMediaIndicator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
