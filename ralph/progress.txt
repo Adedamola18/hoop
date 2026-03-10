@@ -18,6 +18,10 @@
 - ActivationTrigger enum in NotchState.swift with .current static property reads from UserDefaults
 - Use Notification.Name.activationTriggerDidChange to broadcast settings changes across components
 - Carbon.HIToolbox for key code constants (kVK_ANSI_*) and UCKeyTranslate for display strings
+- MediaRemote loaded via dlopen("/System/Library/PrivateFrameworks/MediaRemote.framework/MediaRemote")
+- MediaRemote commands: 2=togglePlayPause, 4=next, 5=previous (UInt32)
+- MediaService is @Observable — downstream views can observe nowPlaying changes directly
+- Services directory: Hoop/Services/ with PBXGroup AA000036
 
 Started: 2026-03-10
 ---
@@ -114,4 +118,23 @@ Started: 2026-03-10
   - NSEvent.addGlobalMonitorForEvents(.keyDown) requires Accessibility permission for global hotkeys
   - ActivationTrigger.current static property reads from UserDefaults — no need to pass trigger through the object graph
   - Use Notification for settings changes that affect multiple components (panel + window manager)
+---
+
+## 2026-03-10 - US-008
+- Implemented MediaRemote private framework service layer
+- Files created: Hoop/Services/MediaService.swift
+- Files changed: Hoop.xcodeproj/project.pbxproj (added Services group + MediaService.swift)
+- MediaServiceProtocol with NowPlayingInfo struct and PlaybackState enum
+- MediaRemoteLoader singleton loads MediaRemote.framework via dlopen/dlsym
+- Dynamically loaded functions: getNowPlayingInfo, getIsPlaying, sendCommand, register/unregisterForNotifications, getNowPlayingClient
+- MediaService (@Observable) implements play/pause/next/previous via MRMediaRemoteSendCommand
+- Registers for kMRMediaRemoteNowPlayingInfoDidChangeNotification, isPlayingDidChange, applicationDidChange
+- Fetches track title, artist, album art (from artwork data), duration, elapsed time, playback state, and app bundle ID
+- getNowPlayingClient uses KVC to extract bundleIdentifier from the opaque client object
+- **Learnings for future iterations:**
+  - MediaRemote functions use callback pattern with DispatchQueue parameter — always dispatch to main
+  - MRMediaRemoteSendCommand takes UInt32 command ID: 2=togglePlayPause, 4=next, 5=previous
+  - Album art comes as Data under kMRMediaRemoteNowPlayingInfoArtworkData key, convert to NSImage
+  - NowPlayingClient is opaque but responds to KVC for "bundleIdentifier"
+  - @convention(c) typealias needed for dlsym function pointers; unsafeBitCast to convert
 ---

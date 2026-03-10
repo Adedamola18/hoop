@@ -124,7 +124,7 @@
         "swiftc -typecheck passes"
       ],
       "priority": 8,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 3. Use @objc dynamic loading for MediaRemote. Abstract behind a MediaServiceProtocol so fallback is transparent."
     },
     {
