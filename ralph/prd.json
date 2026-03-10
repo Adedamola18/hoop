@@ -64,8 +64,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 4,
-      "passes": false,
-      "notes": "Currently only solid black. VisualEffectView.swift exists but drawingGroup() breaks it — do NOT use drawingGroup() on the outer container."
+      "passes": true,
+      "notes": "ThemeMode enum in NotchState.swift. Appearance tab in SettingsView. NotchRootView uses switch on themeMode for background."
     },
     {
       "id": "US-005",
@@ -122,8 +122,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 8,
-      "passes": false,
-      "notes": "Enhance existing MediaPlayerWidget and MediaService. MediaRemote may provide queue info via MRMediaRemoteGetNowPlayingInfo."
+      "passes": true,
+      "notes": "Added albumName to NowPlayingInfo, isRichMediaApp computed property. MediaPlayerWidget shows album for Apple Music/Spotify."
     },
     {
       "id": "US-009",
@@ -196,8 +196,8 @@
         "swiftc -typecheck passes"
       ],
       "priority": 13,
-      "passes": false,
-      "notes": "New service. Add BatteryService.swift to Services/, BatteryIndicator.swift to Views/Widgets/. Import IOKit."
+      "passes": true,
+      "notes": "BatteryService polls every 30s via IOPSCopyPowerSourcesInfo. BatteryIndicator in collapsed notch with color coding and pulse animation."
     },
     {
       "id": "US-014",
