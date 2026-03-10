@@ -29,6 +29,8 @@
 		AA00004B /* DropActionSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000040A /* DropActionSelectionView.swift */; };
 		BB000001 /* BatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000002 /* BatteryService.swift */; };
 		BB000003 /* BatteryIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000004 /* BatteryIndicator.swift */; };
+		BB000005 /* PrivacyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000006 /* PrivacyService.swift */; };
+		BB000007 /* PrivacyIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000008 /* PrivacyIndicatorView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +58,8 @@
 		AA000040A /* DropActionSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropActionSelectionView.swift; sourceTree = "<group>"; };
 		BB000002 /* BatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryService.swift; sourceTree = "<group>"; };
 		BB000004 /* BatteryIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryIndicator.swift; sourceTree = "<group>"; };
+		BB000006 /* PrivacyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyService.swift; sourceTree = "<group>"; };
+		BB000008 /* PrivacyIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyIndicatorView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -120,6 +124,7 @@
 				AA00001D /* MediaPlayerWidget.swift */,
 				AA00001E /* CollapsedMediaIndicator.swift */,
 				BB000004 /* BatteryIndicator.swift */,
+				BB000008 /* PrivacyIndicatorView.swift */,
 			);
 			path = Widgets;
 			sourceTree = "<group>";
@@ -151,6 +156,7 @@
 				AA000039 /* ContextService.swift */,
 				AA00003E /* DropActionService.swift */,
 				BB000002 /* BatteryService.swift */,
+				BB000006 /* PrivacyService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -245,6 +251,8 @@
 				AA00004B /* DropActionSelectionView.swift in Sources */,
 				BB000001 /* BatteryService.swift in Sources */,
 				BB000003 /* BatteryIndicator.swift in Sources */,
+				BB000005 /* PrivacyService.swift in Sources */,
+				BB000007 /* PrivacyIndicatorView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

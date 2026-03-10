@@ -7,6 +7,11 @@ struct NotchRootView: View {
     let contextService: ContextService
     let dropActionService: DropActionService
     let batteryService: BatteryService
+    let privacyService: PrivacyService
+
+    private var hasPrivacyIndicators: Bool {
+        privacyService.isCameraActive || privacyService.isMicrophoneActive
+    }
 
     private var isExpanded: Bool {
         state.phase == .expanding || state.phase == .expanded
@@ -95,26 +100,12 @@ struct NotchRootView: View {
                                 mediaService: mediaService,
                                 collapsedSize: state.collapsedSize
                             )
-                            // Battery overlaid on collapsed notch (right side)
-                            if batteryService.battery.isValid {
-                                HStack {
-                                    Spacer()
-                                    BatteryIndicator(batteryService: batteryService)
-                                        .padding(.trailing, 12)
-                                }
-                            }
+                            collapsedIndicators
                         }
                         .transition(.opacity)
                     } else if !isExpanded && !hasActiveMedia {
-                        // No media — just show battery in collapsed notch
-                        if batteryService.battery.isValid {
-                            HStack {
-                                Spacer()
-                                BatteryIndicator(batteryService: batteryService)
-                                    .padding(.trailing, 12)
-                            }
+                        collapsedIndicators
                             .transition(.opacity)
-                        }
                     } else if isExpanded {
                         Text("Hoop")
                             .font(.system(size: 18, weight: .medium, design: .rounded))
@@ -133,5 +124,21 @@ struct NotchRootView: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isExpanded)
         .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isHUD)
         .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isTray)
+    }
+
+    /// Collapsed notch indicators: privacy dots (left) + battery (right)
+    @ViewBuilder
+    private var collapsedIndicators: some View {
+        HStack {
+            if hasPrivacyIndicators {
+                PrivacyIndicatorView(privacyService: privacyService)
+                    .padding(.leading, 12)
+            }
+            Spacer()
+            if batteryService.battery.isValid {
+                BatteryIndicator(batteryService: batteryService)
+                    .padding(.trailing, 12)
+            }
+        }
     }
 }
