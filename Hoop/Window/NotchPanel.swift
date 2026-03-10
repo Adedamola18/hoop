@@ -5,6 +5,12 @@ final class NotchPanel: NSPanel {
     /// The state model this panel drives. Set by NotchWindowManager after creation.
     var notchState: NotchState?
 
+    /// Called when the dwell timer fires and expansion should begin. Frame expansion happens before phase change.
+    var onExpandRequested: (() -> Void)?
+
+    /// Called when the grace timer fires and collapse should begin. Frame collapse is delayed for animation.
+    var onCollapseRequested: (() -> Void)?
+
     private var trackingArea: NSTrackingArea?
     private var dwellTimer: DispatchWorkItem?
     private var graceTimer: DispatchWorkItem?
@@ -91,11 +97,12 @@ final class NotchPanel: NSPanel {
 
         guard let state = notchState, state.phase == .idle else { return }
 
-        // Start dwell timer — transition to expanding after delay
+        // Start dwell timer — expand frame first, then transition to expanding
         dwellTimer?.cancel()
         let work = DispatchWorkItem { [weak self] in
             guard let self, let state = self.notchState else { return }
             if state.phase == .idle {
+                self.onExpandRequested?()
                 state.phase = .expanding
             }
         }
@@ -120,6 +127,7 @@ final class NotchPanel: NSPanel {
             guard let self, let state = self.notchState else { return }
             if state.phase == .expanding || state.phase == .expanded {
                 state.phase = .idle
+                self.onCollapseRequested?()
             }
         }
         graceTimer = work

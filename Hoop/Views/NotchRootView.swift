@@ -3,15 +3,25 @@ import SwiftUI
 struct NotchRootView: View {
     let state: NotchState
 
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(.black)
+    private var isExpanded: Bool {
+        state.phase == .expanding || state.phase == .expanded
+    }
 
-            Text("Hoop")
-                .font(.caption)
-                .foregroundStyle(.white)
+    var body: some View {
+        GeometryReader { geo in
+            RoundedRectangle(cornerRadius: isExpanded ? 20 : 10)
+                .fill(.black)
+                .overlay {
+                    Text("Hoop")
+                        .font(isExpanded ? .title3 : .caption)
+                        .foregroundStyle(.white)
+                }
+                .frame(
+                    width: isExpanded ? geo.size.width : state.collapsedSize.width,
+                    height: isExpanded ? geo.size.height : state.collapsedSize.height
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isExpanded)
     }
 }
