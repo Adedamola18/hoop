@@ -327,10 +327,28 @@ final class ContextService {
         evaluateRules()
     }
 
+    /// User-defined custom context rules. Persisted via ContextRuleStore.
+    var customRules: [ContextRule] {
+        get { ContextRuleStore.load() }
+        set {
+            ContextRuleStore.save(newValue)
+            evaluateRules()
+        }
+    }
+
     private func evaluateRules() {
         guard isEnabled else {
             widgetHint = .none
             return
+        }
+
+        // Priority 0: Custom user rules (first match wins)
+        let rules = ContextRuleStore.load()
+        for rule in rules {
+            if rule.matches(frontmostBundleID: frontmostBundleID, timeProfile: currentTimeProfile, activeFocusMode: activeFocusMode) {
+                widgetHint = rule.widgetHint
+                return
+            }
         }
 
         // Priority 1: Focus Mode override (if enabled and active)

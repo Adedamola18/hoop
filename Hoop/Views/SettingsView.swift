@@ -245,10 +245,78 @@ struct ContextSettingsTab: View {
         return ContextService.FocusModeConfig()
     }()
     @State private var newFocusModeName: String = ""
+    @State private var customRules: [ContextRule] = ContextRuleStore.load()
+    @State private var showingAddRule = false
 
     var body: some View {
         ScrollView {
             Form {
+                // MARK: - Custom Rules
+                Section("Custom Rules") {
+                    Text("Rules are evaluated in order. First matching rule wins, overriding all other settings below.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    ForEach(Array(customRules.enumerated()), id: \.element.id) { index, rule in
+                        HStack {
+                            Toggle("", isOn: Binding(
+                                get: { customRules[index].isEnabled },
+                                set: { newValue in
+                                    customRules[index].isEnabled = newValue
+                                    saveCustomRules()
+                                }
+                            ))
+                            .labelsHidden()
+                            .toggleStyle(.checkbox)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(rule.name)
+                                    .font(.body)
+                                Text("When \(rule.condition.conditionType.label.lowercased()) \(rule.condition.displayValue) → \(rule.widgetHint.rawValue)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Spacer()
+
+                            Button {
+                                moveRuleUp(index)
+                            } label: {
+                                Image(systemName: "chevron.up")
+                            }
+                            .buttonStyle(.borderless)
+                            .disabled(index == 0)
+
+                            Button {
+                                moveRuleDown(index)
+                            } label: {
+                                Image(systemName: "chevron.down")
+                            }
+                            .buttonStyle(.borderless)
+                            .disabled(index == customRules.count - 1)
+
+                            Button(role: .destructive) {
+                                customRules.remove(at: index)
+                                saveCustomRules()
+                            } label: {
+                                Image(systemName: "minus.circle")
+                            }
+                            .buttonStyle(.borderless)
+                        }
+                    }
+
+                    Button("Add Rule…") {
+                        showingAddRule = true
+                    }
+                    .controlSize(.small)
+                    .sheet(isPresented: $showingAddRule) {
+                        AddContextRuleSheet { newRule in
+                            customRules.append(newRule)
+                            saveCustomRules()
+                        }
+                    }
+                }
+
                 Section("Widget Switching") {
                     Toggle("Auto-switch widgets based on frontmost app", isOn: $contextSwitchingEnabled)
                         .onChange(of: contextSwitchingEnabled) { _, newValue in
@@ -394,6 +462,22 @@ struct ContextSettingsTab: View {
         }
     }
 
+    private func saveCustomRules() {
+        ContextRuleStore.save(customRules)
+    }
+
+    private func moveRuleUp(_ index: Int) {
+        guard index > 0 else { return }
+        customRules.swapAt(index, index - 1)
+        saveCustomRules()
+    }
+
+    private func moveRuleDown(_ index: Int) {
+        guard index < customRules.count - 1 else { return }
+        customRules.swapAt(index, index + 1)
+        saveCustomRules()
+    }
+
     private func saveTimeConfig() {
         if let data = try? JSONEncoder().encode(timeConfig) {
             UserDefaults.standard.set(data, forKey: "timeProfileConfig")
@@ -415,6 +499,99 @@ struct ContextSettingsTab: View {
             return formatter.string(from: date)
         }
         return "\(hour):00"
+    }
+}
+
+struct AddContextRuleSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    var onAdd: (ContextRule) -> Void
+
+    @State private var ruleName = ""
+    @State private var conditionType: ContextRule.ConditionType = .app
+    @State private var appBundleID = ""
+    @State private var timeProfile: ContextService.TimeProfile = .morning
+    @State private var focusModeName = ""
+    @State private var widgetHint: ContextService.WidgetHint = .media
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("Add Context Rule")
+                .font(.headline)
+
+            Form {
+                TextField("Rule name", text: $ruleName)
+
+                Picker("When", selection: $conditionType) {
+                    ForEach(ContextRule.ConditionType.allCases, id: \.self) { type in
+                        Text(type.label).tag(type)
+                    }
+                }
+
+                switch conditionType {
+                case .app:
+                    TextField("App bundle ID (e.g., com.apple.Xcode)", text: $appBundleID)
+                case .time:
+                    Picker("Time profile", selection: $timeProfile) {
+                        ForEach(ContextService.TimeProfile.allCases) { profile in
+                            Text(profile.label).tag(profile)
+                        }
+                    }
+                case .focus:
+                    TextField("Focus Mode name (e.g., Work)", text: $focusModeName)
+                }
+
+                Picker("Show widget", selection: $widgetHint) {
+                    ForEach(ContextService.WidgetHint.allCases, id: \.self) { hint in
+                        Text(hint.rawValue.capitalized).tag(hint)
+                    }
+                }
+            }
+
+            HStack {
+                Button("Cancel") {
+                    dismiss()
+                }
+                .keyboardShortcut(.cancelAction)
+
+                Spacer()
+
+                Button("Add") {
+                    let condition: ContextRule.RuleCondition
+                    switch conditionType {
+                    case .app:
+                        condition = .app(bundleID: appBundleID.trimmingCharacters(in: .whitespaces))
+                    case .time:
+                        condition = .time(profile: timeProfile)
+                    case .focus:
+                        condition = .focus(modeName: focusModeName.trimmingCharacters(in: .whitespaces))
+                    }
+
+                    let rule = ContextRule(
+                        name: ruleName.trimmingCharacters(in: .whitespaces),
+                        condition: condition,
+                        widgetHint: widgetHint
+                    )
+                    onAdd(rule)
+                    dismiss()
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(!isValid)
+            }
+        }
+        .padding()
+        .frame(width: 380)
+    }
+
+    private var isValid: Bool {
+        guard !ruleName.trimmingCharacters(in: .whitespaces).isEmpty else { return false }
+        switch conditionType {
+        case .app:
+            return !appBundleID.trimmingCharacters(in: .whitespaces).isEmpty
+        case .time:
+            return true
+        case .focus:
+            return !focusModeName.trimmingCharacters(in: .whitespaces).isEmpty
+        }
     }
 }
 

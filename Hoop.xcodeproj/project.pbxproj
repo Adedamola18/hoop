@@ -23,6 +23,7 @@
 		AA00000F /* HUDService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001F /* HUDService.swift */; };
 		AA000009 /* HUDOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000020 /* HUDOverlayView.swift */; };
 		AA000038 /* ContextService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000039 /* ContextService.swift */; };
+		AA00003B /* ContextRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003A /* ContextRule.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +45,7 @@
 		AA00001F /* HUDService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDService.swift; sourceTree = "<group>"; };
 		AA000020 /* HUDOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDOverlayView.swift; sourceTree = "<group>"; };
 		AA000039 /* ContextService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextService.swift; sourceTree = "<group>"; };
+		AA00003A /* ContextRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextRule.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -123,6 +125,7 @@
 			isa = PBXGroup;
 			children = (
 				AA000017 /* NotchState.swift */,
+				AA00003A /* ContextRule.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -221,6 +224,7 @@
 				AA00000F /* HUDService.swift in Sources */,
 				AA000009 /* HUDOverlayView.swift in Sources */,
 				AA000038 /* ContextService.swift in Sources */,
+				AA00003B /* ContextRule.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
