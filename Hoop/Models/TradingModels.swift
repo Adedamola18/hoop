@@ -1,6 +1,5 @@
 // Hoop/Models/TradingModels.swift
 import Foundation
-import SwiftUI
 
 // MARK: - Signal Types
 
@@ -16,7 +15,7 @@ enum Direction: String, Codable {
     case neutral
 }
 
-struct RawSignal {
+struct RawSignal: Sendable {
     let sourceId: String
     let symbol: String
     let signalType: SignalType
@@ -43,14 +42,6 @@ enum AlertAccent: String, Codable {
     case bullish   // green
     case bearish   // red
     case prediction // amber
-
-    var color: Color {
-        switch self {
-        case .bullish: return .green
-        case .bearish: return .red
-        case .prediction: return .orange
-        }
-    }
 }
 
 enum AlertState: String, Codable {

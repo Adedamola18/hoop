@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Observation
 
@@ -92,4 +93,16 @@ final class NotchState {
 
     var activeAlert: TradingAlert?
     var previousPhaseBeforeAlert: Phase?
+
+    func enterAlert(_ alert: TradingAlert) {
+        previousPhaseBeforeAlert = phase
+        activeAlert = alert
+        phase = .alert
+    }
+
+    func clearAlert() {
+        phase = previousPhaseBeforeAlert ?? .idle
+        activeAlert = nil
+        previousPhaseBeforeAlert = nil
+    }
 }
