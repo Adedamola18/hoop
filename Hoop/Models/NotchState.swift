@@ -62,6 +62,7 @@ final class NotchState {
         case expanded
         case tray
         case hud
+        case alert
     }
 
     var phase: Phase = .idle
@@ -88,4 +89,7 @@ final class NotchState {
         let p = UserDefaults.standard.double(forKey: "contentPadding")
         return p > 0 ? max(8, min(32, p)) : 16
     }
+
+    var activeAlert: TradingAlert?
+    var previousPhaseBeforeAlert: Phase?
 }
