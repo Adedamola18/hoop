@@ -82,7 +82,6 @@ enum ContextRuleStore {
         }
     }
 
-    /// Invalidate the cache (e.g., if UserDefaults are modified externally).
     static func invalidateCache() {
         cachedRules = nil
     }

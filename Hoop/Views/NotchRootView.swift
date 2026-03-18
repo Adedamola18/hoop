@@ -27,8 +27,10 @@ struct NotchRootView: View {
     }
 
     private var hasActiveMedia: Bool {
-        mediaService.nowPlaying.playbackState == .playing ||
-        mediaService.nowPlaying.playbackState == .paused
+        let np = mediaService.nowPlaying
+        let hasState = np.playbackState == .playing || np.playbackState == .paused
+        // Require actual track data — avoids showing "Unknown Track" on stale/empty states
+        return hasState && np.title != nil
     }
 
     private var isTray: Bool {
