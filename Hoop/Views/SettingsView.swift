@@ -29,6 +29,10 @@ struct SettingsView: View {
                 .tabItem {
                     Label("Drop Actions", systemImage: "arrow.down.doc")
                 }
+            AboutSettingsTab()
+                .tabItem {
+                    Label("About", systemImage: "info.circle")
+                }
         }
         .frame(width: 500, height: 500)
     }
@@ -1233,6 +1237,126 @@ struct EditPipelineSheet: View {
     private func moveStepDown(_ index: Int) {
         guard index < steps.count - 1 else { return }
         steps.swapAt(index, index + 1)
+    }
+}
+
+// MARK: - About Settings Tab
+
+struct AboutSettingsTab: View {
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+    }
+
+    private var buildNumber: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer().frame(height: 24)
+
+            // Hoop logo
+            HoopLogo()
+                .frame(width: 80, height: 80)
+
+            Spacer().frame(height: 16)
+
+            // App name & version
+            Text("Hoop")
+                .font(.system(size: 26, weight: .bold, design: .rounded))
+
+            Text("v\(appVersion)")
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .foregroundStyle(.tertiary)
+                .padding(.top, 2)
+
+            Spacer().frame(height: 24)
+
+            // Author
+            VStack(spacing: 4) {
+                Text("Hoop is made by")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.tertiary)
+
+                Text("Damola Olutoke")
+                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.primary)
+            }
+
+            Spacer().frame(height: 20)
+
+            // Description
+            Text("A utility that lives in your MacBook notch.\nMedia controls, widgets, HUD, and more.")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+
+            Spacer()
+
+            // Footer
+            Text("\u{00A9} 2026 Damola Olutoke")
+                .font(.system(size: 10))
+                .foregroundStyle(.quaternary)
+                .padding(.bottom, 16)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+/// A custom drawn hoop logo — a stylized ring with gradient.
+private struct HoopLogo: View {
+    var body: some View {
+        ZStack {
+            // Outer glow
+            Circle()
+                .stroke(
+                    AngularGradient(
+                        colors: [.purple, .blue, .cyan, .blue, .purple],
+                        center: .center
+                    ),
+                    lineWidth: 6
+                )
+                .blur(radius: 6)
+                .opacity(0.5)
+
+            // Main ring
+            Circle()
+                .stroke(
+                    AngularGradient(
+                        colors: [
+                            Color(red: 0.6, green: 0.3, blue: 1.0),
+                            Color(red: 0.3, green: 0.5, blue: 1.0),
+                            Color(red: 0.2, green: 0.8, blue: 0.9),
+                            Color(red: 0.3, green: 0.5, blue: 1.0),
+                            Color(red: 0.6, green: 0.3, blue: 1.0)
+                        ],
+                        center: .center
+                    ),
+                    lineWidth: 5
+                )
+
+            // Inner highlight
+            Circle()
+                .stroke(.white.opacity(0.15), lineWidth: 1)
+                .padding(2)
+
+            // Center notch shape hint
+            RoundedRectangle(cornerRadius: 4)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.5, green: 0.3, blue: 0.9).opacity(0.6),
+                            Color(red: 0.3, green: 0.4, blue: 0.8).opacity(0.3)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .frame(width: 24, height: 12)
+                .offset(y: -2)
+        }
+        .padding(8)
     }
 }
 
