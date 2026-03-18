@@ -55,6 +55,7 @@
 		BB000033 /* IncomingCallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000034 /* IncomingCallView.swift */; };
 		BB000035 /* AirDropService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000036 /* AirDropService.swift */; };
 		BB000037 /* AirDropIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000038 /* AirDropIndicatorView.swift */; };
+		BB000039 /* AboutNotchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00003A /* AboutNotchView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -108,6 +109,7 @@
 		BB000034 /* IncomingCallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingCallView.swift; sourceTree = "<group>"; };
 		BB000036 /* AirDropService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirDropService.swift; sourceTree = "<group>"; };
 		BB000038 /* AirDropIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirDropIndicatorView.swift; sourceTree = "<group>"; };
+		BB00003A /* AboutNotchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutNotchView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -164,6 +166,7 @@
 				BB000012 /* WidgetDrawerView.swift */,
 				BB000034 /* IncomingCallView.swift */,
 				BB000038 /* AirDropIndicatorView.swift */,
+				BB00003A /* AboutNotchView.swift */,
 				AA000037 /* Widgets */,
 			);
 			path = Views;
@@ -349,6 +352,7 @@
 				BB000033 /* IncomingCallView.swift in Sources */,
 				BB000035 /* AirDropService.swift in Sources */,
 				BB000037 /* AirDropIndicatorView.swift in Sources */,
+				BB000039 /* AboutNotchView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -359,9 +363,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Hoop/Hoop.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = NO;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Hoop/Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
@@ -377,9 +383,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Hoop/Hoop.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = NO;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Hoop/Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
