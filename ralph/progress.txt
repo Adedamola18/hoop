@@ -1,0 +1,47 @@
+# Ralph Progress Log — NotchNook v2
+
+## Codebase Patterns
+- Build verify: swiftc -typecheck -sdk $(xcrun --show-sdk-path) -target arm64-apple-macos14.0 <files>
+- Always update project.pbxproj when adding new Swift files (PBXFileReference + PBXBuildFile + PBXGroup + PBXSourcesBuildPhase)
+- Use @Observable (Observation framework) not @Published/ObservableObject (macOS 14+)
+- LSUIElement agent: Info.plist with LSUIElement=true, no dock icon
+- MenuBarExtra + Settings scene pattern for menu bar app
+- SMAppService as sole source of truth for launch-at-login state (no UserDefaults)
+- SettingsLink is built-in SwiftUI, no need for SettingsAccess SPM package
+- NSScreen notch detection: use auxiliaryTopLeftArea/auxiliaryTopRightArea
+- NSTrackingArea with .inVisibleRect auto-updates on view resize — no need to manually recalculate rect
+- NotchPanel.notchState is set by NotchWindowManager after panel creation
+- SourceKit single-file diagnostics are noise — verify with multi-file swiftc -typecheck
+- NSEvent.addGlobalMonitorForEvents fires only for events outside app windows — use for click-outside dismiss
+- Panel must be makeKey() to receive keyDown events (Escape key handling)
+- ActivationTrigger enum in NotchState.swift with .current static property reads from UserDefaults
+- Use Notification.Name.activationTriggerDidChange to broadcast settings changes across components
+- Carbon.HIToolbox for key code constants (kVK_ANSI_*) and UCKeyTranslate for display strings
+- MediaRemote loaded via dlopen("/System/Library/PrivateFrameworks/MediaRemote.framework/MediaRemote")
+- MediaRemote commands: 2=togglePlayPause, 4=next, 5=previous (UInt32)
+- MediaService is @Observable — downstream views can observe nowPlaying changes directly
+- Services directory: Hoop/Services/ with PBXGroup AA000036
+- Widgets directory: Hoop/Views/Widgets/ with PBXGroup AA000037
+- MediaService is shared across all panels — single instance owned by NotchWindowManager
+- Scroll wheel swipe detection: accumulate scrollingDeltaX, fire once per gesture when threshold exceeded, reset on phase .began/.ended
+- CoreAudio volume monitoring: AudioObjectAddPropertyListenerBlock on kAudioHardwareServiceDeviceProperty_VirtualMainVolume (requires AudioToolbox import)
+- HUD phase takes priority: saves previous phase, transitions to .hud, restores on dismiss
+- HUD frame is narrower than expanded (400pt wide x 60pt tall) — separate from the 600pt expanded frame
+- HUDService owns show/dismiss lifecycle with auto-dismiss timer; NotchWindowManager handles frame changes via callbacks
+- Brightness monitoring: IOKit adaptive polling (1s idle, 0.1s when HUD active) via IODisplayGetFloatParameter/IODisplaySetFloatParameter (import IOKit.graphics)
+- Performance: use drawingGroup() on animated SwiftUI views for Metal-backed rendering, but NEVER on outer container (breaks NSVisualEffectView)
+- Performance: cache UserDefaults JSON stores (ContextRuleStore, CustomDropActionStore, PipelineStore) — invalidate on save
+- Performance: cache expensive NSWorkspace lookups (MediaService.sourceAppIcon) — invalidate on bundleID change
+- Performance: schedule ContextService time profile timer at hour boundaries, not every 60s
+- Shortcuts CLI: `/usr/bin/shortcuts run "Name" --input-path <path>` for file input; stdout for output chaining
+- Shell scripts: Process() with /bin/zsh -c, file path passed as $1 via "--" separator
+- Pipeline chaining: DropActionResult.outputPath passes output file path from one step to next
+- PipelineStore persists [PipelineConfig] as JSON in UserDefaults key "dropActionPipelines"
+- CustomDropActionStore persists [CustomDropActionConfig] as JSON in UserDefaults key "customDropActions"
+- parseExtensions() helper: shared file-private function for comma-separated extension parsing
+- sheet(item:) for edit sheets requires Identifiable conformance on the binding type
+- project.pbxproj ID collisions cause "project is damaged" errors — always check existing IDs before generating new ones
+- Xcode project file: Hoop.xcodeproj/project.pbxproj (NOT NotchNook.xcodeproj)
+
+Started: 2026-03-10 (v2)
+---

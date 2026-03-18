@@ -24,5 +24,9 @@
 	<true/>
 	<key>LSBackgroundOnly</key>
 	<false/>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>NotchNook shows your upcoming events in the Calendar widget.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>NotchNook shows a webcam preview in the Webcam widget.</string>
 </dict>
 </plist>

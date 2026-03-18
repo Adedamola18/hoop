@@ -15,6 +15,47 @@
 		AA000006 /* NotchState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000017 /* NotchState.swift */; };
 		AA000007 /* NotchWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000018 /* NotchWindowManager.swift */; };
 		AA000008 /* NotchRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000019 /* NotchRootView.swift */; };
+		AA00000A /* NotchShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001A /* NotchShape.swift */; };
+		AA00000B /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001B /* VisualEffectView.swift */; };
+		AA00000C /* MediaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001C /* MediaService.swift */; };
+		AA00000D /* MediaPlayerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001D /* MediaPlayerWidget.swift */; };
+		AA00000E /* CollapsedMediaIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001E /* CollapsedMediaIndicator.swift */; };
+		AA00000F /* HUDService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001F /* HUDService.swift */; };
+		AA000009 /* HUDOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00002F /* HUDOverlayView.swift */; };
+		AA000038 /* ContextService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000039 /* ContextService.swift */; };
+		AA00003B /* ContextRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003A /* ContextRule.swift */; };
+		AA00003D /* DropZoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003C /* DropZoneView.swift */; };
+		AA00003F /* DropActionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003E /* DropActionService.swift */; };
+		AA00004B /* DropActionSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000040A /* DropActionSelectionView.swift */; };
+		BB000001 /* BatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000002 /* BatteryService.swift */; };
+		BB000003 /* BatteryIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000004 /* BatteryIndicator.swift */; };
+		BB000005 /* PrivacyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000006 /* PrivacyService.swift */; };
+		BB000007 /* PrivacyIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000008 /* PrivacyIndicatorView.swift */; };
+		BB000009 /* FocusService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000A /* FocusService.swift */; };
+		BB00000B /* CollapsedIndicatorBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000C /* CollapsedIndicatorBar.swift */; };
+		BB00000D /* WidgetProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000E /* WidgetProtocol.swift */; };
+		BB00000F /* WidgetRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000010 /* WidgetRegistry.swift */; };
+		BB000011 /* WidgetDrawerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000012 /* WidgetDrawerView.swift */; };
+		BB000013 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000014 /* CalendarService.swift */; };
+		BB000015 /* CalendarWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000016 /* CalendarWidget.swift */; };
+		BB000017 /* TimerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000018 /* TimerService.swift */; };
+		BB000019 /* TimerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00001A /* TimerWidget.swift */; };
+		BB00001B /* ClipboardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00001C /* ClipboardService.swift */; };
+		BB00001D /* ClipboardWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00001E /* ClipboardWidget.swift */; };
+		BB00001F /* ShortcutsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000020 /* ShortcutsService.swift */; };
+		BB000021 /* ShortcutsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000022 /* ShortcutsWidget.swift */; };
+		BB000023 /* NotesWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000024 /* NotesWidget.swift */; };
+		BB000025 /* ColorPickerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000026 /* ColorPickerWidget.swift */; };
+		BB000027 /* ConverterWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000028 /* ConverterWidget.swift */; };
+		BB000029 /* WebcamWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00002A /* WebcamWidget.swift */; };
+		BB00002B /* SystemStatsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00002C /* SystemStatsService.swift */; };
+		BB00002D /* SystemStatsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00002E /* SystemStatsWidget.swift */; };
+		BB00002F /* GestureSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000030 /* GestureSettings.swift */; };
+		BB000031 /* CallService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000032 /* CallService.swift */; };
+		BB000033 /* IncomingCallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000034 /* IncomingCallView.swift */; };
+		BB000035 /* AirDropService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000036 /* AirDropService.swift */; };
+		BB000037 /* AirDropIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000038 /* AirDropIndicatorView.swift */; };
+		BB000039 /* AboutNotchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00003A /* AboutNotchView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +69,47 @@
 		AA000017 /* NotchState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchState.swift; sourceTree = "<group>"; };
 		AA000018 /* NotchWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchWindowManager.swift; sourceTree = "<group>"; };
 		AA000019 /* NotchRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchRootView.swift; sourceTree = "<group>"; };
+		AA00001A /* NotchShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchShape.swift; sourceTree = "<group>"; };
+		AA00001B /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
+		AA00001C /* MediaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaService.swift; sourceTree = "<group>"; };
+		AA00001D /* MediaPlayerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlayerWidget.swift; sourceTree = "<group>"; };
+		AA00001E /* CollapsedMediaIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollapsedMediaIndicator.swift; sourceTree = "<group>"; };
+		AA00001F /* HUDService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDService.swift; sourceTree = "<group>"; };
+		AA00002F /* HUDOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDOverlayView.swift; sourceTree = "<group>"; };
+		AA000039 /* ContextService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextService.swift; sourceTree = "<group>"; };
+		AA00003A /* ContextRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextRule.swift; sourceTree = "<group>"; };
+		AA00003C /* DropZoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropZoneView.swift; sourceTree = "<group>"; };
+		AA00003E /* DropActionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropActionService.swift; sourceTree = "<group>"; };
+		AA000040A /* DropActionSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropActionSelectionView.swift; sourceTree = "<group>"; };
+		BB000002 /* BatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryService.swift; sourceTree = "<group>"; };
+		BB000004 /* BatteryIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryIndicator.swift; sourceTree = "<group>"; };
+		BB000006 /* PrivacyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyService.swift; sourceTree = "<group>"; };
+		BB000008 /* PrivacyIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyIndicatorView.swift; sourceTree = "<group>"; };
+		BB00000A /* FocusService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusService.swift; sourceTree = "<group>"; };
+		BB00000C /* CollapsedIndicatorBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollapsedIndicatorBar.swift; sourceTree = "<group>"; };
+		BB00000E /* WidgetProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetProtocol.swift; sourceTree = "<group>"; };
+		BB000010 /* WidgetRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetRegistry.swift; sourceTree = "<group>"; };
+		BB000012 /* WidgetDrawerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDrawerView.swift; sourceTree = "<group>"; };
+		BB000014 /* CalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
+		BB000016 /* CalendarWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarWidget.swift; sourceTree = "<group>"; };
+		BB000018 /* TimerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerService.swift; sourceTree = "<group>"; };
+		BB00001A /* TimerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerWidget.swift; sourceTree = "<group>"; };
+		BB00001C /* ClipboardService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardService.swift; sourceTree = "<group>"; };
+		BB00001E /* ClipboardWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardWidget.swift; sourceTree = "<group>"; };
+		BB000020 /* ShortcutsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsService.swift; sourceTree = "<group>"; };
+		BB000022 /* ShortcutsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsWidget.swift; sourceTree = "<group>"; };
+		BB000024 /* NotesWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesWidget.swift; sourceTree = "<group>"; };
+		BB000026 /* ColorPickerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidget.swift; sourceTree = "<group>"; };
+		BB000028 /* ConverterWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConverterWidget.swift; sourceTree = "<group>"; };
+		BB00002A /* WebcamWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebcamWidget.swift; sourceTree = "<group>"; };
+		BB00002C /* SystemStatsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStatsService.swift; sourceTree = "<group>"; };
+		BB00002E /* SystemStatsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStatsWidget.swift; sourceTree = "<group>"; };
+		BB000030 /* GestureSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureSettings.swift; sourceTree = "<group>"; };
+		BB000032 /* CallService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallService.swift; sourceTree = "<group>"; };
+		BB000034 /* IncomingCallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingCallView.swift; sourceTree = "<group>"; };
+		BB000036 /* AirDropService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirDropService.swift; sourceTree = "<group>"; };
+		BB000038 /* AirDropIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirDropIndicatorView.swift; sourceTree = "<group>"; };
+		BB00003A /* AboutNotchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutNotchView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,6 +139,7 @@
 				AA000034 /* Window */,
 				AA000033 /* Views */,
 				AA000035 /* Models */,
+				AA000036 /* Services */,
 				AA000014 /* Info.plist */,
 			);
 			path = Hoop;
@@ -75,8 +158,39 @@
 			children = (
 				AA000013 /* SettingsView.swift */,
 				AA000019 /* NotchRootView.swift */,
+				AA00001A /* NotchShape.swift */,
+				AA00001B /* VisualEffectView.swift */,
+				AA00002F /* HUDOverlayView.swift */,
+				AA00003C /* DropZoneView.swift */,
+				AA000040A /* DropActionSelectionView.swift */,
+				BB000012 /* WidgetDrawerView.swift */,
+				BB000034 /* IncomingCallView.swift */,
+				BB000038 /* AirDropIndicatorView.swift */,
+				BB00003A /* AboutNotchView.swift */,
+				AA000037 /* Widgets */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		AA000037 /* Widgets */ = {
+			isa = PBXGroup;
+			children = (
+				AA00001D /* MediaPlayerWidget.swift */,
+				AA00001E /* CollapsedMediaIndicator.swift */,
+				BB000004 /* BatteryIndicator.swift */,
+				BB000008 /* PrivacyIndicatorView.swift */,
+				BB00000C /* CollapsedIndicatorBar.swift */,
+				BB000016 /* CalendarWidget.swift */,
+				BB00001A /* TimerWidget.swift */,
+				BB00001E /* ClipboardWidget.swift */,
+				BB000022 /* ShortcutsWidget.swift */,
+				BB000024 /* NotesWidget.swift */,
+				BB000026 /* ColorPickerWidget.swift */,
+				BB000028 /* ConverterWidget.swift */,
+				BB00002A /* WebcamWidget.swift */,
+				BB00002E /* SystemStatsWidget.swift */,
+			);
+			path = Widgets;
 			sourceTree = "<group>";
 		};
 		AA000034 /* Window */ = {
@@ -93,8 +207,33 @@
 			isa = PBXGroup;
 			children = (
 				AA000017 /* NotchState.swift */,
+				AA00003A /* ContextRule.swift */,
+				BB00000E /* WidgetProtocol.swift */,
+				BB000030 /* GestureSettings.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		AA000036 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				AA00001C /* MediaService.swift */,
+				AA00001F /* HUDService.swift */,
+				AA000039 /* ContextService.swift */,
+				AA00003E /* DropActionService.swift */,
+				BB000002 /* BatteryService.swift */,
+				BB000006 /* PrivacyService.swift */,
+				BB00000A /* FocusService.swift */,
+				BB000010 /* WidgetRegistry.swift */,
+				BB000014 /* CalendarService.swift */,
+				BB000018 /* TimerService.swift */,
+				BB00001C /* ClipboardService.swift */,
+				BB000020 /* ShortcutsService.swift */,
+				BB00002C /* SystemStatsService.swift */,
+				BB000032 /* CallService.swift */,
+				BB000036 /* AirDropService.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -173,6 +312,47 @@
 				AA000006 /* NotchState.swift in Sources */,
 				AA000007 /* NotchWindowManager.swift in Sources */,
 				AA000008 /* NotchRootView.swift in Sources */,
+				AA00000A /* NotchShape.swift in Sources */,
+				AA00000B /* VisualEffectView.swift in Sources */,
+				AA00000C /* MediaService.swift in Sources */,
+				AA00000D /* MediaPlayerWidget.swift in Sources */,
+				AA00000E /* CollapsedMediaIndicator.swift in Sources */,
+				AA00000F /* HUDService.swift in Sources */,
+				AA000009 /* HUDOverlayView.swift in Sources */,
+				AA000038 /* ContextService.swift in Sources */,
+				AA00003B /* ContextRule.swift in Sources */,
+				AA00003D /* DropZoneView.swift in Sources */,
+				AA00003F /* DropActionService.swift in Sources */,
+				AA00004B /* DropActionSelectionView.swift in Sources */,
+				BB000001 /* BatteryService.swift in Sources */,
+				BB000003 /* BatteryIndicator.swift in Sources */,
+				BB000005 /* PrivacyService.swift in Sources */,
+				BB000007 /* PrivacyIndicatorView.swift in Sources */,
+				BB000009 /* FocusService.swift in Sources */,
+				BB00000B /* CollapsedIndicatorBar.swift in Sources */,
+				BB00000D /* WidgetProtocol.swift in Sources */,
+				BB00000F /* WidgetRegistry.swift in Sources */,
+				BB000011 /* WidgetDrawerView.swift in Sources */,
+				BB000013 /* CalendarService.swift in Sources */,
+				BB000015 /* CalendarWidget.swift in Sources */,
+				BB000017 /* TimerService.swift in Sources */,
+				BB000019 /* TimerWidget.swift in Sources */,
+				BB00001B /* ClipboardService.swift in Sources */,
+				BB00001D /* ClipboardWidget.swift in Sources */,
+				BB00001F /* ShortcutsService.swift in Sources */,
+				BB000021 /* ShortcutsWidget.swift in Sources */,
+				BB000023 /* NotesWidget.swift in Sources */,
+				BB000025 /* ColorPickerWidget.swift in Sources */,
+				BB000027 /* ConverterWidget.swift in Sources */,
+				BB000029 /* WebcamWidget.swift in Sources */,
+				BB00002B /* SystemStatsService.swift in Sources */,
+				BB00002D /* SystemStatsWidget.swift in Sources */,
+				BB00002F /* GestureSettings.swift in Sources */,
+				BB000031 /* CallService.swift in Sources */,
+				BB000033 /* IncomingCallView.swift in Sources */,
+				BB000035 /* AirDropService.swift in Sources */,
+				BB000037 /* AirDropIndicatorView.swift in Sources */,
+				BB000039 /* AboutNotchView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -183,9 +363,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Hoop/Hoop.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = NO;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Hoop/Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
@@ -201,9 +383,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Hoop/Hoop.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = NO;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Hoop/Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;

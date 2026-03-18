@@ -52,6 +52,16 @@ extension NSScreen {
         notchFrame ?? virtualPillFrame
     }
 
+    /// Frame for the expanded overlay, centered at the top of the screen.
+    func expandedOverlayFrame(expandedWidth: CGFloat = 600, expandedHeight: CGFloat = 200) -> NSRect {
+        return NSRect(
+            x: frame.midX - expandedWidth / 2,
+            y: frame.maxY - expandedHeight,
+            width: expandedWidth,
+            height: expandedHeight
+        )
+    }
+
     /// A stable identifier for this screen that persists across reconnections.
     /// Uses the CGDirectDisplayID from the device description dictionary.
     var stableIdentifier: String {
