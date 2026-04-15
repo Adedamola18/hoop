@@ -1,16 +1,6 @@
 // Hoop/Views/NotchAccentGlow.swift
 import SwiftUI
 
-extension AlertAccent {
-    var color: Color {
-        switch self {
-        case .bullish: return .green
-        case .bearish: return .red
-        case .prediction: return .orange
-        }
-    }
-}
-
 struct NotchAccentGlow: ViewModifier {
     let accent: AlertAccent?
     let isActive: Bool
