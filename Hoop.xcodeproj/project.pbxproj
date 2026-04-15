@@ -56,6 +56,22 @@
 		BB000035 /* AirDropService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000036 /* AirDropService.swift */; };
 		BB000037 /* AirDropIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000038 /* AirDropIndicatorView.swift */; };
 		BB000039 /* AboutNotchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00003A /* AboutNotchView.swift */; };
+		BB00003B /* AlertAccent+UI.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00003C /* AlertAccent+UI.swift */; };
+		BB00004D /* TradingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00003D /* TradingModels.swift */; };
+		BB00004E /* MarketAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00003E /* MarketAdapter.swift */; };
+		BB00004F /* StartupAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00003F /* StartupAnimator.swift */; };
+		BB000050 /* SecurityGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000040 /* SecurityGate.swift */; };
+		BB000051 /* WebhookServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000041 /* WebhookServer.swift */; };
+		BB000052 /* AlertEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000042 /* AlertEngine.swift */; };
+		BB000053 /* BinanceAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000043 /* BinanceAdapter.swift */; };
+		BB000054 /* BybitAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000044 /* BybitAdapter.swift */; };
+		BB000055 /* PolymarketAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000045 /* PolymarketAdapter.swift */; };
+		BB000056 /* KalshiAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000046 /* KalshiAdapter.swift */; };
+		BB000057 /* AlertToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000047 /* AlertToastView.swift */; };
+		BB000058 /* AlertDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000048 /* AlertDetailView.swift */; };
+		BB000059 /* NotchAccentGlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000049 /* NotchAccentGlow.swift */; };
+		BB00005A /* EyeScanUnlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00004A /* EyeScanUnlockView.swift */; };
+		BB00005B /* TradingAlertsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00004B /* TradingAlertsWidget.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -110,6 +126,22 @@
 		BB000036 /* AirDropService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirDropService.swift; sourceTree = "<group>"; };
 		BB000038 /* AirDropIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirDropIndicatorView.swift; sourceTree = "<group>"; };
 		BB00003A /* AboutNotchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutNotchView.swift; sourceTree = "<group>"; };
+		BB00003C /* AlertAccent+UI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AlertAccent+UI.swift"; sourceTree = "<group>"; };
+		BB00003D /* TradingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingModels.swift; sourceTree = "<group>"; };
+		BB00003E /* MarketAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketAdapter.swift; sourceTree = "<group>"; };
+		BB00003F /* StartupAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartupAnimator.swift; sourceTree = "<group>"; };
+		BB000040 /* SecurityGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityGate.swift; sourceTree = "<group>"; };
+		BB000041 /* WebhookServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebhookServer.swift; sourceTree = "<group>"; };
+		BB000042 /* AlertEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertEngine.swift; sourceTree = "<group>"; };
+		BB000043 /* BinanceAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BinanceAdapter.swift; sourceTree = "<group>"; };
+		BB000044 /* BybitAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BybitAdapter.swift; sourceTree = "<group>"; };
+		BB000045 /* PolymarketAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolymarketAdapter.swift; sourceTree = "<group>"; };
+		BB000046 /* KalshiAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KalshiAdapter.swift; sourceTree = "<group>"; };
+		BB000047 /* AlertToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertToastView.swift; sourceTree = "<group>"; };
+		BB000048 /* AlertDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertDetailView.swift; sourceTree = "<group>"; };
+		BB000049 /* NotchAccentGlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchAccentGlow.swift; sourceTree = "<group>"; };
+		BB00004A /* EyeScanUnlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EyeScanUnlockView.swift; sourceTree = "<group>"; };
+		BB00004B /* TradingAlertsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingAlertsWidget.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -167,6 +199,11 @@
 				BB000034 /* IncomingCallView.swift */,
 				BB000038 /* AirDropIndicatorView.swift */,
 				BB00003A /* AboutNotchView.swift */,
+				BB00003C /* AlertAccent+UI.swift */,
+				BB000047 /* AlertToastView.swift */,
+				BB000048 /* AlertDetailView.swift */,
+				BB000049 /* NotchAccentGlow.swift */,
+				BB00004A /* EyeScanUnlockView.swift */,
 				AA000037 /* Widgets */,
 			);
 			path = Views;
@@ -189,6 +226,7 @@
 				BB000028 /* ConverterWidget.swift */,
 				BB00002A /* WebcamWidget.swift */,
 				BB00002E /* SystemStatsWidget.swift */,
+				BB00004B /* TradingAlertsWidget.swift */,
 			);
 			path = Widgets;
 			sourceTree = "<group>";
@@ -210,6 +248,7 @@
 				AA00003A /* ContextRule.swift */,
 				BB00000E /* WidgetProtocol.swift */,
 				BB000030 /* GestureSettings.swift */,
+				BB00003D /* TradingModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -232,8 +271,25 @@
 				BB00002C /* SystemStatsService.swift */,
 				BB000032 /* CallService.swift */,
 				BB000036 /* AirDropService.swift */,
+				BB00003F /* StartupAnimator.swift */,
+				BB000040 /* SecurityGate.swift */,
+				BB000041 /* WebhookServer.swift */,
+				BB000042 /* AlertEngine.swift */,
+				BB00004C /* Adapters */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		BB00004C /* Adapters */ = {
+			isa = PBXGroup;
+			children = (
+				BB00003E /* MarketAdapter.swift */,
+				BB000043 /* BinanceAdapter.swift */,
+				BB000044 /* BybitAdapter.swift */,
+				BB000045 /* PolymarketAdapter.swift */,
+				BB000046 /* KalshiAdapter.swift */,
+			);
+			path = Adapters;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -353,6 +409,22 @@
 				BB000035 /* AirDropService.swift in Sources */,
 				BB000037 /* AirDropIndicatorView.swift in Sources */,
 				BB000039 /* AboutNotchView.swift in Sources */,
+				BB00003B /* AlertAccent+UI.swift in Sources */,
+				BB00004D /* TradingModels.swift in Sources */,
+				BB00004E /* MarketAdapter.swift in Sources */,
+				BB00004F /* StartupAnimator.swift in Sources */,
+				BB000050 /* SecurityGate.swift in Sources */,
+				BB000051 /* WebhookServer.swift in Sources */,
+				BB000052 /* AlertEngine.swift in Sources */,
+				BB000053 /* BinanceAdapter.swift in Sources */,
+				BB000054 /* BybitAdapter.swift in Sources */,
+				BB000055 /* PolymarketAdapter.swift in Sources */,
+				BB000056 /* KalshiAdapter.swift in Sources */,
+				BB000057 /* AlertToastView.swift in Sources */,
+				BB000058 /* AlertDetailView.swift in Sources */,
+				BB000059 /* NotchAccentGlow.swift in Sources */,
+				BB00005A /* EyeScanUnlockView.swift in Sources */,
+				BB00005B /* TradingAlertsWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
