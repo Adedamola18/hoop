@@ -2,47 +2,127 @@ import Carbon.HIToolbox
 import ServiceManagement
 import SwiftUI
 
+enum SettingsTabKind: String, CaseIterable, Identifiable {
+    case general, appearance, hud, widgets, context, dropActions, markets, about
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .general: return "General"
+        case .appearance: return "Appearance"
+        case .hud: return "HUD"
+        case .widgets: return "Widgets"
+        case .context: return "Context"
+        case .dropActions: return "Drop Actions"
+        case .markets: return "Markets"
+        case .about: return "About"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .general: return "gear"
+        case .appearance: return "paintbrush"
+        case .hud: return "slider.horizontal.3"
+        case .widgets: return "square.grid.2x2"
+        case .context: return "app.connected.to.app.below.fill"
+        case .dropActions: return "arrow.down.doc"
+        case .markets: return "chart.line.uptrend.xyaxis"
+        case .about: return "info.circle"
+        }
+    }
+}
+
 struct SettingsView: View {
     let alertEngine: AlertEngine
     let securityGate: SecurityGate
     let widgetRegistry: WidgetRegistry
 
+    @State private var selection: SettingsTabKind = .general
+
     var body: some View {
-        TabView {
-            GeneralSettingsTab(securityGate: securityGate, widgetRegistry: widgetRegistry)
-                .tabItem {
-                    Label("General", systemImage: "gear")
+        VStack(spacing: 0) {
+            SettingsTabBar(selection: $selection)
+            Divider()
+            Group {
+                switch selection {
+                case .general:
+                    GeneralSettingsTab(securityGate: securityGate, widgetRegistry: widgetRegistry)
+                case .appearance:
+                    AppearanceSettingsTab()
+                case .hud:
+                    HUDSettingsTab()
+                case .widgets:
+                    WidgetsSettingsTab()
+                case .context:
+                    ContextSettingsTab()
+                case .dropActions:
+                    DropActionsSettingsTab()
+                case .markets:
+                    MarketsSettingsTab(alertEngine: alertEngine)
+                case .about:
+                    AboutSettingsTab()
                 }
-            AppearanceSettingsTab()
-                .tabItem {
-                    Label("Appearance", systemImage: "paintbrush")
-                }
-            HUDSettingsTab()
-                .tabItem {
-                    Label("HUD", systemImage: "slider.horizontal.3")
-                }
-            WidgetsSettingsTab()
-                .tabItem {
-                    Label("Widgets", systemImage: "square.grid.2x2")
-                }
-            ContextSettingsTab()
-                .tabItem {
-                    Label("Context", systemImage: "app.connected.to.app.below.fill")
-                }
-            DropActionsSettingsTab()
-                .tabItem {
-                    Label("Drop Actions", systemImage: "arrow.down.doc")
-                }
-            MarketsSettingsTab(alertEngine: alertEngine)
-                .tabItem {
-                    Label("Markets", systemImage: "chart.line.uptrend.xyaxis")
-                }
-            AboutSettingsTab()
-                .tabItem {
-                    Label("About", systemImage: "info.circle")
-                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(width: 500, height: 500)
+    }
+}
+
+private struct SettingsTabBar: View {
+    @Binding var selection: SettingsTabKind
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 4) {
+                    ForEach(SettingsTabKind.allCases) { tab in
+                        SettingsTabButton(tab: tab, isSelected: tab == selection) {
+                            selection = tab
+                        }
+                        .id(tab)
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+            }
+            .onChange(of: selection) { _, newValue in
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    proxy.scrollTo(newValue, anchor: .center)
+                }
+            }
+        }
+    }
+}
+
+private struct SettingsTabButton: View {
+    let tab: SettingsTabKind
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 3) {
+                Image(systemName: tab.icon)
+                    .font(.system(size: 18, weight: .regular))
+                Text(tab.label)
+                    .font(.system(size: 11))
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+            .padding(.vertical, 6)
+            .padding(.horizontal, 10)
+            .frame(minWidth: 64)
+            .foregroundStyle(isSelected ? Color.accentColor : .primary)
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(isSelected ? Color.accentColor.opacity(0.18) : Color.clear)
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -52,17 +132,16 @@ struct AppearanceSettingsTab: View {
     var body: some View {
         Form {
             Section("Theme") {
-                Picker("Appearance", selection: $selectedTheme) {
+                HStack(spacing: 12) {
                     ForEach(ThemeMode.allCases, id: \.rawValue) { mode in
-                        Label(mode.label, systemImage: mode.icon)
-                            .tag(mode)
+                        ThemeCard(mode: mode, isSelected: selectedTheme == mode) {
+                            selectedTheme = mode
+                            UserDefaults.standard.set(mode.rawValue, forKey: "themeMode")
+                            NotificationCenter.default.post(name: .themeModeDidChange, object: nil)
+                        }
                     }
                 }
-                .pickerStyle(.radioGroup)
-                .onChange(of: selectedTheme) { _, newValue in
-                    UserDefaults.standard.set(newValue.rawValue, forKey: "themeMode")
-                    NotificationCenter.default.post(name: .themeModeDidChange, object: nil)
-                }
+                .padding(.vertical, 4)
 
                 Text("Solid Dark matches the hardware notch. Translucent adds a frosted overlay. Liquid Glass uses a lighter frosted effect.")
                     .font(.caption)
@@ -71,6 +150,106 @@ struct AppearanceSettingsTab: View {
         }
         .formStyle(.grouped)
         .padding()
+    }
+}
+
+private struct ThemeCard: View {
+    let mode: ThemeMode
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                MiniNotchPreview(mode: mode)
+                    .padding(.top, 4)
+
+                Spacer(minLength: 0)
+
+                Text(mode.label)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(isSelected ? Color.primary : .secondary)
+                    .lineLimit(1)
+
+                Image(systemName: "checkmark")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.accentColor)
+                    .opacity(isSelected ? 1 : 0)
+                    .padding(.bottom, 4)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 100)
+            .background(themeBackground)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(strokeColor, lineWidth: isSelected ? 2 : 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private var themeBackground: some View {
+        switch mode {
+        case .solidDark:
+            RadialGradient(
+                colors: [Color(red: 0.059, green: 0.106, blue: 0.180),
+                         Color(red: 0.027, green: 0.051, blue: 0.086)],
+                center: .center, startRadius: 0, endRadius: 110
+            )
+        case .translucentDark:
+            ZStack {
+                Rectangle().fill(.thinMaterial)
+                LinearGradient(
+                    colors: [Color(red: 0.110, green: 0.137, blue: 0.200).opacity(0.55),
+                             Color(red: 0.082, green: 0.106, blue: 0.157).opacity(0.55)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            }
+        case .liquidGlass:
+            ZStack {
+                Rectangle().fill(.ultraThinMaterial)
+                RadialGradient(
+                    colors: [Color.white.opacity(0.10), Color.white.opacity(0.02)],
+                    center: .center, startRadius: 0, endRadius: 90
+                )
+            }
+        }
+    }
+
+    private var strokeColor: Color {
+        if isSelected { return Color.accentColor }
+        switch mode {
+        case .solidDark: return Color.white.opacity(0.06)
+        case .translucentDark: return Color(red: 0.165, green: 0.204, blue: 0.282)
+        case .liquidGlass: return Color.white.opacity(0.18)
+        }
+    }
+}
+
+private struct MiniNotchPreview: View {
+    let mode: ThemeMode
+
+    var body: some View {
+        UnevenRoundedRectangle(
+            cornerRadii: .init(topLeading: 0, bottomLeading: 6, bottomTrailing: 6, topTrailing: 0),
+            style: .continuous
+        )
+        .fill(notchFill)
+        .frame(width: 44, height: 12)
+    }
+
+    private var notchFill: Color {
+        switch mode {
+        case .solidDark:
+            return Color.black
+        case .translucentDark:
+            return Color.black.opacity(0.55)
+        case .liquidGlass:
+            return Color.white.opacity(0.18)
+        }
     }
 }
 
@@ -1371,7 +1550,7 @@ struct AboutSettingsTab: View {
             Spacer().frame(height: 20)
 
             // Description
-            Text("A utility that lives in your MacBook notch.\nMedia controls, widgets, HUD, and more.")
+            Text("A utility that lives in your MacBook notch.\nMedia \u{00B7} HUD \u{00B7} Widgets \u{00B7} Markets")
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

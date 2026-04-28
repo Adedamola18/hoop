@@ -10,6 +10,7 @@ final class StartupAnimator {
         case pulse
         case done
     }
+    
 
     private(set) var phase: Phase = .typewriter
     private(set) var visibleCharacters: Int = 0
