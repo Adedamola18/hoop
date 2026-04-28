@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Observation
 
@@ -62,6 +63,7 @@ final class NotchState {
         case expanded
         case tray
         case hud
+        case alert
     }
 
     var phase: Phase = .idle
@@ -87,5 +89,20 @@ final class NotchState {
     var contentPadding: CGFloat {
         let p = UserDefaults.standard.double(forKey: "contentPadding")
         return p > 0 ? max(8, min(32, p)) : 16
+    }
+
+    var activeAlert: TradingAlert?
+    var previousPhaseBeforeAlert: Phase?
+
+    func enterAlert(_ alert: TradingAlert) {
+        previousPhaseBeforeAlert = phase
+        activeAlert = alert
+        phase = .alert
+    }
+
+    func clearAlert() {
+        phase = previousPhaseBeforeAlert ?? .idle
+        activeAlert = nil
+        previousPhaseBeforeAlert = nil
     }
 }

@@ -7,6 +7,7 @@ struct CollapsedIndicatorBar: View {
     let privacyService: PrivacyService
     let focusService: FocusService
     let batteryService: BatteryService
+    let alertEngine: AlertEngine
 
     private var hasPrivacyIndicators: Bool {
         privacyService.isCameraActive || privacyService.isMicrophoneActive || privacyService.isScreenRecording
@@ -29,6 +30,13 @@ struct CollapsedIndicatorBar: View {
                 if hasPrivacyIndicators {
                     PrivacyIndicatorView(privacyService: privacyService)
                         .padding(.leading, 12)
+                }
+
+                if alertEngine.hasUnreadAlerts {
+                    Circle()
+                        .fill(Color.orange)
+                        .frame(width: 6, height: 6)
+                        .transition(.scale.combined(with: .opacity))
                 }
 
                 Spacer()

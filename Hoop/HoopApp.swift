@@ -28,7 +28,11 @@ struct HoopApp: App {
         }
 
         Settings {
-            SettingsView()
+            SettingsView(
+                alertEngine: appDelegate.windowManager.alertEngine,
+                securityGate: appDelegate.windowManager.securityGate,
+                widgetRegistry: appDelegate.windowManager.widgetRegistry
+            )
         }
     }
 }

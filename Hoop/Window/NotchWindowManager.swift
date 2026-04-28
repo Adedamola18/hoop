@@ -26,6 +26,10 @@ final class NotchWindowManager {
     let systemStatsService = SystemStatsService()
     let callService = CallService()
     let airDropService = AirDropService()
+    let startupAnimator = StartupAnimator()
+    let alertEngine = AlertEngine()
+    let webhookServer = WebhookServer()
+    let securityGate = SecurityGate()
 
     init() {
         NotificationCenter.default.addObserver(
@@ -77,9 +81,22 @@ final class NotchWindowManager {
         callService.startObserving()
         airDropService.startObserving()
         calendarService.requestAccessAndStart()
+
+        // Configure trading alert adapters
+        let adapters: [any MarketAdapter] = [
+            BinanceAdapter(),
+            BybitAdapter(),
+            PolymarketAdapter(),
+            KalshiAdapter()
+        ]
+        alertEngine.configure(adapters: adapters, webhookServer: webhookServer)
+        alertEngine.startObserving()
+        securityGate.startObserving()
+
         registerWidgets()
         wireHUDCallbacks()
         wireDropActionCallbacks()
+        wireAlertCallbacks()
     }
 
     deinit {
@@ -94,6 +111,8 @@ final class NotchWindowManager {
         systemStatsService.stopObserving()
         callService.stopObserving()
         airDropService.stopObserving()
+        alertEngine.stopObserving()
+        securityGate.stopObserving()
         NotificationCenter.default.removeObserver(self)
         NSWorkspace.shared.notificationCenter.removeObserver(self)
         pendingSynchronize?.cancel()
@@ -121,6 +140,7 @@ final class NotchWindowManager {
         widgetRegistry.register(ConverterNotchWidget())
         widgetRegistry.register(WebcamNotchWidget())
         widgetRegistry.register(SystemStatsNotchWidget(statsService: systemStatsService))
+        widgetRegistry.register(TradingAlertsWidget(alertEngine: alertEngine))
     }
 
     // MARK: - Screen Change Handling
@@ -232,7 +252,7 @@ final class NotchWindowManager {
         state.screenHasNotch = screen.hasNotch
         state.collapsedSize = screen.overlayFrame.size
 
-        let rootView = NotchRootView(state: state, mediaService: mediaService, hudService: hudService, contextService: contextService, dropActionService: dropActionService, batteryService: batteryService, privacyService: privacyService, focusService: focusService, widgetRegistry: widgetRegistry, callService: callService, airDropService: airDropService)
+        let rootView = NotchRootView(state: state, mediaService: mediaService, hudService: hudService, contextService: contextService, dropActionService: dropActionService, batteryService: batteryService, privacyService: privacyService, focusService: focusService, widgetRegistry: widgetRegistry, callService: callService, airDropService: airDropService, startupAnimator: startupAnimator, alertEngine: alertEngine, securityGate: securityGate)
         let hostingView = NSHostingView(rootView: rootView)
 
         let panel = NotchPanel(
@@ -278,6 +298,11 @@ final class NotchWindowManager {
         }
 
         windows[id] = (panel: panel, state: state)
+
+        // Start startup animation on primary notch screen
+        if state.screenHasNotch {
+            startupAnimator.start()
+        }
     }
 
     private func repositionWindow(_ id: String, on screen: NSScreen) {
@@ -305,6 +330,23 @@ final class NotchWindowManager {
                 height: hudHeight
             )
             entry.panel.setFrame(hudFrame, display: true)
+            entry.panel.installTrackingArea()
+        case .alert:
+            // Alert medium uses HUD frame; high uses expanded frame
+            if let alert = entry.state.activeAlert, alert.priority == .high {
+                let expandedFrame = screen.expandedOverlayFrame(expandedWidth: entry.state.expandedWidth, expandedHeight: entry.state.expandedHeight)
+                entry.panel.setFrame(expandedFrame, display: true)
+            } else {
+                let hudWidth: CGFloat = 400
+                let hudHeight: CGFloat = 60
+                let hudFrame = NSRect(
+                    x: screen.frame.midX - hudWidth / 2,
+                    y: screen.frame.maxY - hudHeight,
+                    width: hudWidth,
+                    height: hudHeight
+                )
+                entry.panel.setFrame(hudFrame, display: true)
+            }
             entry.panel.installTrackingArea()
         }
     }
@@ -580,6 +622,64 @@ final class NotchWindowManager {
         print("[Hoop] Files dropped: \(urls.map(\.lastPathComponent))")
         dropActionService.handleDrop(urls: urls)
         // Tray stays open — DropActionSelectionView shows action selection / result
+    }
+
+    private func wireAlertCallbacks() {
+        startupAnimator.onComplete = {
+            // Startup done, normal idle takes over
+        }
+
+        alertEngine.onAlert = { [weak self] alert in
+            guard let self else { return }
+            // Respect phase precedence: don't interrupt tray or HUD
+            for (_, entry) in self.windows {
+                if entry.state.phase == .tray || entry.state.phase == .hud {
+                    return
+                }
+            }
+            // Show alert on primary notch screen
+            if let (id, entry) = self.windows.first(where: { $0.value.state.screenHasNotch }) {
+                entry.state.enterAlert(alert)
+                self.resizeFrameForAlert(id: id, priority: alert.priority)
+            }
+        }
+
+        alertEngine.onAlertDismissed = { [weak self] in
+            guard let self else { return }
+            for (id, entry) in self.windows where entry.state.phase == .alert {
+                entry.state.clearAlert()
+                let screen = NSScreen.screens.first { $0.stableIdentifier == id }
+                guard let screen else { continue }
+                entry.panel.setFrame(screen.overlayFrame, display: true)
+                entry.panel.installTrackingArea()
+            }
+        }
+
+        securityGate.onLockStateChanged = {
+            // Views auto-update via @Observable
+        }
+    }
+
+    private func resizeFrameForAlert(id: String, priority: AlertPriority) {
+        guard let entry = windows[id] else { return }
+        let screen = NSScreen.screens.first { $0.stableIdentifier == id }
+        guard let screen else { return }
+
+        if priority == .high {
+            let expandedFrame = screen.expandedOverlayFrame(expandedWidth: entry.state.expandedWidth, expandedHeight: entry.state.expandedHeight)
+            entry.panel.setFrame(expandedFrame, display: true)
+        } else {
+            let hudWidth: CGFloat = 400
+            let hudHeight: CGFloat = 60
+            let hudFrame = NSRect(
+                x: screen.frame.midX - hudWidth / 2,
+                y: screen.frame.maxY - hudHeight,
+                width: hudWidth,
+                height: hudHeight
+            )
+            entry.panel.setFrame(hudFrame, display: true)
+        }
+        entry.panel.installTrackingArea()
     }
 
     private func wireDropActionCallbacks() {

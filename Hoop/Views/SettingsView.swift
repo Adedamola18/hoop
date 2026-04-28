@@ -2,39 +2,127 @@ import Carbon.HIToolbox
 import ServiceManagement
 import SwiftUI
 
+enum SettingsTabKind: String, CaseIterable, Identifiable {
+    case general, appearance, hud, widgets, context, dropActions, markets, about
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .general: return "General"
+        case .appearance: return "Appearance"
+        case .hud: return "HUD"
+        case .widgets: return "Widgets"
+        case .context: return "Context"
+        case .dropActions: return "Drop Actions"
+        case .markets: return "Markets"
+        case .about: return "About"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .general: return "gear"
+        case .appearance: return "paintbrush"
+        case .hud: return "slider.horizontal.3"
+        case .widgets: return "square.grid.2x2"
+        case .context: return "app.connected.to.app.below.fill"
+        case .dropActions: return "arrow.down.doc"
+        case .markets: return "chart.line.uptrend.xyaxis"
+        case .about: return "info.circle"
+        }
+    }
+}
+
 struct SettingsView: View {
+    let alertEngine: AlertEngine
+    let securityGate: SecurityGate
+    let widgetRegistry: WidgetRegistry
+
+    @State private var selection: SettingsTabKind = .general
+
     var body: some View {
-        TabView {
-            GeneralSettingsTab()
-                .tabItem {
-                    Label("General", systemImage: "gear")
+        VStack(spacing: 0) {
+            SettingsTabBar(selection: $selection)
+            Divider()
+            Group {
+                switch selection {
+                case .general:
+                    GeneralSettingsTab(securityGate: securityGate, widgetRegistry: widgetRegistry)
+                case .appearance:
+                    AppearanceSettingsTab()
+                case .hud:
+                    HUDSettingsTab()
+                case .widgets:
+                    WidgetsSettingsTab()
+                case .context:
+                    ContextSettingsTab()
+                case .dropActions:
+                    DropActionsSettingsTab()
+                case .markets:
+                    MarketsSettingsTab(alertEngine: alertEngine)
+                case .about:
+                    AboutSettingsTab()
                 }
-            AppearanceSettingsTab()
-                .tabItem {
-                    Label("Appearance", systemImage: "paintbrush")
-                }
-            HUDSettingsTab()
-                .tabItem {
-                    Label("HUD", systemImage: "slider.horizontal.3")
-                }
-            WidgetsSettingsTab()
-                .tabItem {
-                    Label("Widgets", systemImage: "square.grid.2x2")
-                }
-            ContextSettingsTab()
-                .tabItem {
-                    Label("Context", systemImage: "app.connected.to.app.below.fill")
-                }
-            DropActionsSettingsTab()
-                .tabItem {
-                    Label("Drop Actions", systemImage: "arrow.down.doc")
-                }
-            AboutSettingsTab()
-                .tabItem {
-                    Label("About", systemImage: "info.circle")
-                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(width: 500, height: 500)
+    }
+}
+
+private struct SettingsTabBar: View {
+    @Binding var selection: SettingsTabKind
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 4) {
+                    ForEach(SettingsTabKind.allCases) { tab in
+                        SettingsTabButton(tab: tab, isSelected: tab == selection) {
+                            selection = tab
+                        }
+                        .id(tab)
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+            }
+            .onChange(of: selection) { _, newValue in
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    proxy.scrollTo(newValue, anchor: .center)
+                }
+            }
+        }
+    }
+}
+
+private struct SettingsTabButton: View {
+    let tab: SettingsTabKind
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 3) {
+                Image(systemName: tab.icon)
+                    .font(.system(size: 18, weight: .regular))
+                Text(tab.label)
+                    .font(.system(size: 11))
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+            .padding(.vertical, 6)
+            .padding(.horizontal, 10)
+            .frame(minWidth: 64)
+            .foregroundStyle(isSelected ? Color.accentColor : .primary)
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(isSelected ? Color.accentColor.opacity(0.18) : Color.clear)
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -44,17 +132,16 @@ struct AppearanceSettingsTab: View {
     var body: some View {
         Form {
             Section("Theme") {
-                Picker("Appearance", selection: $selectedTheme) {
+                HStack(spacing: 12) {
                     ForEach(ThemeMode.allCases, id: \.rawValue) { mode in
-                        Label(mode.label, systemImage: mode.icon)
-                            .tag(mode)
+                        ThemeCard(mode: mode, isSelected: selectedTheme == mode) {
+                            selectedTheme = mode
+                            UserDefaults.standard.set(mode.rawValue, forKey: "themeMode")
+                            NotificationCenter.default.post(name: .themeModeDidChange, object: nil)
+                        }
                     }
                 }
-                .pickerStyle(.radioGroup)
-                .onChange(of: selectedTheme) { _, newValue in
-                    UserDefaults.standard.set(newValue.rawValue, forKey: "themeMode")
-                    NotificationCenter.default.post(name: .themeModeDidChange, object: nil)
-                }
+                .padding(.vertical, 4)
 
                 Text("Solid Dark matches the hardware notch. Translucent adds a frosted overlay. Liquid Glass uses a lighter frosted effect.")
                     .font(.caption)
@@ -63,6 +150,106 @@ struct AppearanceSettingsTab: View {
         }
         .formStyle(.grouped)
         .padding()
+    }
+}
+
+private struct ThemeCard: View {
+    let mode: ThemeMode
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                MiniNotchPreview(mode: mode)
+                    .padding(.top, 4)
+
+                Spacer(minLength: 0)
+
+                Text(mode.label)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(isSelected ? Color.primary : .secondary)
+                    .lineLimit(1)
+
+                Image(systemName: "checkmark")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.accentColor)
+                    .opacity(isSelected ? 1 : 0)
+                    .padding(.bottom, 4)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 100)
+            .background(themeBackground)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(strokeColor, lineWidth: isSelected ? 2 : 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private var themeBackground: some View {
+        switch mode {
+        case .solidDark:
+            RadialGradient(
+                colors: [Color(red: 0.059, green: 0.106, blue: 0.180),
+                         Color(red: 0.027, green: 0.051, blue: 0.086)],
+                center: .center, startRadius: 0, endRadius: 110
+            )
+        case .translucentDark:
+            ZStack {
+                Rectangle().fill(.thinMaterial)
+                LinearGradient(
+                    colors: [Color(red: 0.110, green: 0.137, blue: 0.200).opacity(0.55),
+                             Color(red: 0.082, green: 0.106, blue: 0.157).opacity(0.55)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            }
+        case .liquidGlass:
+            ZStack {
+                Rectangle().fill(.ultraThinMaterial)
+                RadialGradient(
+                    colors: [Color.white.opacity(0.10), Color.white.opacity(0.02)],
+                    center: .center, startRadius: 0, endRadius: 90
+                )
+            }
+        }
+    }
+
+    private var strokeColor: Color {
+        if isSelected { return Color.accentColor }
+        switch mode {
+        case .solidDark: return Color.white.opacity(0.06)
+        case .translucentDark: return Color(red: 0.165, green: 0.204, blue: 0.282)
+        case .liquidGlass: return Color.white.opacity(0.18)
+        }
+    }
+}
+
+private struct MiniNotchPreview: View {
+    let mode: ThemeMode
+
+    var body: some View {
+        UnevenRoundedRectangle(
+            cornerRadii: .init(topLeading: 0, bottomLeading: 6, bottomTrailing: 6, topTrailing: 0),
+            style: .continuous
+        )
+        .fill(notchFill)
+        .frame(width: 44, height: 12)
+    }
+
+    private var notchFill: Color {
+        switch mode {
+        case .solidDark:
+            return Color.black
+        case .translucentDark:
+            return Color.black.opacity(0.55)
+        case .liquidGlass:
+            return Color.white.opacity(0.18)
+        }
     }
 }
 
@@ -168,6 +355,14 @@ struct HUDSettingsTab: View {
 }
 
 struct GeneralSettingsTab: View {
+    let securityGate: SecurityGate
+    let widgetRegistry: WidgetRegistry
+
+    @State private var showSetPIN = false
+    @State private var showChangePIN = false
+    @State private var pinInput = ""
+    @State private var currentPINInput = ""
+    @State private var newPINInput = ""
     @State private var activationTrigger: ActivationTrigger = .current
     @State private var hoverDelayMs: Double = {
         let ms = UserDefaults.standard.double(forKey: "hoverDwellDelayMs")
@@ -336,6 +531,75 @@ struct GeneralSettingsTab: View {
                 .onChange(of: longPress) { _, newValue in
                     UserDefaults.standard.set(newValue.rawValue, forKey: "gestureLongPress")
                 }
+            }
+
+            Section("Security") {
+                if securityGate.isPINConfigured {
+                    HStack {
+                        Image(systemName: "lock.fill")
+                            .foregroundStyle(.green)
+                        Text("PIN is set")
+                        Spacer()
+                        Button("Change PIN") { showChangePIN = true }
+                    }
+                } else {
+                    HStack {
+                        Image(systemName: "lock.open")
+                            .foregroundStyle(.secondary)
+                        Text("No PIN configured")
+                        Spacer()
+                        Button("Set PIN") { showSetPIN = true }
+                    }
+                }
+
+                if securityGate.isPINConfigured {
+                    ForEach(widgetRegistry.widgets, id: \.id) { widget in
+                        Toggle(widget.name, isOn: Binding(
+                            get: { securityGate.protectedWidgetIds.contains(widget.id) },
+                            set: { enabled in
+                                var ids = securityGate.protectedWidgetIds
+                                if enabled { ids.insert(widget.id) } else { ids.remove(widget.id) }
+                                securityGate.protectedWidgetIds = ids
+                            }
+                        ))
+                    }
+
+                    Picker("Auto-lock after", selection: Binding(
+                        get: { UserDefaults.standard.object(forKey: "autoLockTimeout") as? Int ?? 5 },
+                        set: { UserDefaults.standard.set($0, forKey: "autoLockTimeout") }
+                    )) {
+                        Text("1 minute").tag(1)
+                        Text("5 minutes").tag(5)
+                        Text("15 minutes").tag(15)
+                        Text("30 minutes").tag(30)
+                        Text("Never").tag(0)
+                    }
+
+                    Toggle("Lock on display sleep", isOn: Binding(
+                        get: { UserDefaults.standard.object(forKey: "lockOnSleep") as? Bool ?? true },
+                        set: { UserDefaults.standard.set($0, forKey: "lockOnSleep") }
+                    ))
+                }
+            }
+            .alert("Set PIN", isPresented: $showSetPIN) {
+                SecureField("Enter 4-6 digit PIN", text: $pinInput)
+                Button("Set") {
+                    if pinInput.count >= 4 && pinInput.count <= 6 {
+                        _ = securityGate.setupPIN(pinInput)
+                        pinInput = ""
+                    }
+                }
+                Button("Cancel", role: .cancel) { pinInput = "" }
+            }
+            .alert("Change PIN", isPresented: $showChangePIN) {
+                SecureField("Current PIN", text: $currentPINInput)
+                SecureField("New PIN (4-6 digits)", text: $newPINInput)
+                Button("Change") {
+                    _ = securityGate.changePIN(currentPIN: currentPINInput, newPIN: newPINInput)
+                    currentPINInput = ""
+                    newPINInput = ""
+                }
+                Button("Cancel", role: .cancel) { currentPINInput = ""; newPINInput = "" }
             }
         }
         .padding()
@@ -1286,7 +1550,7 @@ struct AboutSettingsTab: View {
             Spacer().frame(height: 20)
 
             // Description
-            Text("A utility that lives in your MacBook notch.\nMedia controls, widgets, HUD, and more.")
+            Text("A utility that lives in your MacBook notch.\nMedia \u{00B7} HUD \u{00B7} Widgets \u{00B7} Markets")
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -1395,5 +1659,171 @@ struct LaunchAtLoginToggle: View {
                 // Sync with system state (user may have toggled in System Settings)
                 launchAtLogin = SMAppService.mainApp.status == .enabled
             }
+    }
+}
+
+// MARK: - Markets Settings Tab
+
+struct MarketsSettingsTab: View {
+    let alertEngine: AlertEngine
+
+    var body: some View {
+        Form {
+            Section("Platforms") {
+                ForEach(["binance", "bybit", "polymarket", "kalshi"], id: \.self) { platformId in
+                    PlatformConfigRow(alertEngine: alertEngine, platformId: platformId)
+                }
+            }
+
+            Section("Webhook (TradingView)") {
+                HStack {
+                    Text("Port")
+                    Spacer()
+                    TextField("9876", value: .init(
+                        get: { Int(UserDefaults.standard.object(forKey: "webhookPort") as? Int ?? 9876) },
+                        set: { UserDefaults.standard.set($0, forKey: "webhookPort") }
+                    ), format: .number)
+                    .frame(width: 80)
+                    .textFieldStyle(.roundedBorder)
+                }
+
+                HStack {
+                    Text("Bearer Token (optional)")
+                    Spacer()
+                    TextField("", text: .init(
+                        get: { UserDefaults.standard.string(forKey: "webhookBearerToken") ?? "" },
+                        set: { UserDefaults.standard.set($0, forKey: "webhookBearerToken") }
+                    ))
+                    .frame(width: 200)
+                    .textFieldStyle(.roundedBorder)
+                }
+
+                Toggle("Enable Webhook Server", isOn: .init(
+                    get: { UserDefaults.standard.bool(forKey: "webhookEnabled") },
+                    set: { UserDefaults.standard.set($0, forKey: "webhookEnabled") }
+                ))
+
+                Button("Send Test Alert") {
+                    alertEngine.webhookServer?.sendTestAlert()
+                }
+            }
+
+            Section("Alert Behavior") {
+                HStack {
+                    Text("Dedup Window")
+                    Spacer()
+                    Text("\(Int(UserDefaults.standard.object(forKey: "alertDedupWindow") as? Double ?? 60))s")
+                    Slider(value: .init(
+                        get: { UserDefaults.standard.object(forKey: "alertDedupWindow") as? Double ?? 60 },
+                        set: { UserDefaults.standard.set($0, forKey: "alertDedupWindow") }
+                    ), in: 30...300, step: 30)
+                    .frame(width: 150)
+                }
+
+                HStack {
+                    Text("Toast Duration")
+                    Spacer()
+                    Text("\(Int(UserDefaults.standard.object(forKey: "alertDismissTimeout") as? Double ?? 4))s")
+                    Slider(value: .init(
+                        get: { UserDefaults.standard.object(forKey: "alertDismissTimeout") as? Double ?? 4 },
+                        set: { UserDefaults.standard.set($0, forKey: "alertDismissTimeout") }
+                    ), in: 2...10, step: 1)
+                    .frame(width: 150)
+                }
+
+                HStack {
+                    Text("Snooze Duration")
+                    Spacer()
+                    Text("\(Int((UserDefaults.standard.object(forKey: "alertSnoozeDuration") as? Double ?? 300) / 60))m")
+                    Slider(value: .init(
+                        get: { UserDefaults.standard.object(forKey: "alertSnoozeDuration") as? Double ?? 300 },
+                        set: { UserDefaults.standard.set($0, forKey: "alertSnoozeDuration") }
+                    ), in: 60...1800, step: 60)
+                    .frame(width: 150)
+                }
+
+                Toggle("System notifications for high-priority alerts", isOn: .init(
+                    get: { UserDefaults.standard.bool(forKey: "alertSystemNotifications") },
+                    set: { UserDefaults.standard.set($0, forKey: "alertSystemNotifications") }
+                ))
+            }
+        }
+        .formStyle(.grouped)
+        .frame(width: 450)
+    }
+}
+
+struct PlatformConfigRow: View {
+    let alertEngine: AlertEngine
+    let platformId: String
+
+    @State private var config: PlatformConfig
+
+    init(alertEngine: AlertEngine, platformId: String) {
+        self.alertEngine = alertEngine
+        self.platformId = platformId
+        self._config = State(initialValue: alertEngine.config(for: platformId))
+    }
+
+    private var platformName: String {
+        platformId.capitalized
+    }
+
+    var body: some View {
+        DisclosureGroup {
+            if platformId == "binance" || platformId == "bybit" {
+                HStack {
+                    Text("API Key")
+                    Spacer()
+                    SecureField("", text: Binding(
+                        get: { config.apiKey ?? "" },
+                        set: { config.apiKey = $0.isEmpty ? nil : $0; save() }
+                    ))
+                    .frame(width: 200)
+                    .textFieldStyle(.roundedBorder)
+                }
+            }
+
+            if platformId == "polymarket" || platformId == "kalshi" {
+                HStack {
+                    Text("Poll Interval")
+                    Spacer()
+                    Text("\(Int(config.pollIntervalSeconds))s")
+                    Slider(value: $config.pollIntervalSeconds, in: 5...300, step: 5)
+                        .frame(width: 150)
+                        .onChange(of: config.pollIntervalSeconds) { _, _ in save() }
+                }
+            }
+
+            HStack {
+                Text("Active Hours")
+                Spacer()
+                Picker("From", selection: $config.activeHoursStart) {
+                    ForEach(0..<24, id: \.self) { Text("\($0):00") }
+                }.frame(width: 80).onChange(of: config.activeHoursStart) { _, _ in save() }
+                Text("to")
+                Picker("To", selection: $config.activeHoursEnd) {
+                    ForEach(0..<25, id: \.self) { Text($0 == 24 ? "24:00" : "\($0):00") }
+                }.frame(width: 80).onChange(of: config.activeHoursEnd) { _, _ in save() }
+            }
+
+            HStack {
+                Text("High Alert Threshold")
+                Spacer()
+                Text("\(String(format: "%.0f", config.thresholdHigh))%")
+                Slider(value: $config.thresholdHigh, in: 1...20, step: 1)
+                    .frame(width: 150)
+                    .onChange(of: config.thresholdHigh) { _, _ in save() }
+            }
+        } label: {
+            HStack {
+                Toggle(platformName, isOn: $config.isEnabled)
+                    .onChange(of: config.isEnabled) { _, _ in save() }
+            }
+        }
+    }
+
+    private func save() {
+        alertEngine.updateConfig(for: platformId, config)
     }
 }
