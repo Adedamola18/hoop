@@ -11,18 +11,16 @@ struct HUDOverlayView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            hudIcon
+            Image(systemName: "sun.max.fill")
                 .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(.white)
                 .frame(width: 24)
 
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    // Track background
                     Capsule()
                         .fill(.white.opacity(0.2))
 
-                    // Filled portion
                     Capsule()
                         .fill(.white)
                         .frame(width: max(4, geo.size.width * CGFloat(level)))
@@ -34,12 +32,7 @@ struct HUDOverlayView: View {
                             let clamped = max(0, min(1, ratio))
                             dragLevel = clamped
                             hudService.currentLevel = clamped
-                            switch hudService.hudType {
-                            case .volume:
-                                hudService.setVolume(clamped)
-                            case .brightness:
-                                hudService.setBrightness(clamped)
-                            }
+                            hudService.setBrightness(clamped)
                         }
                         .onEnded { _ in
                             dragLevel = nil
@@ -55,27 +48,5 @@ struct HUDOverlayView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
-    }
-
-    @ViewBuilder
-    private var hudIcon: some View {
-        switch hudService.hudType {
-        case .volume:
-            Image(systemName: volumeIconName)
-        case .brightness:
-            Image(systemName: "sun.max.fill")
-        }
-    }
-
-    private var volumeIconName: String {
-        if level <= 0 {
-            return "speaker.slash.fill"
-        } else if level < 0.33 {
-            return "speaker.wave.1.fill"
-        } else if level < 0.66 {
-            return "speaker.wave.2.fill"
-        } else {
-            return "speaker.wave.3.fill"
-        }
     }
 }

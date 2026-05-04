@@ -434,7 +434,7 @@ final class NotchWindowManager {
     private var previousPhaseBeforeHUD: [String: NotchState.Phase] = [:]
 
     private func wireHUDCallbacks() {
-        hudService.onHUDShow = { [weak self] type, level in
+        hudService.onHUDShow = { [weak self] _ in
             self?.showHUD()
         }
         hudService.onHUDDismiss = { [weak self] in
