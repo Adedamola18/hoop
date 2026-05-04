@@ -100,11 +100,8 @@ struct NotchRootView: View {
                     if isStartup {
                         startupOverlay
                             .transition(.opacity)
-                    } else if isTray, case .idle = dropActionService.dropPhase {
-                        DropZoneView()
-                            .transition(.opacity)
                     } else if isTray {
-                        DropActionSelectionView(dropActionService: dropActionService)
+                        FileDropTrayView(dropActionService: dropActionService)
                             .transition(.opacity)
                     } else if isHUD {
                         HUDOverlayView(hudService: hudService)
