@@ -1,14 +1,14 @@
-# NotchNook v2 Feature Expansion Implementation Plan
+# Hoop v2 Feature Expansion Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add startup animation, live trading alerts from crypto/prediction markets, and PIN-secured eye-scan unlock to NotchNook's macOS notch utility.
+**Goal:** Add startup animation, live trading alerts from crypto/prediction markets, and PIN-secured eye-scan unlock to Hoop's macOS notch utility.
 
 **Architecture:** Platform Adapter Pattern -- each market gets an isolated adapter conforming to `MarketAdapter` protocol. `AlertEngine` orchestrates adapters, evaluates priorities, manages the alert queue. `SecurityGate` manages PIN via Keychain and drives the eye-scan unlock animation. All new services are `@Observable`, owned by `NotchWindowManager`, following the established service-ownership pattern.
 
 **Tech Stack:** Swift 5.9+, SwiftUI, AppKit (NSPanel), Network framework (NWListener), URLSession WebSocket, Observation framework, Security framework (Keychain), CryptoKit (SHA-256)
 
-**Spec:** `docs/superpowers/specs/2026-03-18-notchnook-v2-expansion-design.md`
+**Spec:** `docs/superpowers/specs/2026-03-18-hoop-v2-expansion-design.md`
 
 ---
 
@@ -393,7 +393,7 @@ final class SecurityGate {
     private var lockoutTimer: Timer?
     private var sleepObserver: Any?
 
-    private let keychainService = "com.hoops.notchnook.securitygate"
+    private let keychainService = "com.hoops.hoop.securitygate"
     private let keychainAccount = "pin-hash"
 
     var onLockStateChanged: (() -> Void)?
@@ -2937,7 +2937,7 @@ Every call site must include the new `alertEngine:` parameter.
 
 ```bash
 git add -A
-git commit -m "feat: complete NotchNook v2 expansion - startup animation, trading alerts, security gate"
+git commit -m "feat: complete Hoop v2 expansion - startup animation, trading alerts, security gate"
 ```
 
 ---

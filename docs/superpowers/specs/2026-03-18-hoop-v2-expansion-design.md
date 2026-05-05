@@ -1,4 +1,4 @@
-# NotchNook v2 Feature Expansion -- Design Spec
+# Hoop v2 Feature Expansion -- Design Spec
 
 **Date:** 2026-03-18
 **Status:** Approved
@@ -197,7 +197,7 @@ Frame sizing (read from `activeAlert`):
 
 **PIN Management:**
 - PIN stored as **SHA-256 hash** in macOS Keychain (never plaintext)
-- Keychain item: service `"com.hoops.notchnook.securitygate"`, account `"pin-hash"`
+- Keychain item: service `"com.hoops.hoop.securitygate"`, account `"pin-hash"`
 - Access control: `kSecAttrAccessibleWhenUnlockedThisDeviceOnly` (not synced to iCloud Keychain)
 - 4-6 digit PIN, set in Settings
 - Change requires entering current PIN first

@@ -374,7 +374,7 @@ Hoops  transforms the MacBook notch (or a virtual pill on non-notch Macs) into a
 ### Phase 7: Customization & Settings
 
 #### US-031: Settings Window
-**Description:** As a user, I want a comprehensive settings window to configure all NotchNook features.
+**Description:** As a user, I want a comprehensive settings window to configure all Hoop features.
 
 **Acceptance Criteria:**
 - [ ] Tabbed interface: General, Appearance, Media, HUD, Widgets, Drop Actions, Context Rules
@@ -422,7 +422,7 @@ Hoops  transforms the MacBook notch (or a virtual pill on non-notch Macs) into a
 ### Phase 8: Performance & Resilience
 
 #### US-035: CPU & Memory Optimization
-**Description:** As a user, I want NotchNook to use minimal system resources even with multiple features active.
+**Description:** As a user, I want Hoop to use minimal system resources even with multiple features active.
 
 **Acceptance Criteria:**
 - [ ] Idle CPU usage < 1% (no animations running)
@@ -433,7 +433,7 @@ Hoops  transforms the MacBook notch (or a virtual pill on non-notch Macs) into a
 - [ ] `swiftc -typecheck` passes
 
 #### US-036: Sleep/Wake & Display Hotplug Resilience
-**Description:** As a user, I want NotchNook to survive sleep/wake cycles and monitor connect/disconnect without glitches.
+**Description:** As a user, I want Hoop to survive sleep/wake cycles and monitor connect/disconnect without glitches.
 
 **Acceptance Criteria:**
 - [ ] Listens for NSWorkspace.willSleepNotification / didWakeNotification

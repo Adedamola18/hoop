@@ -1,11 +1,11 @@
-# NotchNook v2 - Development Guidelines
+# Hoop - Development Guidelines
 
 ## Project Context
 
-- **App**: NotchNook v2 - macOS notch utility app
+- **App**: Hoop - macOS notch utility app
 - **Platform**: macOS 14.0+ (Sonoma), Swift 5.9+, SwiftUI + AppKit interop
 - **App type**: LSUIElement agent (no dock icon), NSPanel-based overlay
-- **Bundle ID**: com.hoops.notchnook
+- **Bundle ID**: com.hoops.hoop
 - **Xcode project**: Hoop.xcodeproj with scheme "Hoop"
 - **Build verification**: `xcodebuild build -project Hoop.xcodeproj -scheme Hoop` or `swiftc -typecheck -sdk $(xcrun --show-sdk-path) -target arm64-apple-macos14.0 <files>`
 
