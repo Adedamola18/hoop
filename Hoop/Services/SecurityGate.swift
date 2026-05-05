@@ -46,13 +46,27 @@ final class SecurityGate {
 
     private let keychainService = "com.hoops.notchnook.securitygate"
     private let keychainAccount = "pin-hash"
+    private let pinConfiguredFlagKey = "hasPINConfigured"
+    private let migrationFlagKey = "securityGateMigratedV1"
 
     var onLockStateChanged: (() -> Void)?
 
     // MARK: - Lifecycle
 
     func startObserving() {
-        isPINConfigured = loadPINHash() != nil
+        // Avoid probing the Keychain at launch — that triggers the macOS account-password
+        // prompt every time the app's code signature changes (every Debug rebuild).
+        // Instead, mirror the configured state in UserDefaults and only touch the Keychain
+        // during PIN setup or unlock attempts.
+        if UserDefaults.standard.bool(forKey: migrationFlagKey) {
+            isPINConfigured = UserDefaults.standard.bool(forKey: pinConfiguredFlagKey)
+        } else {
+            // One-time migration so existing installs don't lose their configured-state.
+            let configured = loadPINHash() != nil
+            UserDefaults.standard.set(configured, forKey: pinConfiguredFlagKey)
+            UserDefaults.standard.set(true, forKey: migrationFlagKey)
+            isPINConfigured = configured
+        }
 
         // Default-protect trading alerts widget on first setup
         if isPINConfigured && !UserDefaults.standard.bool(forKey: "securityDefaultsApplied") {
@@ -150,6 +164,8 @@ final class SecurityGate {
         let saved = savePINHash(hash)
         if saved {
             isPINConfigured = true
+            UserDefaults.standard.set(true, forKey: pinConfiguredFlagKey)
+            UserDefaults.standard.set(true, forKey: migrationFlagKey)
             var ids = protectedWidgetIds
             ids.insert("tradingAlerts")
             protectedWidgetIds = ids
