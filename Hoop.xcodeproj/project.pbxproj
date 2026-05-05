@@ -24,9 +24,8 @@
 		AA000009 /* HUDOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00002F /* HUDOverlayView.swift */; };
 		AA000038 /* ContextService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000039 /* ContextService.swift */; };
 		AA00003B /* ContextRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003A /* ContextRule.swift */; };
-		AA00003D /* DropZoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003C /* DropZoneView.swift */; };
+		AA00003D /* FileDropTrayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003C /* FileDropTrayView.swift */; };
 		AA00003F /* DropActionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003E /* DropActionService.swift */; };
-		AA00004B /* DropActionSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000040A /* DropActionSelectionView.swift */; };
 		BB000001 /* BatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000002 /* BatteryService.swift */; };
 		BB000003 /* BatteryIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000004 /* BatteryIndicator.swift */; };
 		BB000005 /* PrivacyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000006 /* PrivacyService.swift */; };
@@ -70,6 +69,9 @@
 		BB000057 /* AlertToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000047 /* AlertToastView.swift */; };
 		BB000058 /* AlertDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000048 /* AlertDetailView.swift */; };
 		BB000059 /* NotchAccentGlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000049 /* NotchAccentGlow.swift */; };
+		BB00005C /* ClipboardFullView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00005D /* ClipboardFullView.swift */; };
+		BB00005E /* ClipboardFullWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00005F /* ClipboardFullWindow.swift */; };
+		BB000060 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB000061 /* Assets.xcassets */; };
 		BB00005A /* EyeScanUnlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00004A /* EyeScanUnlockView.swift */; };
 		BB00005B /* TradingAlertsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00004B /* TradingAlertsWidget.swift */; };
 /* End PBXBuildFile section */
@@ -94,9 +96,8 @@
 		AA00002F /* HUDOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDOverlayView.swift; sourceTree = "<group>"; };
 		AA000039 /* ContextService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextService.swift; sourceTree = "<group>"; };
 		AA00003A /* ContextRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextRule.swift; sourceTree = "<group>"; };
-		AA00003C /* DropZoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropZoneView.swift; sourceTree = "<group>"; };
+		AA00003C /* FileDropTrayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDropTrayView.swift; sourceTree = "<group>"; };
 		AA00003E /* DropActionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropActionService.swift; sourceTree = "<group>"; };
-		AA000040A /* DropActionSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropActionSelectionView.swift; sourceTree = "<group>"; };
 		BB000002 /* BatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryService.swift; sourceTree = "<group>"; };
 		BB000004 /* BatteryIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryIndicator.swift; sourceTree = "<group>"; };
 		BB000006 /* PrivacyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyService.swift; sourceTree = "<group>"; };
@@ -140,6 +141,9 @@
 		BB000047 /* AlertToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertToastView.swift; sourceTree = "<group>"; };
 		BB000048 /* AlertDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertDetailView.swift; sourceTree = "<group>"; };
 		BB000049 /* NotchAccentGlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchAccentGlow.swift; sourceTree = "<group>"; };
+		BB00005D /* ClipboardFullView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardFullView.swift; sourceTree = "<group>"; };
+		BB00005F /* ClipboardFullWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardFullWindow.swift; sourceTree = "<group>"; };
+		BB000061 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BB00004A /* EyeScanUnlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EyeScanUnlockView.swift; sourceTree = "<group>"; };
 		BB00004B /* TradingAlertsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingAlertsWidget.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -172,6 +176,7 @@
 				AA000033 /* Views */,
 				AA000035 /* Models */,
 				AA000036 /* Services */,
+				BB000061 /* Assets.xcassets */,
 				AA000014 /* Info.plist */,
 			);
 			path = Hoop;
@@ -193,8 +198,8 @@
 				AA00001A /* NotchShape.swift */,
 				AA00001B /* VisualEffectView.swift */,
 				AA00002F /* HUDOverlayView.swift */,
-				AA00003C /* DropZoneView.swift */,
-				AA000040A /* DropActionSelectionView.swift */,
+				AA00003C /* FileDropTrayView.swift */,
+				BB00005D /* ClipboardFullView.swift */,
 				BB000012 /* WidgetDrawerView.swift */,
 				BB000034 /* IncomingCallView.swift */,
 				BB000038 /* AirDropIndicatorView.swift */,
@@ -237,6 +242,7 @@
 				AA000015 /* NotchPanel.swift */,
 				AA000016 /* ScreenDetector.swift */,
 				AA000018 /* NotchWindowManager.swift */,
+				BB00005F /* ClipboardFullWindow.swift */,
 			);
 			path = Window;
 			sourceTree = "<group>";
@@ -350,6 +356,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB000060 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -377,9 +384,8 @@
 				AA000009 /* HUDOverlayView.swift in Sources */,
 				AA000038 /* ContextService.swift in Sources */,
 				AA00003B /* ContextRule.swift in Sources */,
-				AA00003D /* DropZoneView.swift in Sources */,
+				AA00003D /* FileDropTrayView.swift in Sources */,
 				AA00003F /* DropActionService.swift in Sources */,
-				AA00004B /* DropActionSelectionView.swift in Sources */,
 				BB000001 /* BatteryService.swift in Sources */,
 				BB000003 /* BatteryIndicator.swift in Sources */,
 				BB000005 /* PrivacyService.swift in Sources */,
@@ -425,6 +431,8 @@
 				BB000059 /* NotchAccentGlow.swift in Sources */,
 				BB00005A /* EyeScanUnlockView.swift in Sources */,
 				BB00005B /* TradingAlertsWidget.swift in Sources */,
+				BB00005C /* ClipboardFullView.swift in Sources */,
+				BB00005E /* ClipboardFullWindow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
