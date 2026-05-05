@@ -23,13 +23,14 @@ final class ClipboardFullWindow {
         }
         guard let window else { return }
 
-        // Center on the screen with the notch (or main screen as fallback)
         let target = NSScreen.screens.first(where: { $0.hasNotch }) ?? NSScreen.main
+        let size = NSSize(width: 550, height: 440)
         if let screen = target {
-            let frame = window.frame
-            let x = screen.frame.midX - frame.width / 2
-            let y = screen.frame.midY - frame.height / 2
-            window.setFrameOrigin(NSPoint(x: x, y: y))
+            let x = screen.frame.midX - size.width / 2
+            let y = screen.frame.midY - size.height / 2
+            window.setFrame(NSRect(origin: NSPoint(x: x, y: y), size: size), display: true)
+        } else {
+            window.setContentSize(size)
         }
 
         window.makeKeyAndOrderFront(nil)
@@ -47,7 +48,7 @@ final class ClipboardFullWindow {
         )
         let host = NSHostingController(rootView: view)
         let win = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 900, height: 680),
+            contentRect: NSRect(x: 0, y: 0, width: 550, height: 440),
             styleMask: [.titled, .closable, .resizable, .fullSizeContentView, .nonactivatingPanel],
             backing: .buffered,
             defer: false
