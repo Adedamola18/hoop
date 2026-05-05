@@ -6,7 +6,6 @@ struct NotchRootView: View {
     let hudService: HUDService
     let contextService: ContextService
     let dropActionService: DropActionService
-    let batteryService: BatteryService
     let privacyService: PrivacyService
     let focusService: FocusService
     let widgetRegistry: WidgetRegistry
@@ -18,7 +17,7 @@ struct NotchRootView: View {
 
     private var hasCollapsedIndicators: Bool {
         privacyService.isCameraActive || privacyService.isMicrophoneActive ||
-        privacyService.isScreenRecording || focusService.isActive || batteryService.battery.isValid
+        privacyService.isScreenRecording || focusService.isActive
     }
 
     private var isExpanded: Bool {
@@ -150,7 +149,6 @@ struct NotchRootView: View {
                             CollapsedIndicatorBar(
                                 privacyService: privacyService,
                                 focusService: focusService,
-                                batteryService: batteryService,
                                 alertEngine: alertEngine
                             )
                         }
@@ -159,7 +157,6 @@ struct NotchRootView: View {
                         CollapsedIndicatorBar(
                             privacyService: privacyService,
                             focusService: focusService,
-                            batteryService: batteryService,
                             alertEngine: alertEngine
                         )
                         .transition(.opacity)

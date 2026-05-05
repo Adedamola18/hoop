@@ -15,7 +15,6 @@ final class NotchWindowManager {
     let hudService = HUDService()
     let contextService = ContextService()
     let dropActionService = DropActionService()
-    let batteryService = BatteryService()
     let privacyService = PrivacyService()
     let focusService = FocusService()
     let widgetRegistry = WidgetRegistry()
@@ -74,7 +73,6 @@ final class NotchWindowManager {
         mediaService.startObserving()
         hudService.startObserving()
         contextService.startObserving()
-        batteryService.startObserving()
         privacyService.startObserving()
         focusService.startObserving()
         clipboardService.startObserving()
@@ -104,7 +102,6 @@ final class NotchWindowManager {
         mediaService.stopObserving()
         hudService.stopObserving()
         contextService.stopObserving()
-        batteryService.stopObserving()
         privacyService.stopObserving()
         focusService.stopObserving()
         calendarService.stopObserving()
@@ -254,7 +251,7 @@ final class NotchWindowManager {
         state.screenHasNotch = screen.hasNotch
         state.collapsedSize = screen.overlayFrame.size
 
-        let rootView = NotchRootView(state: state, mediaService: mediaService, hudService: hudService, contextService: contextService, dropActionService: dropActionService, batteryService: batteryService, privacyService: privacyService, focusService: focusService, widgetRegistry: widgetRegistry, callService: callService, airDropService: airDropService, startupAnimator: startupAnimator, alertEngine: alertEngine, securityGate: securityGate)
+        let rootView = NotchRootView(state: state, mediaService: mediaService, hudService: hudService, contextService: contextService, dropActionService: dropActionService, privacyService: privacyService, focusService: focusService, widgetRegistry: widgetRegistry, callService: callService, airDropService: airDropService, startupAnimator: startupAnimator, alertEngine: alertEngine, securityGate: securityGate)
         let hostingView = NSHostingView(rootView: rootView)
 
         let panel = NotchPanel(

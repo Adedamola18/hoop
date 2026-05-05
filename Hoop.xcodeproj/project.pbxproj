@@ -26,8 +26,6 @@
 		AA00003B /* ContextRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003A /* ContextRule.swift */; };
 		AA00003D /* FileDropTrayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003C /* FileDropTrayView.swift */; };
 		AA00003F /* DropActionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00003E /* DropActionService.swift */; };
-		BB000001 /* BatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000002 /* BatteryService.swift */; };
-		BB000003 /* BatteryIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000004 /* BatteryIndicator.swift */; };
 		BB000005 /* PrivacyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000006 /* PrivacyService.swift */; };
 		BB000007 /* PrivacyIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000008 /* PrivacyIndicatorView.swift */; };
 		BB000009 /* FocusService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00000A /* FocusService.swift */; };
@@ -99,8 +97,6 @@
 		AA00003A /* ContextRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextRule.swift; sourceTree = "<group>"; };
 		AA00003C /* FileDropTrayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDropTrayView.swift; sourceTree = "<group>"; };
 		AA00003E /* DropActionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropActionService.swift; sourceTree = "<group>"; };
-		BB000002 /* BatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryService.swift; sourceTree = "<group>"; };
-		BB000004 /* BatteryIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryIndicator.swift; sourceTree = "<group>"; };
 		BB000006 /* PrivacyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyService.swift; sourceTree = "<group>"; };
 		BB000008 /* PrivacyIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyIndicatorView.swift; sourceTree = "<group>"; };
 		BB00000A /* FocusService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusService.swift; sourceTree = "<group>"; };
@@ -222,7 +218,6 @@
 			children = (
 				AA00001D /* MediaPlayerWidget.swift */,
 				AA00001E /* CollapsedMediaIndicator.swift */,
-				BB000004 /* BatteryIndicator.swift */,
 				BB000008 /* PrivacyIndicatorView.swift */,
 				BB00000C /* CollapsedIndicatorBar.swift */,
 				BB000016 /* CalendarWidget.swift */,
@@ -269,7 +264,6 @@
 				AA00001F /* HUDService.swift */,
 				AA000039 /* ContextService.swift */,
 				AA00003E /* DropActionService.swift */,
-				BB000002 /* BatteryService.swift */,
 				BB000006 /* PrivacyService.swift */,
 				BB00000A /* FocusService.swift */,
 				BB000010 /* WidgetRegistry.swift */,
@@ -390,8 +384,6 @@
 				AA00003B /* ContextRule.swift in Sources */,
 				AA00003D /* FileDropTrayView.swift in Sources */,
 				AA00003F /* DropActionService.swift in Sources */,
-				BB000001 /* BatteryService.swift in Sources */,
-				BB000003 /* BatteryIndicator.swift in Sources */,
 				BB000005 /* PrivacyService.swift in Sources */,
 				BB000007 /* PrivacyIndicatorView.swift in Sources */,
 				BB000009 /* FocusService.swift in Sources */,
