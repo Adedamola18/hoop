@@ -24,7 +24,6 @@ Open the widget drawer to access:
 - **Unit Converter** — length, weight, temperature, etc.
 - **Webcam Mirror** — quick camera preview
 - **System Stats** — CPU and memory at a glance
-- **Battery** — charge level and charging state
 
 ### HUD
 - Volume and brightness sliders replace the default macOS HUD
