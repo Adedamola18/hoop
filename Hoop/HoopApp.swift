@@ -8,7 +8,7 @@ struct HoopApp: App {
         MenuBarExtra("Hoop", systemImage: "gearshape") {
             Button("About Hoop") {
                 NSApplication.shared.activate(ignoringOtherApps: true)
-                NSApplication.shared.orderFrontStandardAboutPanel(options: [
+                var options: [NSApplication.AboutPanelOptionKey: Any] = [
                     .applicationName: "Hoop",
                     .applicationVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0",
                     .version: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1",
@@ -16,7 +16,11 @@ struct HoopApp: App {
                         .font: NSFont.systemFont(ofSize: 11),
                         .foregroundColor: NSColor.secondaryLabelColor
                     ])
-                ])
+                ]
+                if let icon = NSImage(named: "AppIcon") ?? NSImage(named: NSImage.applicationIconName) {
+                    options[.applicationIcon] = icon
+                }
+                NSApplication.shared.orderFrontStandardAboutPanel(options: options)
             }
             SettingsLink {
                 Text("Settings...")
