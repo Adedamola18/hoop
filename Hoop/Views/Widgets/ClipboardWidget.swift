@@ -2,10 +2,11 @@ import SwiftUI
 
 struct ClipboardWidgetView: View {
     let clipboardService: ClipboardService
+    let onExpand: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack {
+            HStack(spacing: 6) {
                 Image(systemName: "doc.on.clipboard")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.6))
@@ -16,6 +17,20 @@ struct ClipboardWidgetView: View {
                 Text("\(clipboardService.entries.count)")
                     .font(.system(size: 10))
                     .foregroundStyle(.white.opacity(0.3))
+                if let onExpand {
+                    Button(action: onExpand) {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.55))
+                            .padding(4)
+                            .background(
+                                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                    .fill(.white.opacity(0.08))
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .help("Open full clipboard history")
+                }
             }
 
             // Search
@@ -112,13 +127,15 @@ final class ClipboardNotchWidget: NotchWidget {
     let size: WidgetSize = .large
 
     let clipboardService: ClipboardService
+    var onExpand: (() -> Void)?
 
-    init(clipboardService: ClipboardService) {
+    init(clipboardService: ClipboardService, onExpand: (() -> Void)? = nil) {
         self.clipboardService = clipboardService
+        self.onExpand = onExpand
     }
 
     @MainActor
     func makeBody() -> AnyView {
-        AnyView(ClipboardWidgetView(clipboardService: clipboardService))
+        AnyView(ClipboardWidgetView(clipboardService: clipboardService, onExpand: onExpand))
     }
 }

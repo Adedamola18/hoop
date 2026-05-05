@@ -30,6 +30,7 @@ final class NotchWindowManager {
     let alertEngine = AlertEngine()
     let webhookServer = WebhookServer()
     let securityGate = SecurityGate()
+    private lazy var clipboardFullWindow = ClipboardFullWindow(clipboardService: clipboardService)
 
     init() {
         NotificationCenter.default.addObserver(
@@ -133,7 +134,10 @@ final class NotchWindowManager {
     private func registerWidgets() {
         widgetRegistry.register(CalendarNotchWidget(calendarService: calendarService))
         widgetRegistry.register(TimerNotchWidget(timerService: timerService))
-        widgetRegistry.register(ClipboardNotchWidget(clipboardService: clipboardService))
+        widgetRegistry.register(ClipboardNotchWidget(
+            clipboardService: clipboardService,
+            onExpand: { [weak self] in self?.clipboardFullWindow.toggle() }
+        ))
         widgetRegistry.register(ShortcutsNotchWidget(shortcutsService: shortcutsService))
         widgetRegistry.register(NotesNotchWidget())
         widgetRegistry.register(ColorPickerNotchWidget())
