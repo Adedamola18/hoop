@@ -47,7 +47,7 @@ final class ClipboardFullWindow {
         )
         let host = NSHostingController(rootView: view)
         let win = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 520, height: 600),
+            contentRect: NSRect(x: 0, y: 0, width: 900, height: 680),
             styleMask: [.titled, .closable, .resizable, .fullSizeContentView, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -63,7 +63,7 @@ final class ClipboardFullWindow {
         win.hidesOnDeactivate = false
         win.level = .floating
         win.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        win.minSize = NSSize(width: 420, height: 360)
+        win.minSize = NSSize(width: 600, height: 460)
         window = win
     }
 }
