@@ -75,25 +75,15 @@ private struct SettingsTabBar: View {
     @Binding var selection: SettingsTabKind
 
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 4) {
-                    ForEach(SettingsTabKind.allCases) { tab in
-                        SettingsTabButton(tab: tab, isSelected: tab == selection) {
-                            selection = tab
-                        }
-                        .id(tab)
-                    }
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-            }
-            .onChange(of: selection) { _, newValue in
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    proxy.scrollTo(newValue, anchor: .center)
+        HStack(spacing: 4) {
+            ForEach(SettingsTabKind.allCases) { tab in
+                SettingsTabButton(tab: tab, isSelected: tab == selection) {
+                    selection = tab
                 }
             }
         }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 6)
     }
 }
 
@@ -114,7 +104,7 @@ private struct SettingsTabButton: View {
             }
             .padding(.vertical, 6)
             .padding(.horizontal, 10)
-            .frame(minWidth: 64)
+            .frame(maxWidth: .infinity)
             .foregroundStyle(isSelected ? Color.accentColor : .primary)
             .background(
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
@@ -261,10 +251,6 @@ struct AppearanceSettingsTab: View {
                     }
                 }
                 .padding(.vertical, 4)
-
-                Text("Solid Dark matches the hardware notch. Translucent adds a frosted overlay. Liquid Glass uses a lighter frosted effect.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
