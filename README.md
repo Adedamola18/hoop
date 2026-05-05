@@ -4,7 +4,6 @@
 
 A macOS utility that transforms the MacBook notch into a dynamic control center — media player, widgets, HUD, file drop zone, and more.
 
-![Hoop media player](preview.webp)
 
 ## Features
 
