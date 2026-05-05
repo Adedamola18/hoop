@@ -44,10 +44,10 @@ final class SecurityGate {
     private var lockoutTimer: Timer?
     private var sleepObserver: Any?
 
-    private let keychainService = "com.hoops.notchnook.securitygate"
+    private let keychainService = "com.hoops.hoop.securitygate"
     private let keychainAccount = "pin-hash"
     private let pinConfiguredFlagKey = "hasPINConfigured"
-    private let migrationFlagKey = "securityGateMigratedV1"
+    private let migrationFlagKey = "securityGateMigratedV2"
 
     var onLockStateChanged: (() -> Void)?
 
@@ -61,11 +61,13 @@ final class SecurityGate {
         if UserDefaults.standard.bool(forKey: migrationFlagKey) {
             isPINConfigured = UserDefaults.standard.bool(forKey: pinConfiguredFlagKey)
         } else {
-            // One-time migration so existing installs don't lose their configured-state.
-            let configured = loadPINHash() != nil
-            UserDefaults.standard.set(configured, forKey: pinConfiguredFlagKey)
+            // The Keychain service ID changed during the NotchNook → Hoop rename, so
+            // any previously stored PIN now lives under an orphaned service. Reset
+            // the configured-state and mark the migration done; the user can set up a
+            // new PIN from Settings if they want one.
+            UserDefaults.standard.set(false, forKey: pinConfiguredFlagKey)
             UserDefaults.standard.set(true, forKey: migrationFlagKey)
-            isPINConfigured = configured
+            isPINConfigured = false
         }
 
         // Default-protect trading alerts widget on first setup

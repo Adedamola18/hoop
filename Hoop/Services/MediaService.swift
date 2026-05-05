@@ -2,7 +2,7 @@ import AppKit
 import Observation
 import os.log
 
-private let mediaLog = Logger(subsystem: "com.hoops.notchnook", category: "MediaService")
+private let mediaLog = Logger(subsystem: "com.hoops.hoop", category: "MediaService")
 
 // MARK: - Protocol
 
@@ -447,7 +447,7 @@ final class MediaService: MediaServiceProtocol {
 
         DispatchQueue.global(qos: .utility).async { [weak self] in
             // Use osascript to export artwork to a temp file, then load it
-            let tmpPath = NSTemporaryDirectory() + "notchnook_musicart.jpg"
+            let tmpPath = NSTemporaryDirectory() + "hoop_musicart.jpg"
             let script = """
             tell application "Music"
                 try
