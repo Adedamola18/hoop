@@ -211,8 +211,6 @@ final class NotchWindowManager {
         }
     }
 
-    /// Debounce rapid screen changes (e.g., connecting/disconnecting monitors)
-    /// by coalescing into a single synchronize call after 500ms.
     private func scheduleSynchronize() {
         pendingSynchronize?.cancel()
         let workItem = DispatchWorkItem { [weak self] in
@@ -267,7 +265,12 @@ final class NotchWindowManager {
         )
         panel.contentView = hostingView
         panel.notchState = state
-        panel.setFrame(screen.overlayFrame, display: true)
+        // Notch screens open at the same size as the expanded widget panel so the
+        // startup intro eases directly into the widget drawer with no resize jump.
+        let initialFrame = screen.hasNotch
+            ? screen.expandedOverlayFrame(expandedWidth: state.expandedWidth, expandedHeight: state.expandedHeight)
+            : screen.overlayFrame
+        panel.setFrame(initialFrame, display: true)
         panel.installTrackingArea()
         panel.orderFront(nil)
 
@@ -629,8 +632,16 @@ final class NotchWindowManager {
     }
 
     private func wireAlertCallbacks() {
-        startupAnimator.onComplete = {
-            // Startup done, normal idle takes over
+        startupAnimator.onComplete = { [weak self] in
+            guard let self else { return }
+            // Snap notch panels back to the idle overlay frame after the intro finishes.
+            for (id, entry) in self.windows where entry.state.screenHasNotch {
+                guard let screen = NSScreen.screens.first(where: { $0.stableIdentifier == id }) else { continue }
+                if entry.state.phase == .idle {
+                    entry.panel.setFrame(screen.overlayFrame, display: true)
+                    entry.panel.installTrackingArea()
+                }
+            }
         }
 
         alertEngine.onAlert = { [weak self] alert in

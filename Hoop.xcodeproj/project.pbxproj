@@ -74,6 +74,7 @@
 		BB000060 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB000061 /* Assets.xcassets */; };
 		BB00005A /* EyeScanUnlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00004A /* EyeScanUnlockView.swift */; };
 		BB00005B /* TradingAlertsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00004B /* TradingAlertsWidget.swift */; };
+		BB000070 /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = BB000071 /* Fonts */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -144,6 +145,7 @@
 		BB00005D /* ClipboardFullView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardFullView.swift; sourceTree = "<group>"; };
 		BB00005F /* ClipboardFullWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardFullWindow.swift; sourceTree = "<group>"; };
 		BB000061 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BB000071 /* Fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fonts; sourceTree = "<group>"; };
 		BB00004A /* EyeScanUnlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EyeScanUnlockView.swift; sourceTree = "<group>"; };
 		BB00004B /* TradingAlertsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingAlertsWidget.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -177,6 +179,7 @@
 				AA000035 /* Models */,
 				AA000036 /* Services */,
 				BB000061 /* Assets.xcassets */,
+				BB000071 /* Fonts */,
 				AA000014 /* Info.plist */,
 			);
 			path = Hoop;
@@ -357,6 +360,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB000060 /* Assets.xcassets in Resources */,
+				BB000070 /* Fonts in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

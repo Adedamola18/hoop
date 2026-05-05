@@ -28,5 +28,7 @@
 	<string>NotchNook shows your upcoming events in the Calendar widget.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>NotchNook shows a webcam preview in the Webcam widget.</string>
+	<key>ATSApplicationFontsPath</key>
+	<string>Fonts/</string>
 </dict>
 </plist>
