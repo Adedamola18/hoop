@@ -12,7 +12,7 @@ A macOS utility that transforms the MacBook notch into a dynamic control center 
 - Inline controls for Spotify and Apple Music
 - Album art, track info, and progress bar
 - Swipe gestures to skip tracks
-- Works on macOS 15+ with app-specific fallbacks when MediaRemote returns empty data
+- Works on macOS 14+ with app-specific fallbacks when MediaRemote returns empty data
 
 ### Widgets
 Open the widget drawer to access:
