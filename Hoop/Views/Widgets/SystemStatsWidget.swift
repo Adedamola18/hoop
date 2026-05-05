@@ -22,7 +22,7 @@ struct SystemStatsWidgetView: View {
                 Button {
                     openActivityMonitor()
                 } label: {
-                    Image(systemName: "chart.bar.doc.horizontal")
+                    Image(systemName: "arrow.up.forward")
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.55))
                         .padding(4)
