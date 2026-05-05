@@ -1,7 +1,7 @@
 {
-  "project": "NotchNook",
+  "project": "Hoop",
   "branchName": "ralph/notchnook-v2",
-  "description": "NotchNook v2 — Full-featured Dynamic Island for macOS with themes, system indicators, widget drawer, and deep customization",
+  "description": "Hoop — Full-featured Dynamic Island for macOS with themes, system indicators, widget drawer, and deep customization",
   "userStories": [
     {
       "id": "US-001",
@@ -517,7 +517,7 @@
     {
       "id": "US-034",
       "title": "Settings Window Revamp",
-      "description": "As a user, I want a comprehensive tabbed settings window to configure all NotchNook features.",
+      "description": "As a user, I want a comprehensive tabbed settings window to configure all Hoop features.",
       "acceptanceCriteria": [
         "Tabbed interface: General, Appearance, Media, HUD, Widgets, Drop Actions",
         "General: activation trigger, launch at login, expanded size sliders",
@@ -548,7 +548,7 @@
     {
       "id": "US-036",
       "title": "CPU & Memory Optimization",
-      "description": "As a user, I want NotchNook to use minimal system resources.",
+      "description": "As a user, I want Hoop to use minimal system resources.",
       "acceptanceCriteria": [
         "Idle CPU usage < 1%",
         "Adaptive polling intervals",
@@ -563,7 +563,7 @@
     {
       "id": "US-037",
       "title": "Sleep/Wake & Display Hotplug Resilience",
-      "description": "As a user, I want NotchNook to survive sleep/wake cycles and monitor changes.",
+      "description": "As a user, I want Hoop to survive sleep/wake cycles and monitor changes.",
       "acceptanceCriteria": [
         "Listens for willSleepNotification / didWakeNotification",
         "Collapses all panels before sleep",

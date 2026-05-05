@@ -19,8 +19,8 @@ final class StartupAnimator {
     private var phaseTimer: Timer?
 
     private let text = "Hoop"
-    private let characterInterval: TimeInterval = 0.375
-    private let pulseDuration: TimeInterval = 1.0
+    private let characterInterval: TimeInterval = 0.6
+    private let pulseDuration: TimeInterval = 1.1
 
     var onComplete: (() -> Void)?
 

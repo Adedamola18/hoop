@@ -1,20 +1,20 @@
 # Ralph Agent Instructions
 
-You are an autonomous coding agent working on **NotchNook v2**, a macOS notch utility app (Swift/SwiftUI/AppKit).
+You are an autonomous coding agent working on **Hoop**, a macOS notch utility app (Swift/SwiftUI/AppKit).
 
 ## Project Context
 
 - **Platform**: macOS 14.0+ (Sonoma), Swift 5.9+, SwiftUI + AppKit interop
 - **App type**: LSUIElement agent (no dock icon), NSPanel-based overlay
 - **Build verification**: Use `xcodebuild build -project Hoop.xcodeproj -scheme Hoop` OR `swiftc -typecheck -sdk $(xcrun --show-sdk-path) -target arm64-apple-macos14.0 <files>` to verify compilation.
-- **Bundle ID**: com.hoops.notchnook
+- **Bundle ID**: com.hoops.hoop
 - **Xcode project**: Hoop.xcodeproj with scheme "Hoop"
 
 ### Existing Structure (v1 complete)
 
 ```
 Hoop/
-  NotchNookApp.swift       -- @main App with MenuBarExtra + Settings scenes
+  HoopApp.swift            -- @main App with MenuBarExtra + Settings scenes
   AppDelegate.swift        -- NSApplicationDelegate, creates NotchWindowManager
   Info.plist               -- LSUIElement=true agent config
   Models/

@@ -1,20 +1,12 @@
 import AppKit
-import CoreAudio
-import AudioToolbox
 import Observation
 import IOKit.graphics
 import CoreGraphics
-
-enum HUDType {
-    case volume
-    case brightness
-}
 
 @Observable
 final class HUDService {
 
     var currentLevel: Float = 0
-    var hudType: HUDType = .volume
     var isShowingHUD: Bool = false
 
     /// Whether the custom HUD replaces the native macOS HUD. Opt-in via Settings (default: on).
@@ -30,8 +22,6 @@ final class HUDService {
     }
 
     private var dismissWorkItem: DispatchWorkItem?
-    private var defaultDeviceID: AudioDeviceID = kAudioObjectUnknown
-    private var volumeListenerBlock: AudioObjectPropertyListenerBlock?
 
     // MARK: - OSD Suppression (CGEventTap)
 
@@ -41,25 +31,11 @@ final class HUDService {
     /// NX_SUBTYPE_AUX_CONTROL_BUTTONS
     private static let auxControlSubtype: Int64 = 8
     /// Key types for OSD-triggering keys
-    private static let soundUpKeyType: Int32 = 0       // NX_KEYTYPE_SOUND_UP
-    private static let soundDownKeyType: Int32 = 1     // NX_KEYTYPE_SOUND_DOWN
-    private static let muteKeyType: Int32 = 7          // NX_KEYTYPE_MUTE
-    private static let brightnessUpKeyType: Int32 = 21 // Brightness up
-    private static let brightnessDownKeyType: Int32 = 22 // Brightness down
+    private static let brightnessUpKeyType: Int32 = 21
+    private static let brightnessDownKeyType: Int32 = 22
 
-    private var volumePropertyAddress = AudioObjectPropertyAddress(
-        mSelector: kAudioHardwareServiceDeviceProperty_VirtualMainVolume,
-        mScope: kAudioObjectPropertyScopeOutput,
-        mElement: kAudioObjectPropertyElementMain
-    )
-    private var defaultOutputAddress = AudioObjectPropertyAddress(
-        mSelector: kAudioHardwarePropertyDefaultOutputDevice,
-        mScope: kAudioObjectPropertyScopeGlobal,
-        mElement: kAudioObjectPropertyElementMain
-    )
-
-    /// Callback fired when HUD should show (with type and level).
-    var onHUDShow: ((HUDType, Float) -> Void)?
+    /// Callback fired when HUD should show (with level).
+    var onHUDShow: ((Float) -> Void)?
 
     /// Callback fired when HUD should dismiss.
     var onHUDDismiss: (() -> Void)?
@@ -70,16 +46,11 @@ final class HUDService {
     private var lastKnownBrightness: Float = -1
 
     func startObserving() {
-        fetchDefaultOutputDevice()
-        installDefaultDeviceListener()
-        installVolumeListener()
         startBrightnessPolling()
         installEventTapIfNeeded()
     }
 
     func stopObserving() {
-        removeVolumeListener()
-        removeDefaultDeviceListener()
         stopBrightnessPolling()
         removeEventTap()
     }
@@ -93,28 +64,12 @@ final class HUDService {
         }
     }
 
-    // MARK: - Volume Control
-
-    func setVolume(_ level: Float) {
-        guard defaultDeviceID != kAudioObjectUnknown else { return }
-        var volume = max(0, min(1, level))
-        let size = UInt32(MemoryLayout<Float32>.size)
-        AudioObjectSetPropertyData(
-            defaultDeviceID,
-            &volumePropertyAddress,
-            0, nil,
-            size,
-            &volume
-        )
-    }
-
     // MARK: - Show / Dismiss
 
-    func showHUD(type: HUDType, level: Float) {
-        hudType = type
+    func showHUD(level: Float) {
         currentLevel = level
         isShowingHUD = true
-        onHUDShow?(type, level)
+        onHUDShow?(level)
         scheduleDismiss()
         updateBrightnessPollingRate()
     }
@@ -136,105 +91,12 @@ final class HUDService {
         DispatchQueue.main.asyncAfter(deadline: .now() + autoDismissTimeout, execute: work)
     }
 
-    // MARK: - Default Output Device
-
-    private func fetchDefaultOutputDevice() {
-        var deviceID: AudioDeviceID = kAudioObjectUnknown
-        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
-        let status = AudioObjectGetPropertyData(
-            AudioObjectID(kAudioObjectSystemObject),
-            &defaultOutputAddress,
-            0, nil,
-            &size,
-            &deviceID
-        )
-        if status == noErr {
-            defaultDeviceID = deviceID
-        }
-    }
-
-    private var defaultDeviceListenerBlock: AudioObjectPropertyListenerBlock?
-
-    private func installDefaultDeviceListener() {
-        let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
-            DispatchQueue.main.async {
-                self?.removeVolumeListener()
-                self?.fetchDefaultOutputDevice()
-                self?.installVolumeListener()
-            }
-        }
-        defaultDeviceListenerBlock = block
-        AudioObjectAddPropertyListenerBlock(
-            AudioObjectID(kAudioObjectSystemObject),
-            &defaultOutputAddress,
-            DispatchQueue.main,
-            block
-        )
-    }
-
-    private func removeDefaultDeviceListener() {
-        guard let block = defaultDeviceListenerBlock else { return }
-        AudioObjectRemovePropertyListenerBlock(
-            AudioObjectID(kAudioObjectSystemObject),
-            &defaultOutputAddress,
-            DispatchQueue.main,
-            block
-        )
-        defaultDeviceListenerBlock = nil
-    }
-
-    // MARK: - Volume Listener
-
-    private func installVolumeListener() {
-        guard defaultDeviceID != kAudioObjectUnknown else { return }
-
-        let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
-            DispatchQueue.main.async {
-                self?.handleVolumeChange()
-            }
-        }
-        volumeListenerBlock = block
-        AudioObjectAddPropertyListenerBlock(
-            defaultDeviceID,
-            &volumePropertyAddress,
-            DispatchQueue.main,
-            block
-        )
-    }
-
-    private func removeVolumeListener() {
-        guard defaultDeviceID != kAudioObjectUnknown, let block = volumeListenerBlock else { return }
-        AudioObjectRemovePropertyListenerBlock(
-            defaultDeviceID,
-            &volumePropertyAddress,
-            DispatchQueue.main,
-            block
-        )
-        volumeListenerBlock = nil
-    }
-
-    private func handleVolumeChange() {
-        guard defaultDeviceID != kAudioObjectUnknown else { return }
-        var volume: Float32 = 0
-        var size = UInt32(MemoryLayout<Float32>.size)
-        let status = AudioObjectGetPropertyData(
-            defaultDeviceID,
-            &volumePropertyAddress,
-            0, nil,
-            &size,
-            &volume
-        )
-        if status == noErr {
-            showHUD(type: .volume, level: volume)
-        }
-    }
-
     // MARK: - Native HUD Suppression (CGEventTap)
 
     private func installEventTapIfNeeded() {
         guard hudReplacementEnabled, eventTap == nil else { return }
 
-        // Create a CGEventTap to intercept system-defined events (media/brightness keys).
+        // Create a CGEventTap to intercept system-defined events (brightness keys).
         // Returning nil from the callback suppresses the native OSD.
         // Requires Accessibility permission; fails gracefully if not granted.
         let tapCallback: CGEventTapCallBack = { proxy, type, event, refcon -> Unmanaged<CGEvent>? in
@@ -260,9 +122,6 @@ final class HUDService {
 
             let keyType = Int32((nsEvent.data1 >> 16) & 0xFF)
             let suppressedKeys: [Int32] = [
-                HUDService.soundUpKeyType,
-                HUDService.soundDownKeyType,
-                HUDService.muteKeyType,
                 HUDService.brightnessUpKeyType,
                 HUDService.brightnessDownKeyType,
             ]
@@ -315,7 +174,7 @@ final class HUDService {
 
     /// Adaptive brightness polling interval: slow when idle, fast when HUD is active.
     private var brightnessPollingInterval: TimeInterval {
-        isShowingHUD && hudType == .brightness ? 0.1 : 1.0
+        isShowingHUD ? 0.1 : 1.0
     }
 
     private func startBrightnessPolling() {
@@ -351,7 +210,7 @@ final class HUDService {
         let delta = abs(brightness - lastKnownBrightness)
         if delta > 0.005 { // ignore noise
             lastKnownBrightness = brightness
-            showHUD(type: .brightness, level: brightness)
+            showHUD(level: brightness)
         }
     }
 

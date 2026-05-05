@@ -1,11 +1,17 @@
+import AppKit
 import SwiftUI
+
+private func openActivityMonitor() {
+    let url = URL(fileURLWithPath: "/System/Applications/Utilities/Activity Monitor.app")
+    NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
+}
 
 struct SystemStatsWidgetView: View {
     let statsService: SystemStatsService
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack {
+            HStack(spacing: 6) {
                 Image(systemName: "gauge.with.dots.needle.bottom.50percent")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.6))
@@ -13,6 +19,20 @@ struct SystemStatsWidgetView: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.6))
                 Spacer()
+                Button {
+                    openActivityMonitor()
+                } label: {
+                    Image(systemName: "arrow.up.forward")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.55))
+                        .padding(4)
+                        .background(
+                            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                .fill(.white.opacity(0.08))
+                        )
+                }
+                .buttonStyle(.plain)
+                .help("Open Activity Monitor")
             }
 
             HStack(spacing: 12) {

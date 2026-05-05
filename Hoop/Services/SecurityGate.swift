@@ -44,15 +44,31 @@ final class SecurityGate {
     private var lockoutTimer: Timer?
     private var sleepObserver: Any?
 
-    private let keychainService = "com.hoops.notchnook.securitygate"
+    private let keychainService = "com.hoops.hoop.securitygate"
     private let keychainAccount = "pin-hash"
+    private let pinConfiguredFlagKey = "hasPINConfigured"
+    private let migrationFlagKey = "securityGateMigratedV2"
 
     var onLockStateChanged: (() -> Void)?
 
     // MARK: - Lifecycle
 
     func startObserving() {
-        isPINConfigured = loadPINHash() != nil
+        // Avoid probing the Keychain at launch — that triggers the macOS account-password
+        // prompt every time the app's code signature changes (every Debug rebuild).
+        // Instead, mirror the configured state in UserDefaults and only touch the Keychain
+        // during PIN setup or unlock attempts.
+        if UserDefaults.standard.bool(forKey: migrationFlagKey) {
+            isPINConfigured = UserDefaults.standard.bool(forKey: pinConfiguredFlagKey)
+        } else {
+            // The Keychain service ID changed during the NotchNook → Hoop rename, so
+            // any previously stored PIN now lives under an orphaned service. Reset
+            // the configured-state and mark the migration done; the user can set up a
+            // new PIN from Settings if they want one.
+            UserDefaults.standard.set(false, forKey: pinConfiguredFlagKey)
+            UserDefaults.standard.set(true, forKey: migrationFlagKey)
+            isPINConfigured = false
+        }
 
         // Default-protect trading alerts widget on first setup
         if isPINConfigured && !UserDefaults.standard.bool(forKey: "securityDefaultsApplied") {
@@ -150,6 +166,8 @@ final class SecurityGate {
         let saved = savePINHash(hash)
         if saved {
             isPINConfigured = true
+            UserDefaults.standard.set(true, forKey: pinConfiguredFlagKey)
+            UserDefaults.standard.set(true, forKey: migrationFlagKey)
             var ids = protectedWidgetIds
             ids.insert("tradingAlerts")
             protectedWidgetIds = ids

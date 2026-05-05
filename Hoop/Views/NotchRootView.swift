@@ -6,7 +6,6 @@ struct NotchRootView: View {
     let hudService: HUDService
     let contextService: ContextService
     let dropActionService: DropActionService
-    let batteryService: BatteryService
     let privacyService: PrivacyService
     let focusService: FocusService
     let widgetRegistry: WidgetRegistry
@@ -18,7 +17,7 @@ struct NotchRootView: View {
 
     private var hasCollapsedIndicators: Bool {
         privacyService.isCameraActive || privacyService.isMicrophoneActive ||
-        privacyService.isScreenRecording || focusService.isActive || batteryService.battery.isValid
+        privacyService.isScreenRecording || focusService.isActive
     }
 
     private var isExpanded: Bool {
@@ -49,7 +48,7 @@ struct NotchRootView: View {
     }
 
     private var isActive: Bool {
-        isExpanded || isHUD || isTray || isAlert
+        isExpanded || isHUD || isTray || isAlert || isStartup
     }
 
     /// Whether the media widget should be shown in expanded state.
@@ -100,11 +99,8 @@ struct NotchRootView: View {
                     if isStartup {
                         startupOverlay
                             .transition(.opacity)
-                    } else if isTray, case .idle = dropActionService.dropPhase {
-                        DropZoneView()
-                            .transition(.opacity)
                     } else if isTray {
-                        DropActionSelectionView(dropActionService: dropActionService)
+                        FileDropTrayView(dropActionService: dropActionService)
                             .transition(.opacity)
                     } else if isHUD {
                         HUDOverlayView(hudService: hudService)
@@ -153,7 +149,6 @@ struct NotchRootView: View {
                             CollapsedIndicatorBar(
                                 privacyService: privacyService,
                                 focusService: focusService,
-                                batteryService: batteryService,
                                 alertEngine: alertEngine
                             )
                         }
@@ -162,7 +157,6 @@ struct NotchRootView: View {
                         CollapsedIndicatorBar(
                             privacyService: privacyService,
                             focusService: focusService,
-                            batteryService: batteryService,
                             alertEngine: alertEngine
                         )
                         .transition(.opacity)
@@ -194,56 +188,14 @@ struct NotchRootView: View {
 
     // MARK: - Startup Overlay
 
-    @State private var cursorBlink = true
-    @State private var pulseScale: CGFloat = 1.0
-    @State private var pulseOpacity: Double = 0.6
-
     @ViewBuilder
     private var startupOverlay: some View {
-        ZStack {
-            if startupAnimator.phase == .typewriter {
-                HStack(spacing: 0) {
-                    Text(startupAnimator.displayText)
-                        .font(.system(size: 14, weight: .bold, design: .monospaced))
-                    if startupAnimator.showCursor {
-                        Rectangle()
-                            .fill(.primary)
-                            .frame(width: 2, height: 16)
-                            .opacity(cursorBlink ? 1 : 0)
-                            .onAppear {
-                                withAnimation(.easeInOut(duration: 0.5).repeatForever()) {
-                                    cursorBlink.toggle()
-                                }
-                            }
-                    }
-                }
-            }
-
-            if startupAnimator.phase == .pulse {
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [state.themeMode == .liquidGlass ? Color.white.opacity(0.3) : Color.cyan.opacity(0.4), .clear],
-                            center: .center,
-                            startRadius: 5,
-                            endRadius: 80
-                        )
-                    )
-                    .scaleEffect(pulseScale)
-                    .opacity(pulseOpacity)
-                    .drawingGroup()
-                    .onAppear {
-                        withAnimation(.easeOut(duration: 1.0)) {
-                            pulseScale = 3.0
-                            pulseOpacity = 0
-                        }
-                    }
-
-                Text("Hoop")
-                    .font(.system(size: 14, weight: .bold, design: .monospaced))
-                    .opacity(1.0 - pulseOpacity)
-            }
-        }
+        HoopCalligraphyMark(
+            visibleCharacters: startupAnimator.visibleCharacters,
+            isExiting: startupAnimator.phase == .pulse
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
         .onTapGesture { startupAnimator.skip() }
     }
 
@@ -267,5 +219,62 @@ struct NotchRootView: View {
         if let url = URL(string: urlString) {
             NSWorkspace.shared.open(url)
         }
+    }
+}
+
+// MARK: - Calligraphy Mark
+
+private struct HoopCalligraphyMark: View {
+    let visibleCharacters: Int
+    let isExiting: Bool
+
+    private static let letters: [Character] = Array("Hoop")
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: -1) {
+            ForEach(Array(Self.letters.enumerated()), id: \.offset) { idx, ch in
+                InkLetter(
+                    character: ch,
+                    visible: idx < visibleCharacters
+                )
+            }
+        }
+        .shadow(color: .black.opacity(0.55), radius: 14, x: 0, y: 4)
+        .shadow(color: .black.opacity(0.35), radius: 3, x: 0, y: 1)
+        .opacity(isExiting ? 0 : 1.0)
+        .scaleEffect(isExiting ? 1.04 : 1.0)
+        .animation(.easeOut(duration: 0.9), value: isExiting)
+    }
+}
+
+/// Renders a single calligraphy letter that "writes in" via a left-to-right
+/// gradient mask sweep, so the reveal feels like ink flowing from a pen tip.
+private struct InkLetter: View {
+    let character: Character
+    let visible: Bool
+
+    var body: some View {
+        Text(String(character))
+            .font(.custom("PlaywriteDESAS-Regular", size: 52))
+            .foregroundStyle(
+                LinearGradient(
+                    colors: [.white, Color.white.opacity(0.88)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .fixedSize()
+            .mask(alignment: .leading) {
+                LinearGradient(
+                    stops: [
+                        .init(color: .black, location: 0),
+                        .init(color: .black, location: visible ? 0.92 : 0.0),
+                        .init(color: .clear, location: visible ? 1.05 : 0.05)
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            }
+            .animation(.easeOut(duration: 0.7), value: visible)
     }
 }

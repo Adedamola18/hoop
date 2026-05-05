@@ -15,7 +15,6 @@ final class NotchWindowManager {
     let hudService = HUDService()
     let contextService = ContextService()
     let dropActionService = DropActionService()
-    let batteryService = BatteryService()
     let privacyService = PrivacyService()
     let focusService = FocusService()
     let widgetRegistry = WidgetRegistry()
@@ -30,6 +29,7 @@ final class NotchWindowManager {
     let alertEngine = AlertEngine()
     let webhookServer = WebhookServer()
     let securityGate = SecurityGate()
+    private lazy var clipboardFullWindow = ClipboardFullWindow(clipboardService: clipboardService)
 
     init() {
         NotificationCenter.default.addObserver(
@@ -73,7 +73,6 @@ final class NotchWindowManager {
         mediaService.startObserving()
         hudService.startObserving()
         contextService.startObserving()
-        batteryService.startObserving()
         privacyService.startObserving()
         focusService.startObserving()
         clipboardService.startObserving()
@@ -103,7 +102,6 @@ final class NotchWindowManager {
         mediaService.stopObserving()
         hudService.stopObserving()
         contextService.stopObserving()
-        batteryService.stopObserving()
         privacyService.stopObserving()
         focusService.stopObserving()
         calendarService.stopObserving()
@@ -133,7 +131,10 @@ final class NotchWindowManager {
     private func registerWidgets() {
         widgetRegistry.register(CalendarNotchWidget(calendarService: calendarService))
         widgetRegistry.register(TimerNotchWidget(timerService: timerService))
-        widgetRegistry.register(ClipboardNotchWidget(clipboardService: clipboardService))
+        widgetRegistry.register(ClipboardNotchWidget(
+            clipboardService: clipboardService,
+            onExpand: { [weak self] in self?.clipboardFullWindow.toggle() }
+        ))
         widgetRegistry.register(ShortcutsNotchWidget(shortcutsService: shortcutsService))
         widgetRegistry.register(NotesNotchWidget())
         widgetRegistry.register(ColorPickerNotchWidget())
@@ -207,8 +208,6 @@ final class NotchWindowManager {
         }
     }
 
-    /// Debounce rapid screen changes (e.g., connecting/disconnecting monitors)
-    /// by coalescing into a single synchronize call after 500ms.
     private func scheduleSynchronize() {
         pendingSynchronize?.cancel()
         let workItem = DispatchWorkItem { [weak self] in
@@ -252,7 +251,7 @@ final class NotchWindowManager {
         state.screenHasNotch = screen.hasNotch
         state.collapsedSize = screen.overlayFrame.size
 
-        let rootView = NotchRootView(state: state, mediaService: mediaService, hudService: hudService, contextService: contextService, dropActionService: dropActionService, batteryService: batteryService, privacyService: privacyService, focusService: focusService, widgetRegistry: widgetRegistry, callService: callService, airDropService: airDropService, startupAnimator: startupAnimator, alertEngine: alertEngine, securityGate: securityGate)
+        let rootView = NotchRootView(state: state, mediaService: mediaService, hudService: hudService, contextService: contextService, dropActionService: dropActionService, privacyService: privacyService, focusService: focusService, widgetRegistry: widgetRegistry, callService: callService, airDropService: airDropService, startupAnimator: startupAnimator, alertEngine: alertEngine, securityGate: securityGate)
         let hostingView = NSHostingView(rootView: rootView)
 
         let panel = NotchPanel(
@@ -263,7 +262,12 @@ final class NotchWindowManager {
         )
         panel.contentView = hostingView
         panel.notchState = state
-        panel.setFrame(screen.overlayFrame, display: true)
+        // Notch screens open at the same size as the expanded widget panel so the
+        // startup intro eases directly into the widget drawer with no resize jump.
+        let initialFrame = screen.hasNotch
+            ? screen.expandedOverlayFrame(expandedWidth: state.expandedWidth, expandedHeight: state.expandedHeight)
+            : screen.overlayFrame
+        panel.setFrame(initialFrame, display: true)
         panel.installTrackingArea()
         panel.orderFront(nil)
 
@@ -434,7 +438,7 @@ final class NotchWindowManager {
     private var previousPhaseBeforeHUD: [String: NotchState.Phase] = [:]
 
     private func wireHUDCallbacks() {
-        hudService.onHUDShow = { [weak self] type, level in
+        hudService.onHUDShow = { [weak self] _ in
             self?.showHUD()
         }
         hudService.onHUDDismiss = { [weak self] in
@@ -625,8 +629,16 @@ final class NotchWindowManager {
     }
 
     private func wireAlertCallbacks() {
-        startupAnimator.onComplete = {
-            // Startup done, normal idle takes over
+        startupAnimator.onComplete = { [weak self] in
+            guard let self else { return }
+            // Snap notch panels back to the idle overlay frame after the intro finishes.
+            for (id, entry) in self.windows where entry.state.screenHasNotch {
+                guard let screen = NSScreen.screens.first(where: { $0.stableIdentifier == id }) else { continue }
+                if entry.state.phase == .idle {
+                    entry.panel.setFrame(screen.overlayFrame, display: true)
+                    entry.panel.installTrackingArea()
+                }
+            }
         }
 
         alertEngine.onAlert = { [weak self] alert in

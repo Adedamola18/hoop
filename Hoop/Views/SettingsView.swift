@@ -67,7 +67,7 @@ struct SettingsView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(width: 500, height: 500)
+        .frame(width: 700, height: 540)
     }
 }
 
@@ -75,25 +75,15 @@ private struct SettingsTabBar: View {
     @Binding var selection: SettingsTabKind
 
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 4) {
-                    ForEach(SettingsTabKind.allCases) { tab in
-                        SettingsTabButton(tab: tab, isSelected: tab == selection) {
-                            selection = tab
-                        }
-                        .id(tab)
-                    }
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-            }
-            .onChange(of: selection) { _, newValue in
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    proxy.scrollTo(newValue, anchor: .center)
+        HStack(spacing: 4) {
+            ForEach(SettingsTabKind.allCases) { tab in
+                SettingsTabButton(tab: tab, isSelected: tab == selection) {
+                    selection = tab
                 }
             }
         }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 6)
     }
 }
 
@@ -114,7 +104,7 @@ private struct SettingsTabButton: View {
             }
             .padding(.vertical, 6)
             .padding(.horizontal, 10)
-            .frame(minWidth: 64)
+            .frame(maxWidth: .infinity)
             .foregroundStyle(isSelected ? Color.accentColor : .primary)
             .background(
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
@@ -123,6 +113,125 @@ private struct SettingsTabButton: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Reusable Settings Components
+
+private struct SettingsPanel<Content: View>: View {
+    let title: String
+    var subtitle: String? = nil
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.primary)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            content()
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(nsColor: .controlBackgroundColor))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(.primary.opacity(0.06))
+        )
+    }
+}
+
+private struct SettingsIconBadge: View {
+    let icon: String
+    let color: Color
+
+    var body: some View {
+        Image(systemName: icon)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(.white)
+            .frame(width: 28, height: 28)
+            .background(color.gradient, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+    }
+}
+
+private struct SettingsListRow<Trailing: View>: View {
+    var background: Color = .primary.opacity(0.04)
+    @ViewBuilder var content: () -> Trailing
+
+    var body: some View {
+        content()
+            .padding(.vertical, 8)
+            .padding(.horizontal, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(background)
+            )
+    }
+}
+
+private struct SheetField<Content: View>: View {
+    let label: String
+    var hint: String? = nil
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(label)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.secondary)
+            content()
+                .frame(maxWidth: .infinity, alignment: .leading)
+            if let hint {
+                Text(hint)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.tertiary)
+            }
+        }
+    }
+}
+
+private struct SheetHeader: View {
+    let title: String
+    var subtitle: String? = nil
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.system(size: 16, weight: .semibold))
+            if let subtitle {
+                Text(subtitle)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct SheetFooter<Action: View>: View {
+    var cancelLabel: String = "Cancel"
+    var onCancel: () -> Void
+    @ViewBuilder var action: () -> Action
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Spacer()
+            Button(cancelLabel, action: onCancel)
+                .keyboardShortcut(.cancelAction)
+            action()
+        }
+        .controlSize(.large)
     }
 }
 
@@ -142,10 +251,6 @@ struct AppearanceSettingsTab: View {
                     }
                 }
                 .padding(.vertical, 4)
-
-                Text("Solid Dark matches the hardware notch. Translucent adds a frosted overlay. Liquid Glass uses a lighter frosted effect.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
@@ -321,7 +426,7 @@ struct HUDSettingsTab: View {
     var body: some View {
         Form {
             Section("HUD Replacement") {
-                Toggle("Replace system volume & brightness HUD", isOn: $hudReplacementEnabled)
+                Toggle("Replace system brightness HUD", isOn: $hudReplacementEnabled)
                     .onChange(of: hudReplacementEnabled) { _, newValue in
                         UserDefaults.standard.set(newValue, forKey: "hudReplacementEnabled")
                         NotificationCenter.default.post(name: .hudSettingsDidChange, object: nil)
@@ -360,9 +465,6 @@ struct GeneralSettingsTab: View {
 
     @State private var showSetPIN = false
     @State private var showChangePIN = false
-    @State private var pinInput = ""
-    @State private var currentPINInput = ""
-    @State private var newPINInput = ""
     @State private var activationTrigger: ActivationTrigger = .current
     @State private var hoverDelayMs: Double = {
         let ms = UserDefaults.standard.double(forKey: "hoverDwellDelayMs")
@@ -581,25 +683,11 @@ struct GeneralSettingsTab: View {
                     ))
                 }
             }
-            .alert("Set PIN", isPresented: $showSetPIN) {
-                SecureField("Enter 4-6 digit PIN", text: $pinInput)
-                Button("Set") {
-                    if pinInput.count >= 4 && pinInput.count <= 6 {
-                        _ = securityGate.setupPIN(pinInput)
-                        pinInput = ""
-                    }
-                }
-                Button("Cancel", role: .cancel) { pinInput = "" }
+            .sheet(isPresented: $showSetPIN) {
+                SetPINSheet(securityGate: securityGate)
             }
-            .alert("Change PIN", isPresented: $showChangePIN) {
-                SecureField("Current PIN", text: $currentPINInput)
-                SecureField("New PIN (4-6 digits)", text: $newPINInput)
-                Button("Change") {
-                    _ = securityGate.changePIN(currentPIN: currentPINInput, newPIN: newPINInput)
-                    currentPINInput = ""
-                    newPINInput = ""
-                }
-                Button("Cancel", role: .cancel) { currentPINInput = ""; newPINInput = "" }
+            .sheet(isPresented: $showChangePIN) {
+                ChangePINSheet(securityGate: securityGate)
             }
         }
         .padding()
@@ -703,216 +791,295 @@ struct ContextSettingsTab: View {
 
     var body: some View {
         ScrollView {
-            Form {
-                // MARK: - Custom Rules
-                Section("Custom Rules") {
-                    Text("Rules are evaluated in order. First matching rule wins, overriding all other settings below.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 14) {
+                customRulesPanel
+                widgetSwitchingPanel
+                if contextSwitchingEnabled {
+                    mediaAppsPanel
+                }
+                timeProfilesPanel
+                focusModePanel
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .sheet(isPresented: $showingAddRule) {
+            AddContextRuleSheet { newRule in
+                customRules.append(newRule)
+                saveCustomRules()
+            }
+        }
+    }
 
+    @ViewBuilder
+    private var customRulesPanel: some View {
+        SettingsPanel(
+            title: "Custom Rules",
+            subtitle: "Evaluated top-down. First match overrides everything below."
+        ) {
+            VStack(spacing: 6) {
+                if customRules.isEmpty {
+                    emptyMessage("No custom rules yet.")
+                } else {
                     ForEach(Array(customRules.enumerated()), id: \.element.id) { index, rule in
-                        HStack {
-                            Toggle("", isOn: Binding(
-                                get: { customRules[index].isEnabled },
-                                set: { newValue in
-                                    customRules[index].isEnabled = newValue
-                                    saveCustomRules()
-                                }
-                            ))
-                            .labelsHidden()
-                            .toggleStyle(.checkbox)
-
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(rule.name)
-                                    .font(.body)
-                                Text("When \(rule.condition.conditionType.label.lowercased()) \(rule.condition.displayValue) → \(rule.widgetHint.rawValue)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            Spacer()
-
-                            Button {
-                                moveRuleUp(index)
-                            } label: {
-                                Image(systemName: "chevron.up")
-                            }
-                            .buttonStyle(.borderless)
-                            .disabled(index == 0)
-
-                            Button {
-                                moveRuleDown(index)
-                            } label: {
-                                Image(systemName: "chevron.down")
-                            }
-                            .buttonStyle(.borderless)
-                            .disabled(index == customRules.count - 1)
-
-                            Button(role: .destructive) {
-                                customRules.remove(at: index)
-                                saveCustomRules()
-                            } label: {
-                                Image(systemName: "minus.circle")
-                            }
-                            .buttonStyle(.borderless)
+                        SettingsListRow {
+                            ruleRow(index: index, rule: rule)
                         }
                     }
+                }
 
-                    Button("Add Rule…") {
-                        showingAddRule = true
+                Button {
+                    showingAddRule = true
+                } label: {
+                    Label("Add Rule", systemImage: "plus.circle.fill")
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .buttonStyle(.borderless)
+                .padding(.top, 4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    private func ruleRow(index: Int, rule: ContextRule) -> some View {
+        HStack(spacing: 10) {
+            Toggle("", isOn: Binding(
+                get: { customRules[index].isEnabled },
+                set: { customRules[index].isEnabled = $0; saveCustomRules() }
+            ))
+            .labelsHidden()
+            .toggleStyle(.switch)
+            .controlSize(.mini)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(rule.name)
+                    .font(.system(size: 12, weight: .medium))
+                Text("When \(rule.condition.conditionType.label.lowercased()) \(rule.condition.displayValue) → \(rule.widgetHint.rawValue)")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+
+            Spacer(minLength: 8)
+
+            Button { moveRuleUp(index) } label: {
+                Image(systemName: "chevron.up")
+            }
+            .buttonStyle(.borderless)
+            .disabled(index == 0)
+
+            Button { moveRuleDown(index) } label: {
+                Image(systemName: "chevron.down")
+            }
+            .buttonStyle(.borderless)
+            .disabled(index == customRules.count - 1)
+
+            Button(role: .destructive) {
+                customRules.remove(at: index)
+                saveCustomRules()
+            } label: {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(.borderless)
+        }
+    }
+
+    @ViewBuilder
+    private var widgetSwitchingPanel: some View {
+        SettingsPanel(
+            title: "Widget Switching",
+            subtitle: "Auto-show the right widget based on the frontmost app."
+        ) {
+            Toggle("Enable context-aware widget switching", isOn: $contextSwitchingEnabled)
+                .toggleStyle(.switch)
+                .onChange(of: contextSwitchingEnabled) { _, newValue in
+                    UserDefaults.standard.set(newValue, forKey: "contextSwitchingEnabled")
+                }
+        }
+    }
+
+    @ViewBuilder
+    private var mediaAppsPanel: some View {
+        SettingsPanel(
+            title: "Media Apps",
+            subtitle: "Bundle IDs that show the media widget when frontmost. One per line."
+        ) {
+            VStack(alignment: .leading, spacing: 8) {
+                TextEditor(text: $mediaApps)
+                    .font(.system(.caption, design: .monospaced))
+                    .scrollContentBackground(.hidden)
+                    .frame(height: 110)
+                    .padding(8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(Color(nsColor: .textBackgroundColor))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .strokeBorder(.primary.opacity(0.1))
+                    )
+                    .onChange(of: mediaApps) { _, newValue in
+                        let ids = newValue
+                            .split(separator: "\n")
+                            .map { $0.trimmingCharacters(in: .whitespaces) }
+                            .filter { !$0.isEmpty }
+                        UserDefaults.standard.set(ids, forKey: "contextMediaAppBundleIDs")
+                    }
+
+                HStack {
+                    Spacer()
+                    Button("Reset to Defaults") {
+                        let defaults = ContextService.defaultMediaAppBundleIDs.sorted()
+                        mediaApps = defaults.joined(separator: "\n")
+                        UserDefaults.standard.set(defaults, forKey: "contextMediaAppBundleIDs")
                     }
                     .controlSize(.small)
-                    .sheet(isPresented: $showingAddRule) {
-                        AddContextRuleSheet { newRule in
-                            customRules.append(newRule)
-                            saveCustomRules()
-                        }
-                    }
                 }
+            }
+        }
+    }
 
-                Section("Widget Switching") {
-                    Toggle("Auto-switch widgets based on frontmost app", isOn: $contextSwitchingEnabled)
-                        .onChange(of: contextSwitchingEnabled) { _, newValue in
-                            UserDefaults.standard.set(newValue, forKey: "contextSwitchingEnabled")
-                        }
-
-                    if contextSwitchingEnabled {
-                        Text("When a media app is frontmost, the media widget is shown in the expanded notch.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+    @ViewBuilder
+    private var timeProfilesPanel: some View {
+        SettingsPanel(
+            title: "Time-of-Day Profiles",
+            subtitle: "Switch widgets based on the time of day. Focus Mode overrides take priority."
+        ) {
+            VStack(alignment: .leading, spacing: 10) {
+                Toggle("Enable time-based profiles", isOn: $timeProfilesEnabled)
+                    .toggleStyle(.switch)
+                    .onChange(of: timeProfilesEnabled) { _, newValue in
+                        UserDefaults.standard.set(newValue, forKey: "timeProfilesEnabled")
                     }
-                }
 
-                if contextSwitchingEnabled {
-                    Section("Media App Bundle IDs") {
-                        TextEditor(text: $mediaApps)
-                            .font(.system(.caption, design: .monospaced))
-                            .frame(height: 80)
-                            .onChange(of: mediaApps) { _, newValue in
-                                let ids = newValue
-                                    .split(separator: "\n")
-                                    .map { $0.trimmingCharacters(in: .whitespaces) }
-                                    .filter { !$0.isEmpty }
-                                UserDefaults.standard.set(ids, forKey: "contextMediaAppBundleIDs")
-                            }
-
-                        Button("Reset to Defaults") {
-                            let defaults = ContextService.defaultMediaAppBundleIDs.sorted()
-                            mediaApps = defaults.joined(separator: "\n")
-                            UserDefaults.standard.set(defaults, forKey: "contextMediaAppBundleIDs")
-                        }
-                        .controlSize(.small)
-                    }
-                }
-
-                // MARK: - Time-of-Day Profiles
-
-                Section("Time-of-Day Profiles") {
-                    Toggle("Enable time-based widget profiles", isOn: $timeProfilesEnabled)
-                        .onChange(of: timeProfilesEnabled) { _, newValue in
-                            UserDefaults.standard.set(newValue, forKey: "timeProfilesEnabled")
-                        }
-
-                    if timeProfilesEnabled {
-                        Text("Widgets change based on the time of day. Focus Mode overrides take priority.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-
+                if timeProfilesEnabled {
+                    VStack(spacing: 6) {
                         ForEach(ContextService.TimeProfile.allCases) { profile in
-                            HStack {
-                                Image(systemName: profile.defaultIcon)
-                                    .frame(width: 20)
-                                Text(profile.label)
-
-                                Spacer()
-
-                                Picker("Start", selection: Binding(
-                                    get: { timeConfig.startHour(for: profile) },
-                                    set: { newHour in
-                                        timeConfig.setStartHour(newHour, for: profile)
-                                        saveTimeConfig()
-                                    }
-                                )) {
-                                    ForEach(0..<24, id: \.self) { hour in
-                                        Text(formatHour(hour)).tag(hour)
-                                    }
-                                }
-                                .frame(width: 90)
-
-                                Picker("Widget", selection: Binding(
-                                    get: { timeConfig.widgetHint(for: profile) },
-                                    set: { newHint in
-                                        timeConfig.setWidgetHint(newHint, for: profile)
-                                        saveTimeConfig()
-                                    }
-                                )) {
-                                    ForEach(ContextService.WidgetHint.allCases, id: \.self) { hint in
-                                        Text(hint.rawValue.capitalized).tag(hint)
-                                    }
-                                }
-                                .frame(width: 90)
+                            SettingsListRow {
+                                timeProfileRow(profile)
                             }
-                        }
-                    }
-                }
-
-                // MARK: - Focus Mode Integration
-
-                Section("Focus Mode") {
-                    Toggle("Override widgets based on active Focus Mode", isOn: $focusModeEnabled)
-                        .onChange(of: focusModeEnabled) { _, newValue in
-                            UserDefaults.standard.set(newValue, forKey: "focusModeEnabled")
-                        }
-
-                    if focusModeEnabled {
-                        Text("When a macOS Focus Mode is active, the assigned widget is shown instead of the default.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-
-                        ForEach(Array(focusConfig.assignments.keys.sorted()), id: \.self) { name in
-                            HStack {
-                                Text(name)
-                                Spacer()
-                                Picker("Widget", selection: Binding(
-                                    get: { focusConfig.assignments[name] ?? .none },
-                                    set: { newHint in
-                                        focusConfig.assignments[name] = newHint
-                                        saveFocusConfig()
-                                    }
-                                )) {
-                                    ForEach(ContextService.WidgetHint.allCases, id: \.self) { hint in
-                                        Text(hint.rawValue.capitalized).tag(hint)
-                                    }
-                                }
-                                .frame(width: 90)
-
-                                Button(role: .destructive) {
-                                    focusConfig.assignments.removeValue(forKey: name)
-                                    saveFocusConfig()
-                                } label: {
-                                    Image(systemName: "minus.circle")
-                                }
-                                .buttonStyle(.borderless)
-                            }
-                        }
-
-                        HStack {
-                            TextField("Focus Mode name", text: $newFocusModeName)
-                                .textFieldStyle(.roundedBorder)
-                            Button("Add") {
-                                let name = newFocusModeName.trimmingCharacters(in: .whitespaces)
-                                guard !name.isEmpty else { return }
-                                focusConfig.assignments[name] = ContextService.WidgetHint.none
-                                saveFocusConfig()
-                                newFocusModeName = ""
-                            }
-                            .disabled(newFocusModeName.trimmingCharacters(in: .whitespaces).isEmpty)
                         }
                     }
                 }
             }
-            .padding()
         }
+    }
+
+    private func timeProfileRow(_ profile: ContextService.TimeProfile) -> some View {
+        HStack(spacing: 10) {
+            SettingsIconBadge(icon: profile.defaultIcon, color: .indigo)
+
+            Text(profile.label)
+                .font(.system(size: 12, weight: .medium))
+                .frame(width: 80, alignment: .leading)
+
+            Spacer(minLength: 8)
+
+            Picker("", selection: Binding(
+                get: { timeConfig.startHour(for: profile) },
+                set: { timeConfig.setStartHour($0, for: profile); saveTimeConfig() }
+            )) {
+                ForEach(0..<24, id: \.self) { hour in
+                    Text(formatHour(hour)).tag(hour)
+                }
+            }
+            .labelsHidden()
+            .frame(width: 92)
+
+            Picker("", selection: Binding(
+                get: { timeConfig.widgetHint(for: profile) },
+                set: { timeConfig.setWidgetHint($0, for: profile); saveTimeConfig() }
+            )) {
+                ForEach(ContextService.WidgetHint.allCases, id: \.self) { hint in
+                    Text(hint.rawValue.capitalized).tag(hint)
+                }
+            }
+            .labelsHidden()
+            .frame(width: 110)
+        }
+    }
+
+    @ViewBuilder
+    private var focusModePanel: some View {
+        SettingsPanel(
+            title: "Focus Mode",
+            subtitle: "Override widgets when a macOS Focus Mode is active."
+        ) {
+            VStack(alignment: .leading, spacing: 10) {
+                Toggle("Enable Focus Mode overrides", isOn: $focusModeEnabled)
+                    .toggleStyle(.switch)
+                    .onChange(of: focusModeEnabled) { _, newValue in
+                        UserDefaults.standard.set(newValue, forKey: "focusModeEnabled")
+                    }
+
+                if focusModeEnabled {
+                    if focusConfig.assignments.isEmpty {
+                        emptyMessage("No Focus Modes assigned yet.")
+                    } else {
+                        VStack(spacing: 6) {
+                            ForEach(Array(focusConfig.assignments.keys.sorted()), id: \.self) { name in
+                                SettingsListRow {
+                                    focusRow(name: name)
+                                }
+                            }
+                        }
+                    }
+
+                    HStack(spacing: 8) {
+                        TextField("Focus Mode name (e.g., Work)", text: $newFocusModeName)
+                            .textFieldStyle(.roundedBorder)
+                        Button("Add") {
+                            let name = newFocusModeName.trimmingCharacters(in: .whitespaces)
+                            guard !name.isEmpty else { return }
+                            focusConfig.assignments[name] = ContextService.WidgetHint.none
+                            saveFocusConfig()
+                            newFocusModeName = ""
+                        }
+                        .controlSize(.regular)
+                        .disabled(newFocusModeName.trimmingCharacters(in: .whitespaces).isEmpty)
+                    }
+                    .padding(.top, 2)
+                }
+            }
+        }
+    }
+
+    private func focusRow(name: String) -> some View {
+        HStack(spacing: 10) {
+            SettingsIconBadge(icon: "moon.fill", color: .purple)
+            Text(name)
+                .font(.system(size: 12, weight: .medium))
+            Spacer(minLength: 8)
+            Picker("", selection: Binding(
+                get: { focusConfig.assignments[name] ?? .none },
+                set: { focusConfig.assignments[name] = $0; saveFocusConfig() }
+            )) {
+                ForEach(ContextService.WidgetHint.allCases, id: \.self) { hint in
+                    Text(hint.rawValue.capitalized).tag(hint)
+                }
+            }
+            .labelsHidden()
+            .frame(width: 110)
+
+            Button(role: .destructive) {
+                focusConfig.assignments.removeValue(forKey: name)
+                saveFocusConfig()
+            } label: {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(.borderless)
+        }
+    }
+
+    private func emptyMessage(_ text: String) -> some View {
+        HStack {
+            Text(text)
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+            Spacer()
+        }
+        .padding(.vertical, 4)
     }
 
     private func saveCustomRules() {
@@ -967,47 +1134,67 @@ struct AddContextRuleSheet: View {
     @State private var widgetHint: ContextService.WidgetHint = .media
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Add Context Rule")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 18) {
+            SheetHeader(
+                title: "Add Context Rule",
+                subtitle: "Show a specific widget when this condition is met."
+            )
 
-            Form {
-                TextField("Rule name", text: $ruleName)
+            VStack(alignment: .leading, spacing: 14) {
+                SheetField(label: "Rule Name") {
+                    TextField("e.g., Coding hours", text: $ruleName)
+                        .textFieldStyle(.roundedBorder)
+                }
 
-                Picker("When", selection: $conditionType) {
-                    ForEach(ContextRule.ConditionType.allCases, id: \.self) { type in
-                        Text(type.label).tag(type)
+                SheetField(label: "When") {
+                    Picker("", selection: $conditionType) {
+                        ForEach(ContextRule.ConditionType.allCases, id: \.self) { type in
+                            Text(type.label).tag(type)
+                        }
                     }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
                 }
 
                 switch conditionType {
                 case .app:
-                    TextField("App bundle ID (e.g., com.apple.Xcode)", text: $appBundleID)
+                    SheetField(
+                        label: "App Bundle ID",
+                        hint: "Find with: osascript -e 'id of app \"AppName\"'"
+                    ) {
+                        TextField("com.apple.Xcode", text: $appBundleID)
+                            .textFieldStyle(.roundedBorder)
+                            .font(.system(.body, design: .monospaced))
+                    }
                 case .time:
-                    Picker("Time profile", selection: $timeProfile) {
-                        ForEach(ContextService.TimeProfile.allCases) { profile in
-                            Text(profile.label).tag(profile)
+                    SheetField(label: "Time Profile") {
+                        Picker("", selection: $timeProfile) {
+                            ForEach(ContextService.TimeProfile.allCases) { profile in
+                                Text(profile.label).tag(profile)
+                            }
                         }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
                     }
                 case .focus:
-                    TextField("Focus Mode name (e.g., Work)", text: $focusModeName)
+                    SheetField(label: "Focus Mode Name") {
+                        TextField("Work", text: $focusModeName)
+                            .textFieldStyle(.roundedBorder)
+                    }
                 }
 
-                Picker("Show widget", selection: $widgetHint) {
-                    ForEach(ContextService.WidgetHint.allCases, id: \.self) { hint in
-                        Text(hint.rawValue.capitalized).tag(hint)
+                SheetField(label: "Show Widget") {
+                    Picker("", selection: $widgetHint) {
+                        ForEach(ContextService.WidgetHint.allCases, id: \.self) { hint in
+                            Text(hint.rawValue.capitalized).tag(hint)
+                        }
                     }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
                 }
             }
 
-            HStack {
-                Button("Cancel") {
-                    dismiss()
-                }
-                .keyboardShortcut(.cancelAction)
-
-                Spacer()
-
+            SheetFooter(onCancel: { dismiss() }) {
                 Button("Add") {
                     let condition: ContextRule.RuleCondition
                     switch conditionType {
@@ -1028,11 +1215,12 @@ struct AddContextRuleSheet: View {
                     dismiss()
                 }
                 .keyboardShortcut(.defaultAction)
+                .buttonStyle(.borderedProminent)
                 .disabled(!isValid)
             }
         }
-        .padding()
-        .frame(width: 380)
+        .padding(20)
+        .frame(width: 420)
     }
 
     private var isValid: Bool {
@@ -1060,151 +1248,203 @@ struct DropActionsSettingsTab: View {
 
     var body: some View {
         ScrollView {
-            Form {
-                // MARK: Built-in Actions
-                Section("Built-in Actions") {
-                    HStack {
-                        Image(systemName: "arrow.down.right.and.arrow.up.left")
-                            .frame(width: 20)
-                        VStack(alignment: .leading) {
-                            Text("Compress Image")
-                            Text("png, jpg, jpeg, tiff, bmp, heic, webp")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    HStack {
-                        Image(systemName: "doc.text.viewfinder")
-                            .frame(width: 20)
-                        VStack(alignment: .leading) {
-                            Text("Extract Text (OCR)")
-                            Text("png, jpg, jpeg, tiff, bmp, heic, webp, pdf")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-
-                // MARK: Custom Actions
-                Section("Custom Actions") {
-                    if customActions.isEmpty {
-                        Text("No custom actions configured.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    ForEach(Array(customActions.enumerated()), id: \.element.id) { index, action in
-                        HStack {
-                            Image(systemName: action.actionType.iconName)
-                                .frame(width: 20)
-                            VStack(alignment: .leading) {
-                                Text(action.name)
-                                Text("\(action.actionType.label) · \(extensionsLabel(action.fileExtensions))")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-
-                            Button {
-                                editingAction = customActions[index]
-                            } label: {
-                                Image(systemName: "pencil")
-                            }
-                            .buttonStyle(.borderless)
-
-                            Button(role: .destructive) {
-                                customActions.remove(at: index)
-                                CustomDropActionStore.save(customActions)
-                            } label: {
-                                Image(systemName: "minus.circle")
-                            }
-                            .buttonStyle(.borderless)
-                        }
-                    }
-
-                    Button("Add Action…") {
-                        showingAddAction = true
-                    }
-                    .controlSize(.small)
-                    .sheet(isPresented: $showingAddAction) {
-                        AddDropActionSheet { newAction in
-                            customActions.append(newAction)
-                            CustomDropActionStore.save(customActions)
-                        }
-                    }
-                    .sheet(item: $editingAction) { action in
-                        EditDropActionSheet(action: action) { updated in
-                            if let idx = customActions.firstIndex(where: { $0.id == updated.id }) {
-                                customActions[idx] = updated
-                                CustomDropActionStore.save(customActions)
-                            }
-                        }
-                    }
-                }
-
-                // MARK: Pipelines
-                Section("Pipelines") {
-                    Text("Chain multiple actions sequentially. Output from each step feeds into the next.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    if pipelines.isEmpty {
-                        Text("No pipelines configured.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    ForEach(Array(pipelines.enumerated()), id: \.element.id) { index, pipeline in
-                        HStack {
-                            Image(systemName: "arrow.triangle.branch")
-                                .frame(width: 20)
-                            VStack(alignment: .leading) {
-                                Text(pipeline.name)
-                                Text("\(pipeline.steps.count) step\(pipeline.steps.count == 1 ? "" : "s") · \(extensionsLabel(pipeline.supportedExtensions))")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-
-                            Button {
-                                editingPipeline = pipelines[index]
-                            } label: {
-                                Image(systemName: "pencil")
-                            }
-                            .buttonStyle(.borderless)
-
-                            Button(role: .destructive) {
-                                pipelines.remove(at: index)
-                                PipelineStore.save(pipelines)
-                            } label: {
-                                Image(systemName: "minus.circle")
-                            }
-                            .buttonStyle(.borderless)
-                        }
-                    }
-
-                    Button("Add Pipeline…") {
-                        showingAddPipeline = true
-                    }
-                    .controlSize(.small)
-                    .sheet(isPresented: $showingAddPipeline) {
-                        EditPipelineSheet(pipeline: nil) { newPipeline in
-                            pipelines.append(newPipeline)
-                            PipelineStore.save(pipelines)
-                        }
-                    }
-                    .sheet(item: $editingPipeline) { pipeline in
-                        EditPipelineSheet(pipeline: pipeline) { updated in
-                            if let idx = pipelines.firstIndex(where: { $0.id == updated.id }) {
-                                pipelines[idx] = updated
-                                PipelineStore.save(pipelines)
-                            }
-                        }
-                    }
+            VStack(alignment: .leading, spacing: 14) {
+                builtInPanel
+                customActionsPanel
+                pipelinesPanel
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .sheet(isPresented: $showingAddAction) {
+            AddDropActionSheet { newAction in
+                customActions.append(newAction)
+                CustomDropActionStore.save(customActions)
+            }
+        }
+        .sheet(item: $editingAction) { action in
+            EditDropActionSheet(action: action) { updated in
+                if let idx = customActions.firstIndex(where: { $0.id == updated.id }) {
+                    customActions[idx] = updated
+                    CustomDropActionStore.save(customActions)
                 }
             }
-            .padding()
         }
+        .sheet(isPresented: $showingAddPipeline) {
+            EditPipelineSheet(pipeline: nil) { newPipeline in
+                pipelines.append(newPipeline)
+                PipelineStore.save(pipelines)
+            }
+        }
+        .sheet(item: $editingPipeline) { pipeline in
+            EditPipelineSheet(pipeline: pipeline) { updated in
+                if let idx = pipelines.firstIndex(where: { $0.id == updated.id }) {
+                    pipelines[idx] = updated
+                    PipelineStore.save(pipelines)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var builtInPanel: some View {
+        SettingsPanel(
+            title: "Built-in Actions",
+            subtitle: "Always available. Drop a supported file on the notch to use."
+        ) {
+            VStack(spacing: 8) {
+                SettingsListRow {
+                    actionRowContent(
+                        icon: "arrow.down.right.and.arrow.up.left",
+                        color: .blue,
+                        title: "Compress Image",
+                        subtitle: "png · jpg · jpeg · tiff · bmp · heic · webp",
+                        trailing: { EmptyView() }
+                    )
+                }
+                SettingsListRow {
+                    actionRowContent(
+                        icon: "doc.text.viewfinder",
+                        color: .purple,
+                        title: "Extract Text (OCR)",
+                        subtitle: "png · jpg · jpeg · tiff · bmp · heic · webp · pdf",
+                        trailing: { EmptyView() }
+                    )
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var customActionsPanel: some View {
+        SettingsPanel(
+            title: "Custom Actions",
+            subtitle: "Run a Shortcut or shell command when a matching file is dropped."
+        ) {
+            VStack(spacing: 6) {
+                if customActions.isEmpty {
+                    emptyMessage("No custom actions yet.")
+                } else {
+                    ForEach(Array(customActions.enumerated()), id: \.element.id) { index, action in
+                        SettingsListRow {
+                            actionRowContent(
+                                icon: action.actionType.iconName,
+                                color: .green,
+                                title: action.name,
+                                subtitle: "\(action.actionType.label) · \(extensionsLabel(action.fileExtensions))"
+                            ) {
+                                rowActions(
+                                    edit: { editingAction = customActions[index] },
+                                    delete: {
+                                        customActions.remove(at: index)
+                                        CustomDropActionStore.save(customActions)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Button {
+                    showingAddAction = true
+                } label: {
+                    Label("Add Action", systemImage: "plus.circle.fill")
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .buttonStyle(.borderless)
+                .padding(.top, 4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var pipelinesPanel: some View {
+        SettingsPanel(
+            title: "Pipelines",
+            subtitle: "Chain actions sequentially. Each step's output feeds the next."
+        ) {
+            VStack(spacing: 6) {
+                if pipelines.isEmpty {
+                    emptyMessage("No pipelines yet.")
+                } else {
+                    ForEach(Array(pipelines.enumerated()), id: \.element.id) { index, pipeline in
+                        SettingsListRow {
+                            actionRowContent(
+                                icon: "arrow.triangle.branch",
+                                color: .orange,
+                                title: pipeline.name,
+                                subtitle: "\(pipeline.steps.count) step\(pipeline.steps.count == 1 ? "" : "s") · \(extensionsLabel(pipeline.supportedExtensions))"
+                            ) {
+                                rowActions(
+                                    edit: { editingPipeline = pipelines[index] },
+                                    delete: {
+                                        pipelines.remove(at: index)
+                                        PipelineStore.save(pipelines)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Button {
+                    showingAddPipeline = true
+                } label: {
+                    Label("Add Pipeline", systemImage: "plus.circle.fill")
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .buttonStyle(.borderless)
+                .padding(.top, 4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    private func actionRowContent<Trailing: View>(
+        icon: String,
+        color: Color,
+        title: String,
+        subtitle: String,
+        @ViewBuilder trailing: () -> Trailing
+    ) -> some View {
+        HStack(spacing: 10) {
+            SettingsIconBadge(icon: icon, color: color)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 12, weight: .medium))
+                Text(subtitle)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+            Spacer(minLength: 8)
+            trailing()
+        }
+    }
+
+    @ViewBuilder
+    private func rowActions(edit: @escaping () -> Void, delete: @escaping () -> Void) -> some View {
+        Button(action: edit) {
+            Image(systemName: "pencil")
+        }
+        .buttonStyle(.borderless)
+
+        Button(role: .destructive, action: delete) {
+            Image(systemName: "trash")
+        }
+        .buttonStyle(.borderless)
+    }
+
+    private func emptyMessage(_ text: String) -> some View {
+        HStack {
+            Text(text)
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+            Spacer()
+        }
+        .padding(.vertical, 4)
     }
 
     private func extensionsLabel(_ exts: Set<String>) -> String {
@@ -1224,37 +1464,56 @@ struct AddDropActionSheet: View {
     @State private var fileExtensions = "*"
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Add Drop Action")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 18) {
+            SheetHeader(
+                title: "Add Drop Action",
+                subtitle: "Run a Shortcut or shell command when a matching file is dropped."
+            )
 
-            Form {
-                TextField("Name", text: $name)
+            VStack(alignment: .leading, spacing: 14) {
+                SheetField(label: "Name") {
+                    TextField("My Action", text: $name)
+                        .textFieldStyle(.roundedBorder)
+                }
 
-                Picker("Type", selection: $actionType) {
-                    ForEach(CustomDropActionType.allCases, id: \.self) { type in
-                        Text(type.label).tag(type)
+                SheetField(label: "Type") {
+                    Picker("", selection: $actionType) {
+                        ForEach(CustomDropActionType.allCases, id: \.self) { type in
+                            Text(type.label).tag(type)
+                        }
                     }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
                 }
 
                 switch actionType {
                 case .shortcut:
-                    TextField("Shortcut name", text: $config)
-                        .textFieldStyle(.roundedBorder)
+                    SheetField(label: "Shortcut Name") {
+                        TextField("Name of a Shortcut from the Shortcuts app", text: $config)
+                            .textFieldStyle(.roundedBorder)
+                    }
                 case .shellScript:
-                    TextField("Shell command (file path as $1)", text: $config)
-                        .textFieldStyle(.roundedBorder)
+                    SheetField(
+                        label: "Shell Command",
+                        hint: "Use $1 for the dropped file path. Runs in /bin/zsh."
+                    ) {
+                        TextField("/usr/bin/file \"$1\"", text: $config)
+                            .textFieldStyle(.roundedBorder)
+                            .font(.system(.body, design: .monospaced))
+                    }
                 }
 
-                TextField("File extensions (comma-separated, or * for any)", text: $fileExtensions)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(.body, design: .monospaced))
+                SheetField(
+                    label: "File Extensions",
+                    hint: "Comma-separated, or * for any file type."
+                ) {
+                    TextField("*", text: $fileExtensions)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.system(.body, design: .monospaced))
+                }
             }
 
-            HStack {
-                Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction)
-                Spacer()
+            SheetFooter(onCancel: { dismiss() }) {
                 Button("Add") {
                     let exts = parseExtensions(fileExtensions)
                     let action = CustomDropActionConfig(
@@ -1267,11 +1526,12 @@ struct AddDropActionSheet: View {
                     dismiss()
                 }
                 .keyboardShortcut(.defaultAction)
+                .buttonStyle(.borderedProminent)
                 .disabled(!isValid)
             }
         }
-        .padding()
-        .frame(width: 420)
+        .padding(20)
+        .frame(width: 440)
     }
 
     private var isValid: Bool {
@@ -1302,37 +1562,56 @@ struct EditDropActionSheet: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Edit Drop Action")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 18) {
+            SheetHeader(
+                title: "Edit Drop Action",
+                subtitle: "Update this action's name, command, or supported file types."
+            )
 
-            Form {
-                TextField("Name", text: $name)
+            VStack(alignment: .leading, spacing: 14) {
+                SheetField(label: "Name") {
+                    TextField("My Action", text: $name)
+                        .textFieldStyle(.roundedBorder)
+                }
 
-                Picker("Type", selection: $actionType) {
-                    ForEach(CustomDropActionType.allCases, id: \.self) { type in
-                        Text(type.label).tag(type)
+                SheetField(label: "Type") {
+                    Picker("", selection: $actionType) {
+                        ForEach(CustomDropActionType.allCases, id: \.self) { type in
+                            Text(type.label).tag(type)
+                        }
                     }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
                 }
 
                 switch actionType {
                 case .shortcut:
-                    TextField("Shortcut name", text: $config)
-                        .textFieldStyle(.roundedBorder)
+                    SheetField(label: "Shortcut Name") {
+                        TextField("Name of a Shortcut from the Shortcuts app", text: $config)
+                            .textFieldStyle(.roundedBorder)
+                    }
                 case .shellScript:
-                    TextField("Shell command (file path as $1)", text: $config)
-                        .textFieldStyle(.roundedBorder)
+                    SheetField(
+                        label: "Shell Command",
+                        hint: "Use $1 for the dropped file path. Runs in /bin/zsh."
+                    ) {
+                        TextField("/usr/bin/file \"$1\"", text: $config)
+                            .textFieldStyle(.roundedBorder)
+                            .font(.system(.body, design: .monospaced))
+                    }
                 }
 
-                TextField("File extensions (comma-separated, or * for any)", text: $fileExtensions)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(.body, design: .monospaced))
+                SheetField(
+                    label: "File Extensions",
+                    hint: "Comma-separated, or * for any file type."
+                ) {
+                    TextField("*", text: $fileExtensions)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.system(.body, design: .monospaced))
+                }
             }
 
-            HStack {
-                Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction)
-                Spacer()
+            SheetFooter(onCancel: { dismiss() }) {
                 Button("Save") {
                     let exts = parseExtensions(fileExtensions)
                     let updated = CustomDropActionConfig(
@@ -1346,11 +1625,12 @@ struct EditDropActionSheet: View {
                     dismiss()
                 }
                 .keyboardShortcut(.defaultAction)
+                .buttonStyle(.borderedProminent)
                 .disabled(!isValid)
             }
         }
-        .padding()
-        .frame(width: 420)
+        .padding(20)
+        .frame(width: 440)
     }
 
     private var isValid: Bool {
@@ -1386,90 +1666,31 @@ struct EditPipelineSheet: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text(name.isEmpty ? "New Pipeline" : "Edit Pipeline")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 18) {
+            SheetHeader(
+                title: name.isEmpty ? "New Pipeline" : "Edit Pipeline",
+                subtitle: "Chain actions sequentially. Each step's output feeds the next."
+            )
 
-            Form {
-                TextField("Pipeline name", text: $name)
-
-                TextField("File extensions (comma-separated, or * for any)", text: $fileExtensions)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(.body, design: .monospaced))
-
-                Section("Steps") {
-                    if steps.isEmpty {
-                        Text("No steps added yet.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    ForEach(Array(steps.enumerated()), id: \.element.id) { index, step in
-                        HStack {
-                            Text("\(index + 1).")
-                                .foregroundStyle(.secondary)
-                                .frame(width: 20)
-
-                            Picker("", selection: Binding(
-                                get: { steps[index].stepType },
-                                set: { steps[index].stepType = $0 }
-                            )) {
-                                ForEach(PipelineStepType.allCases, id: \.self) { type in
-                                    Text(type.rawValue).tag(type)
-                                }
-                            }
-                            .labelsHidden()
-                            .frame(width: 120)
-
-                            if step.stepType == .shortcut || step.stepType == .shellScript {
-                                TextField(
-                                    step.stepType == .shortcut ? "Shortcut name" : "Shell command",
-                                    text: Binding(
-                                        get: { steps[index].config },
-                                        set: { steps[index].config = $0 }
-                                    )
-                                )
-                                .textFieldStyle(.roundedBorder)
-                            } else {
-                                Spacer()
-                            }
-
-                            Button {
-                                moveStepUp(index)
-                            } label: {
-                                Image(systemName: "chevron.up")
-                            }
-                            .buttonStyle(.borderless)
-                            .disabled(index == 0)
-
-                            Button {
-                                moveStepDown(index)
-                            } label: {
-                                Image(systemName: "chevron.down")
-                            }
-                            .buttonStyle(.borderless)
-                            .disabled(index == steps.count - 1)
-
-                            Button(role: .destructive) {
-                                steps.remove(at: index)
-                            } label: {
-                                Image(systemName: "minus.circle")
-                            }
-                            .buttonStyle(.borderless)
-                        }
-                    }
-
-                    Button("Add Step") {
-                        steps.append(PipelineStep(stepType: .compressImage))
-                    }
-                    .controlSize(.small)
+            VStack(alignment: .leading, spacing: 14) {
+                SheetField(label: "Pipeline Name") {
+                    TextField("My Pipeline", text: $name)
+                        .textFieldStyle(.roundedBorder)
                 }
+
+                SheetField(
+                    label: "File Extensions",
+                    hint: "Comma-separated, or * for any file type."
+                ) {
+                    TextField("*", text: $fileExtensions)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.system(.body, design: .monospaced))
+                }
+
+                stepsSection
             }
 
-            HStack {
-                Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction)
-                Spacer()
+            SheetFooter(onCancel: { dismiss() }) {
                 Button("Save") {
                     let exts = parseExtensions(fileExtensions)
                     let pipeline = PipelineConfig(
@@ -1482,11 +1703,111 @@ struct EditPipelineSheet: View {
                     dismiss()
                 }
                 .keyboardShortcut(.defaultAction)
+                .buttonStyle(.borderedProminent)
                 .disabled(!isValid)
             }
         }
-        .padding()
-        .frame(width: 500, height: 450)
+        .padding(20)
+        .frame(width: 520, height: 480)
+    }
+
+    @ViewBuilder
+    private var stepsSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Steps")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.secondary)
+
+            if steps.isEmpty {
+                HStack {
+                    Text("No steps added yet.")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+                .padding(.vertical, 8)
+                .padding(.horizontal, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(.primary.opacity(0.04))
+                )
+            } else {
+                ScrollView {
+                    VStack(spacing: 6) {
+                        ForEach(Array(steps.enumerated()), id: \.element.id) { index, step in
+                            stepRow(index: index, step: step)
+                        }
+                    }
+                }
+                .frame(maxHeight: 180)
+            }
+
+            Button {
+                steps.append(PipelineStep(stepType: .compressImage))
+            } label: {
+                Label("Add Step", systemImage: "plus.circle.fill")
+                    .font(.system(size: 12, weight: .medium))
+            }
+            .buttonStyle(.borderless)
+        }
+    }
+
+    private func stepRow(index: Int, step: PipelineStep) -> some View {
+        HStack(spacing: 8) {
+            Text("\(index + 1)")
+                .font(.system(size: 11, weight: .semibold).monospacedDigit())
+                .foregroundStyle(.secondary)
+                .frame(width: 18, alignment: .leading)
+
+            Picker("", selection: Binding(
+                get: { steps[index].stepType },
+                set: { steps[index].stepType = $0 }
+            )) {
+                ForEach(PipelineStepType.allCases, id: \.self) { type in
+                    Text(type.rawValue).tag(type)
+                }
+            }
+            .labelsHidden()
+            .frame(width: 130)
+
+            if step.stepType == .shortcut || step.stepType == .shellScript {
+                TextField(
+                    step.stepType == .shortcut ? "Shortcut name" : "Shell command",
+                    text: Binding(
+                        get: { steps[index].config },
+                        set: { steps[index].config = $0 }
+                    )
+                )
+                .textFieldStyle(.roundedBorder)
+            } else {
+                Spacer()
+            }
+
+            Button { moveStepUp(index) } label: {
+                Image(systemName: "chevron.up")
+            }
+            .buttonStyle(.borderless)
+            .disabled(index == 0)
+
+            Button { moveStepDown(index) } label: {
+                Image(systemName: "chevron.down")
+            }
+            .buttonStyle(.borderless)
+            .disabled(index == steps.count - 1)
+
+            Button(role: .destructive) {
+                steps.remove(at: index)
+            } label: {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(.borderless)
+        }
+        .padding(.vertical, 6)
+        .padding(.horizontal, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(.primary.opacity(0.04))
+        )
     }
 
     private var isValid: Bool {
@@ -1565,6 +1886,124 @@ struct AboutSettingsTab: View {
                 .padding(.bottom, 16)
         }
         .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - PIN Sheets
+
+private struct SecurityLogo: View {
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            HoopLogo()
+                .frame(width: 64, height: 64)
+
+            Image(systemName: "lock.fill")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 24, height: 24)
+                .background(
+                    Circle().fill(Color.accentColor.gradient)
+                )
+                .overlay(
+                    Circle().strokeBorder(Color(nsColor: .windowBackgroundColor), lineWidth: 2)
+                )
+                .offset(x: 4, y: -4)
+        }
+    }
+}
+
+private struct SetPINSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let securityGate: SecurityGate
+    @State private var pin: String = ""
+
+    private var isValid: Bool { pin.count >= 4 && pin.count <= 6 }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            SecurityLogo()
+                .padding(.top, 4)
+
+            Text("Set PIN")
+                .font(.system(size: 16, weight: .semibold))
+
+            SecureField("Enter 4-6 digit PIN", text: $pin)
+                .textFieldStyle(.roundedBorder)
+
+            HStack(spacing: 10) {
+                Button("Cancel") {
+                    pin = ""
+                    dismiss()
+                }
+                .keyboardShortcut(.cancelAction)
+                .frame(maxWidth: .infinity)
+
+                Button("Set") {
+                    guard isValid else { return }
+                    _ = securityGate.setupPIN(pin)
+                    pin = ""
+                    dismiss()
+                }
+                .keyboardShortcut(.defaultAction)
+                .buttonStyle(.borderedProminent)
+                .disabled(!isValid)
+                .frame(maxWidth: .infinity)
+            }
+            .controlSize(.large)
+        }
+        .padding(20)
+        .frame(width: 320)
+    }
+}
+
+private struct ChangePINSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let securityGate: SecurityGate
+    @State private var current: String = ""
+    @State private var newPIN: String = ""
+
+    private var isValid: Bool {
+        !current.isEmpty && newPIN.count >= 4 && newPIN.count <= 6
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            SecurityLogo()
+                .padding(.top, 4)
+
+            Text("Change PIN")
+                .font(.system(size: 16, weight: .semibold))
+
+            VStack(spacing: 10) {
+                SecureField("Current PIN", text: $current)
+                    .textFieldStyle(.roundedBorder)
+                SecureField("New PIN (4-6 digits)", text: $newPIN)
+                    .textFieldStyle(.roundedBorder)
+            }
+
+            HStack(spacing: 10) {
+                Button("Cancel") {
+                    current = ""; newPIN = ""
+                    dismiss()
+                }
+                .keyboardShortcut(.cancelAction)
+                .frame(maxWidth: .infinity)
+
+                Button("Change") {
+                    guard isValid else { return }
+                    _ = securityGate.changePIN(currentPIN: current, newPIN: newPIN)
+                    current = ""; newPIN = ""
+                    dismiss()
+                }
+                .keyboardShortcut(.defaultAction)
+                .buttonStyle(.borderedProminent)
+                .disabled(!isValid)
+                .frame(maxWidth: .infinity)
+            }
+            .controlSize(.large)
+        }
+        .padding(20)
+        .frame(width: 340)
     }
 }
 

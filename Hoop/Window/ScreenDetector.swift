@@ -61,6 +61,16 @@ extension NSScreen {
             height: expandedHeight
         )
     }
+    var startupOverlayFrame: NSRect {
+        let width: CGFloat = 360
+        let height: CGFloat = 140
+        return NSRect(
+            x: frame.midX - width / 2,
+            y: frame.maxY - height,
+            width: width,
+            height: height
+        )
+    }
 
     /// A stable identifier for this screen that persists across reconnections.
     /// Uses the CGDirectDisplayID from the device description dictionary.
