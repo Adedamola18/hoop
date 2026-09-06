@@ -4,6 +4,12 @@
 
 A macOS utility that transforms the MacBook notch into a dynamic control center — media player, widgets, HUD, file drop zone, and more.
 
+## Demo
+
+<video src="https://github.com/Adedamola18/hoop/releases/download/assets/hoop-demo.mp4" controls muted playsinline width="720"></video>
+
+> Player not loading? [Watch the demo](https://github.com/Adedamola18/hoop/releases/download/assets/hoop-demo.mp4).
+
 
 ## Features
 
@@ -46,6 +52,15 @@ The notch adapts automatically:
 ### Privacy Indicators
 - Camera and microphone in-use indicators
 - Screen recording indicator with pulsing dot
+
+### Markets & Alerts
+Stream real-time price moves and trading signals straight to the notch:
+- **Binance** — spot tickers via WebSocket
+- **Bybit** — spot and derivatives tickers
+- **Polymarket** — prediction-market price changes
+- **Kalshi** — event-contract price changes
+- **TradingView Webhooks** — local webhook server (configurable port + bearer token) that turns alerts from any TradingView strategy into in-notch notifications
+- Per-platform toggles in Settings → Markets, with a "Send Test Alert" button to verify wiring
 
 ## Requirements
 
