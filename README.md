@@ -6,9 +6,10 @@ A macOS utility that transforms the MacBook notch into a dynamic control center 
 
 ## Demo
 
-<video src="https://github.com/Adedamola18/hoop/releases/download/assets/hoop-demo.mp4" controls muted playsinline width="720"></video>
+https://github.com/user-attachments/assets/1bebf23b-5635-471f-9e15-08b699e45f81
 
-> Player not loading? [Watch the demo](https://github.com/Adedamola18/hoop/releases/download/assets/hoop-demo.mp4).
+
+> Player not loading? [Watch the demo](https://github.com/user-attachments/assets/1bebf23b-5635-471f-9e15-08b699e45f81).
 
 
 ## Features
