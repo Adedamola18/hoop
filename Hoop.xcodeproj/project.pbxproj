@@ -18,6 +18,14 @@
 		AA00000A /* NotchShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001A /* NotchShape.swift */; };
 		AA00000B /* VisualEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001B /* VisualEffectView.swift */; };
 		AA00000C /* MediaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001C /* MediaService.swift */; };
+		BB000063 /* NowPlayingInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000062 /* NowPlayingInfo.swift */; };
+		BB000065 /* MediaSourceAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000064 /* MediaSourceAdapter.swift */; };
+		BB000067 /* AppleScriptRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000066 /* AppleScriptRunner.swift */; };
+		BB000069 /* MediaArbiter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000068 /* MediaArbiter.swift */; };
+		BB00006B /* MediaSourceCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00006A /* MediaSourceCatalog.swift */; };
+		BB00006D /* ScriptablePlayerAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00006C /* ScriptablePlayerAdapter.swift */; };
+		BB00006F /* MediaRemoteAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00006E /* MediaRemoteAdapter.swift */; };
+		BB000073 /* AudioProcessMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000072 /* AudioProcessMonitor.swift */; };
 		AA00000D /* MediaPlayerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001D /* MediaPlayerWidget.swift */; };
 		AA00000E /* CollapsedMediaIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001E /* CollapsedMediaIndicator.swift */; };
 		AA00000F /* HUDService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001F /* HUDService.swift */; };
@@ -89,6 +97,14 @@
 		AA00001A /* NotchShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchShape.swift; sourceTree = "<group>"; };
 		AA00001B /* VisualEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectView.swift; sourceTree = "<group>"; };
 		AA00001C /* MediaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaService.swift; sourceTree = "<group>"; };
+		BB000062 /* NowPlayingInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingInfo.swift; sourceTree = "<group>"; };
+		BB000064 /* MediaSourceAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaSourceAdapter.swift; sourceTree = "<group>"; };
+		BB000066 /* AppleScriptRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleScriptRunner.swift; sourceTree = "<group>"; };
+		BB000068 /* MediaArbiter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaArbiter.swift; sourceTree = "<group>"; };
+		BB00006A /* MediaSourceCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaSourceCatalog.swift; sourceTree = "<group>"; };
+		BB00006C /* ScriptablePlayerAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptablePlayerAdapter.swift; sourceTree = "<group>"; };
+		BB00006E /* MediaRemoteAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaRemoteAdapter.swift; sourceTree = "<group>"; };
+		BB000072 /* AudioProcessMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioProcessMonitor.swift; sourceTree = "<group>"; };
 		AA00001D /* MediaPlayerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlayerWidget.swift; sourceTree = "<group>"; };
 		AA00001E /* CollapsedMediaIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollapsedMediaIndicator.swift; sourceTree = "<group>"; };
 		AA00001F /* HUDService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDService.swift; sourceTree = "<group>"; };
@@ -253,6 +269,7 @@
 				BB00000E /* WidgetProtocol.swift */,
 				BB000030 /* GestureSettings.swift */,
 				BB00003D /* TradingModels.swift */,
+				BB000062 /* NowPlayingInfo.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -279,6 +296,7 @@
 				BB000041 /* WebhookServer.swift */,
 				BB000042 /* AlertEngine.swift */,
 				BB00004C /* Adapters */,
+				BB000074 /* MediaSources */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -293,6 +311,20 @@
 				BB000046 /* KalshiAdapter.swift */,
 			);
 			path = Adapters;
+			sourceTree = "<group>";
+		};
+		BB000074 /* MediaSources */ = {
+			isa = PBXGroup;
+			children = (
+				BB000064 /* MediaSourceAdapter.swift */,
+				BB000066 /* AppleScriptRunner.swift */,
+				BB000068 /* MediaArbiter.swift */,
+				BB00006A /* MediaSourceCatalog.swift */,
+				BB00006C /* ScriptablePlayerAdapter.swift */,
+				BB00006E /* MediaRemoteAdapter.swift */,
+				BB000072 /* AudioProcessMonitor.swift */,
+			);
+			path = MediaSources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -376,6 +408,14 @@
 				AA00000A /* NotchShape.swift in Sources */,
 				AA00000B /* VisualEffectView.swift in Sources */,
 				AA00000C /* MediaService.swift in Sources */,
+				BB000063 /* NowPlayingInfo.swift in Sources */,
+				BB000065 /* MediaSourceAdapter.swift in Sources */,
+				BB000067 /* AppleScriptRunner.swift in Sources */,
+				BB000069 /* MediaArbiter.swift in Sources */,
+				BB00006B /* MediaSourceCatalog.swift in Sources */,
+				BB00006D /* ScriptablePlayerAdapter.swift in Sources */,
+				BB00006F /* MediaRemoteAdapter.swift in Sources */,
+				BB000073 /* AudioProcessMonitor.swift in Sources */,
 				AA00000D /* MediaPlayerWidget.swift in Sources */,
 				AA00000E /* CollapsedMediaIndicator.swift in Sources */,
 				AA00000F /* HUDService.swift in Sources */,

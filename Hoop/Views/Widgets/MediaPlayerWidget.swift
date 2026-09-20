@@ -45,8 +45,8 @@ struct MediaPlayerWidget: View {
                                 .foregroundStyle(.white.opacity(0.55))
                                 .lineLimit(1)
 
-                            // Album/playlist name for Apple Music & Spotify
-                            if info.isRichMediaApp, let album = info.albumName, !album.isEmpty {
+                            // Album/playlist name when the source reports one
+                            if let album = info.albumName, !album.isEmpty {
                                 Text(album)
                                     .font(.system(size: 11))
                                     .foregroundStyle(.white.opacity(0.35))
@@ -57,27 +57,37 @@ struct MediaPlayerWidget: View {
                         // Progress bar
                         progressBar
 
-                        // Playback controls
-                        HStack(spacing: 28) {
-                            Button(action: mediaService.previousTrack) {
-                                Image(systemName: "backward.fill")
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(.white.opacity(0.7))
-                            }
+                        // Playback controls — only when the source can be driven
+                        if info.isControllable {
+                            HStack(spacing: 28) {
+                                if info.capabilities.contains(.nextPrevious) {
+                                    Button(action: mediaService.previousTrack) {
+                                        Image(systemName: "backward.fill")
+                                            .font(.system(size: 14))
+                                            .foregroundStyle(.white.opacity(0.7))
+                                    }
+                                }
 
-                            Button(action: mediaService.playPause) {
-                                Image(systemName: info.playbackState == .playing ? "pause.fill" : "play.fill")
-                                    .font(.system(size: 22))
-                                    .foregroundStyle(.white)
-                            }
+                                Button(action: mediaService.playPause) {
+                                    Image(systemName: info.playbackState == .playing ? "pause.fill" : "play.fill")
+                                        .font(.system(size: 22))
+                                        .foregroundStyle(.white)
+                                }
 
-                            Button(action: mediaService.nextTrack) {
-                                Image(systemName: "forward.fill")
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(.white.opacity(0.7))
+                                if info.capabilities.contains(.nextPrevious) {
+                                    Button(action: mediaService.nextTrack) {
+                                        Image(systemName: "forward.fill")
+                                            .font(.system(size: 14))
+                                            .foregroundStyle(.white.opacity(0.7))
+                                    }
+                                }
                             }
+                            .buttonStyle(.plain)
+                        } else {
+                            Text("Playing in \(info.title ?? "another app")")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.white.opacity(0.45))
                         }
-                        .buttonStyle(.plain)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
