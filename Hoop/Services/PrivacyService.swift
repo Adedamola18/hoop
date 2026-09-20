@@ -37,22 +37,38 @@ final class PrivacyService {
 
     // MARK: - Camera Detection
 
+    /// Camera discovery goes through CoreMediaIO, which can block indefinitely when a
+    /// camera extension is wedged. Never run it on the main thread, and never queue a
+    /// second check behind one that has not returned.
+    private let cameraQueue = DispatchQueue(label: "com.hoops.hoop.privacy.camera", qos: .utility)
+    private var isCameraCheckInFlight = false
+
     private func checkCameraState() {
-        let devices = AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.builtInWideAngleCamera, .external],
-            mediaType: .video,
-            position: .unspecified
-        ).devices
+        guard !isCameraCheckInFlight else { return }
+        isCameraCheckInFlight = true
 
-        let wasActive = isCameraActive
-        isCameraActive = devices.contains { $0.isInUseByAnotherApplication }
+        cameraQueue.async { [weak self] in
+            let devices = AVCaptureDevice.DiscoverySession(
+                deviceTypes: [.builtInWideAngleCamera, .external],
+                mediaType: .video,
+                position: .unspecified
+            ).devices
+            let inUse = devices.contains { $0.isInUseByAnotherApplication }
 
-        if isCameraActive && !wasActive {
-            // Try to find the app using the camera by checking running apps
-            // with known camera-using bundle IDs
-            cameraAppName = findCameraApp()
-        } else if !isCameraActive {
-            cameraAppName = nil
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.isCameraCheckInFlight = false
+                let wasActive = self.isCameraActive
+                self.isCameraActive = inUse
+
+                if inUse && !wasActive {
+                    // Try to find the app using the camera by checking running apps
+                    // with known camera-using bundle IDs
+                    self.cameraAppName = self.findCameraApp()
+                } else if !inUse {
+                    self.cameraAppName = nil
+                }
+            }
         }
     }
 
